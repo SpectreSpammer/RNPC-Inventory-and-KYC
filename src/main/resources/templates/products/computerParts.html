@@ -16,7 +16,7 @@
     </a>
  <div class="row mb-3">
     <div class="col-md-3 mb-3">
-        <a class="btn btn-primary w-50" href="/products/create">Create Product</a>
+        <a class="btn btn-primary w-50" href="/computer/create">Create Product</a>
     </div>
     <div class="col-md-9">
         <div class="input-group rounded">
@@ -46,7 +46,7 @@
         </thead>
         <tbody>
             <!-- Thymeleaf iteration to populate table rows -->
-            <tr th:each="product : ${products}">
+            <tr th:each="product : ${computer}">
                 <td th:text="${product.productId}"></td>
                 <td th:text="${product.brand}"></td>
                 <td th:text="${product.modelName}"></td>
@@ -65,10 +65,10 @@
                 </td>
                 <td style="white-space:nowrap">
                     <a class="btn btn-primary btn-sm"
-                        th:href="@{/products/edit/{id} (id=${product.productId})}">Edit
+                        th:href="@{/computer/edit/{id} (id=${product.productId})}">Edit
                     </a>
                     <a class="btn btn-danger btn-sm"
-                       th:href="@{/products/delete/{id} (id=${product.productId})}"
+                       th:href="@{/computer/delete/{id} (id=${product.productId})}"
                        onclick="return confirm('Are you sure?')">Delete
                     </a>
                 </td>

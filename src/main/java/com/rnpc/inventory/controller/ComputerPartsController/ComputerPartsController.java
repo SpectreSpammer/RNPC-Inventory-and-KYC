@@ -1,4 +1,4 @@
-package com.rnpc.inventory.controller;
+package com.rnpc.inventory.controller.ComputerPartsController;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -29,8 +29,8 @@ import com.rnpc.inventory.services.ProductsRepository;
 import jakarta.validation.Valid;
 
 @Controller
-@RequestMapping("products")
-public class ProductsController {
+@RequestMapping("computer")
+public class ComputerPartsController {
 	
 	@Autowired
 	private ProductsRepository repo;
@@ -39,8 +39,8 @@ public class ProductsController {
 	@GetMapping({"","/"})
 	public String showProductList(Model model) {
 		List<Products> productsList = repo.findAll(Sort.by(Sort.Direction.DESC,"productId"));
-		model.addAttribute("products",productsList);
-		return "products/index";
+		model.addAttribute("computer",productsList);
+		return "products/computerParts";
 	}
 	
 	
@@ -48,7 +48,7 @@ public class ProductsController {
 	public String showCreatePage(Model model) {
 		ProductDto productDto = new ProductDto();
 		model.addAttribute("productDto",productDto);
-		return "products/createProduct";
+		return "products/createComputerParts";
 	}
 	
 	
@@ -62,7 +62,7 @@ public class ProductsController {
 	    }
 
 	    if (result.hasErrors()) {
-	        return "products/createProduct";
+	        return "products/createComputerParts";
 	    }
 
 	    //saving a file
@@ -102,7 +102,7 @@ public class ProductsController {
 	    repo.save(products);
 	     
 
-	    return "redirect:/products";
+	    return "redirect:/computer";
 	}
 	
 	
@@ -122,7 +122,7 @@ public class ProductsController {
 	    
 	    model.addAttribute("productDto", productDto);
 	    model.addAttribute("productId", id);
-	    return "products/editProduct";
+	    return "products/editComputerParts";
 	}
 	
 	@PostMapping("/update/{id}")
@@ -132,7 +132,7 @@ public class ProductsController {
 	                            Model model) {
 	    if (result.hasErrors()) {
 	        model.addAttribute("productId", id);
-	        return "products/editProduct";
+	        return "products/editComputerParts";
 	    }
 
 	    Products product = repo.findById(id)
@@ -170,7 +170,7 @@ public class ProductsController {
 	    }
 
 	    repo.save(product);
-	    return "redirect:/products";
+	    return "redirect:/computer";
 	}
 
 	
@@ -191,7 +191,7 @@ public class ProductsController {
 	    }
 	    
 	    repo.delete(product);
-	    return "redirect:/products";
+	    return "redirect:/computer";
 	}
 	
 }
