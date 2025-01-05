@@ -1,16 +1,13 @@
-package com.rnpc.inventory.models;
-
-import java.util.Date;
+package com.rnpc.inventory.models.computer;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public class ProductDto {
+public class ComputerDto {
 	
 	@NotEmpty(message = "The brand is required!")
 	  @Pattern(regexp = "WD|Kingston|Samsung|ADATA|Crucial", message = "Invalid brand selected")

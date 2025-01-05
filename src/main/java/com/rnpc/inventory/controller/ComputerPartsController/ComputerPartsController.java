@@ -8,6 +8,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
 
+import com.rnpc.inventory.models.computer.ComputerDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -19,11 +20,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.rnpc.inventory.models.ProductDto;
-import com.rnpc.inventory.models.Products;
+import com.rnpc.inventory.models.computer.Computers;
 import com.rnpc.inventory.services.ProductsRepository;
 
 import jakarta.validation.Valid;
@@ -38,35 +37,35 @@ public class ComputerPartsController {
 	
 	@GetMapping({"","/"})
 	public String showProductList(Model model) {
-		List<Products> productsList = repo.findAll(Sort.by(Sort.Direction.DESC,"productId"));
-		model.addAttribute("computer",productsList);
+		List<Computers> computersList = repo.findAll(Sort.by(Sort.Direction.DESC,"productId"));
+		model.addAttribute("computer", computersList);
 		return "products/computerParts";
 	}
 	
 	
 	@GetMapping("/create")
 	public String showCreatePage(Model model) {
-		ProductDto productDto = new ProductDto();
-		model.addAttribute("productDto",productDto);
+		ComputerDto computerDto = new ComputerDto();
+		model.addAttribute("computerDto", computerDto);
 		return "products/createComputerParts";
 	}
 	
 	
 	@PostMapping("/create")
 	public String createProduct(
-	        @Valid @ModelAttribute ProductDto productDto, 
+	        @Valid @ModelAttribute ComputerDto computerDto,
 	        BindingResult result) {
 
-	    if (productDto.getImageFile().isEmpty()) {
-	        result.addError(new FieldError("productDto", "imageFile", "The image file is required!"));
+	    if (computerDto.getImageFile().isEmpty()) {
+	        result.addError(new FieldError("computerDto", "imageFile", "The image file is required!"));
 	    }
 
 	    if (result.hasErrors()) {
-	        return "products/createComputerParts";
+	        return "computers/createComputerParts";
 	    }
 
 	    //saving a file
-	    MultipartFile image = productDto.getImageFile();
+	    MultipartFile image = computerDto.getImageFile();
 	    Date createdAt = new Date();
 	    String storageFileName = createdAt.getTime() + "_" + image.getOriginalFilename();
 
@@ -87,19 +86,19 @@ public class ComputerPartsController {
 	        System.out.println("Exception: " + ex.getMessage());
 	    }
 	    
-	    Products products = new Products();
-	    products.setBrand(productDto.getBrand());
-	    products.setModelName(productDto.getModelName());
-	    products.setCategory(productDto.getCategory());
-	    products.setStorageSize(productDto.getStorageSize());
-	    products.setStocks(productDto.getStocks());
-	    products.setPrice(productDto.getPrice());
-	    products.setDescription(productDto.getDescription());
-	    products.setCreatedAt(createdAt);
-	    products.setImageFileName(storageFileName);
+	    Computers computers = new Computers();
+	    computers.setBrand(computerDto.getBrand());
+	    computers.setModelName(computerDto.getModelName());
+	    computers.setCategory(computerDto.getCategory());
+	    computers.setStorageSize(computerDto.getStorageSize());
+	    computers.setStocks(computerDto.getStocks());
+	    computers.setPrice(computerDto.getPrice());
+	    computers.setDescription(computerDto.getDescription());
+	    computers.setCreatedAt(createdAt);
+	    computers.setImageFileName(storageFileName);
 	    
 	    
-	    repo.save(products);
+	    repo.save(computers);
 	     
 
 	    return "redirect:/computer";
@@ -108,26 +107,26 @@ public class ComputerPartsController {
 	
 	@GetMapping("/edit/{id}")
 	public String showEditProductForm(@PathVariable("id") int id, Model model) {
-	    Products product = repo.findById(id)
+	    Computers product = repo.findById(id)
 	        .orElseThrow(() -> new IllegalArgumentException("Invalid product Id:" + id));
 	    
-	    ProductDto productDto = new ProductDto();
-	    productDto.setBrand(product.getBrand());
-	    productDto.setModelName(product.getModelName());
-	    productDto.setCategory(product.getCategory());
-	    productDto.setStorageSize(product.getStorageSize());
-	    productDto.setStocks(product.getStocks());
-	    productDto.setPrice(product.getPrice());
-	    productDto.setDescription(product.getDescription());
+	    ComputerDto computerDto = new ComputerDto();
+	    computerDto.setBrand(product.getBrand());
+	    computerDto.setModelName(product.getModelName());
+	    computerDto.setCategory(product.getCategory());
+	    computerDto.setStorageSize(product.getStorageSize());
+	    computerDto.setStocks(product.getStocks());
+	    computerDto.setPrice(product.getPrice());
+	    computerDto.setDescription(product.getDescription());
 	    
-	    model.addAttribute("productDto", productDto);
+	    model.addAttribute("computerDto", computerDto);
 	    model.addAttribute("productId", id);
 	    return "products/editComputerParts";
 	}
 	
 	@PostMapping("/update/{id}")
 	public String updateProduct(@PathVariable("id") int id, 
-	                            @Valid @ModelAttribute ProductDto productDto, 
+	                            @Valid @ModelAttribute ComputerDto computerDto,
 	                            BindingResult result, 
 	                            Model model) {
 	    if (result.hasErrors()) {
@@ -135,20 +134,20 @@ public class ComputerPartsController {
 	        return "products/editComputerParts";
 	    }
 
-	    Products product = repo.findById(id)
+	    Computers product = repo.findById(id)
 	        .orElseThrow(() -> new IllegalArgumentException("Invalid product Id:" + id));
 
-	    product.setBrand(productDto.getBrand());
-	    product.setModelName(productDto.getModelName());
-	    product.setCategory(productDto.getCategory());
-	    product.setStorageSize(productDto.getStorageSize());
-	    product.setStocks(productDto.getStocks());
-	    product.setPrice(productDto.getPrice());
-	    product.setDescription(productDto.getDescription());
+	    product.setBrand(computerDto.getBrand());
+	    product.setModelName(computerDto.getModelName());
+	    product.setCategory(computerDto.getCategory());
+	    product.setStorageSize(computerDto.getStorageSize());
+	    product.setStocks(computerDto.getStocks());
+	    product.setPrice(computerDto.getPrice());
+	    product.setDescription(computerDto.getDescription());
 
 	    // Handle file upload
-	    if (productDto.getImageFile() != null && !productDto.getImageFile().isEmpty()) {
-	        MultipartFile image = productDto.getImageFile();
+	    if (computerDto.getImageFile() != null && !computerDto.getImageFile().isEmpty()) {
+	        MultipartFile image = computerDto.getImageFile();
 	        String storageFileName = new Date().getTime() + "_" + image.getOriginalFilename();
 
 	        try {
@@ -176,7 +175,7 @@ public class ComputerPartsController {
 	
 	@GetMapping("/delete/{id}")
 	public String deleteProduct(@PathVariable("id") int id, Model model) {
-	    Products product = repo.findById(id)
+	    Computers product = repo.findById(id)
 	        .orElseThrow(() -> new IllegalArgumentException("Invalid product Id:" + id));
 	    
 	    // Delete the associated image file

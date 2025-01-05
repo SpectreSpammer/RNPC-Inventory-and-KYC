@@ -11,7 +11,7 @@
     <a href="/">
         <h1 class="text-center my-4">Edit Product</h1>
     </a>
-    <form th:action="@{/products/update/{id}(id=${productId})}" th:object="${productDto}" method="post" enctype="multipart/form-data">
+    <form th:action="@{/computers/update/{id}(id=${productId})}" th:object="${computerDto}" method="post" enctype="multipart/form-data">
         <div class="mb-3">
             <label for="brand" class="form-label">Brand</label>
             <select th:field="*{brand}" class="form-select" id="brand">
@@ -80,7 +80,7 @@
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
             <div class="col-sm-4 d-grid">
-                <a class="btn btn-outline-primary" href="/products" role="button">Cancel</a>
+                <a class="btn btn-outline-primary" href="/computers" role="button">Cancel</a>
             </div>
         </div>
     </form>

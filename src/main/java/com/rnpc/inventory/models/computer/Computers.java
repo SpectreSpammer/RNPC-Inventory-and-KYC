@@ -1,4 +1,4 @@
-package com.rnpc.inventory.models;
+package com.rnpc.inventory.models.computer;
 
 import java.util.Date;
 
@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "rnpc_products")
-public class Products {
+public class Computers {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)

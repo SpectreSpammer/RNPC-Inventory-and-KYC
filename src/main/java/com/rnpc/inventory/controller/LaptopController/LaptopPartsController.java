@@ -16,17 +16,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.rnpc.inventory.models.ProductDto;
-import com.rnpc.inventory.models.Products;
 import com.rnpc.inventory.models.laptop.LaptopParts;
 import com.rnpc.inventory.models.laptop.LaptopPartsDto;
-import com.rnpc.inventory.services.ProductsRepository;
 import com.rnpc.inventory.services.LaptopRepository.LaptopPartsRepository;
 
 import jakarta.validation.Valid;
