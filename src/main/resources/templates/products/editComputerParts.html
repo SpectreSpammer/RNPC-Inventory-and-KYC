@@ -11,7 +11,7 @@
     <a href="/">
         <h1 class="text-center my-4">Edit Product</h1>
     </a>
-    <form th:action="@{/computers/update/{id}(id=${productId})}" th:object="${computerDto}" method="post" enctype="multipart/form-data">
+    <form th:action="@{/computer/update/{id}(id=${productId})}" th:object="${computerDto}" method="post" enctype="multipart/form-data">
         <div class="mb-3">
             <label for="brand" class="form-label">Brand</label>
             <select th:field="*{brand}" class="form-select" id="brand">
