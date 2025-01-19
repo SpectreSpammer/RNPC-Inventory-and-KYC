@@ -1,4 +1,4 @@
-package com.rnpc.inventory.controller.LaptopController;
+package com.rnpc.inventory.controller;
 
 import java.io.InputStream;
 import java.nio.file.Files;

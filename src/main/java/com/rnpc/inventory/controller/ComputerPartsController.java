@@ -37,7 +37,7 @@ public class ComputerPartsController {
 	@GetMapping("/create")
 	public String showCreatePage(Model model) {
 		model.addAttribute("computerDto", new ComputerDto());
-		return "products/createComputerParts";
+		return "products/computerCreateParts";
 	}
 
 	@PostMapping("/create")
@@ -50,7 +50,7 @@ public class ComputerPartsController {
 		}
 
 		if (result.hasErrors()) {
-			return "products/createComputerParts";
+			return "products/computerCreateParts";
 		}
 
 		service.saveComputer(computerDto);
@@ -72,7 +72,7 @@ public class ComputerPartsController {
 
 		model.addAttribute("computerDto", computerDto);
 		model.addAttribute("productId", id);
-		return "products/editComputerParts";
+		return "products/computerEditParts";
 	}
 
 	@PostMapping("/update/{id}")
@@ -82,7 +82,7 @@ public class ComputerPartsController {
 								Model model) {
 		if (result.hasErrors()) {
 			model.addAttribute("productId", id);
-			return "products/editComputerParts";
+			return "products/computerEditParts";
 		}
 
 		service.updateComputer(id, computerDto);
