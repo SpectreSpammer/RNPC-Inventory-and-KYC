@@ -1,10 +1,9 @@
-package com.rnpc.inventory.models.laptop;
+package com.rnpc.inventory.dto;
 
 import java.util.Date;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;

@@ -1,4 +1,4 @@
-package com.rnpc.inventory.models.computer;
+package com.rnpc.inventory.dto;
 
 import org.springframework.web.multipart.MultipartFile;
 

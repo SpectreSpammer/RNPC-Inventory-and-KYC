@@ -1,8 +1,8 @@
-package com.rnpc.inventory.services;
+package com.rnpc.inventory.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.rnpc.inventory.models.computer.Computers;
+import com.rnpc.inventory.entity.Computers;
 
 public interface ProductsRepository extends JpaRepository<Computers,Integer> {
 

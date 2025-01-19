@@ -8,7 +8,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
 
-import com.rnpc.inventory.models.computer.ComputerDto;
+import com.rnpc.inventory.dto.ComputerDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -22,8 +22,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.rnpc.inventory.models.computer.Computers;
-import com.rnpc.inventory.services.ProductsRepository;
+import com.rnpc.inventory.entity.Computers;
+import com.rnpc.inventory.repository.ProductsRepository;
 
 import jakarta.validation.Valid;
 

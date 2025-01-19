@@ -20,9 +20,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.rnpc.inventory.models.laptop.LaptopParts;
-import com.rnpc.inventory.models.laptop.LaptopPartsDto;
-import com.rnpc.inventory.services.LaptopRepository.LaptopPartsRepository;
+import com.rnpc.inventory.entity.LaptopParts;
+import com.rnpc.inventory.dto.LaptopPartsDto;
+import com.rnpc.inventory.repository.LaptopPartsRepository;
 
 import jakarta.validation.Valid;
 

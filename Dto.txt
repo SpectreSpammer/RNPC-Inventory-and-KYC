@@ -1,4 +1,4 @@
-package com.rnpc.inventory.models;
+package com.rnpc.inventory.dto;
 
 import java.util.Date;
 

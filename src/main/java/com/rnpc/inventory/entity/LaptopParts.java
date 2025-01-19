@@ -1,4 +1,4 @@
-package com.rnpc.inventory.models.computer;
+package com.rnpc.inventory.entity;
 
 import java.util.Date;
 
@@ -12,16 +12,16 @@ import jakarta.persistence.Table;
 
 
 @Entity
-@Table(name = "rnpc_products")
-public class Computers {
+@Table(name = "rnpc_laptop_parts")
+public class LaptopParts {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private int productId;
+	private int laptopPartId;
 	
 	
 	private String brand;
-	private String modelName;
+	private String partName;
 	private String category;
 	private String storageSize;
 	private int stocks;
@@ -33,11 +33,11 @@ public class Computers {
 	private String imageFileName;
 	
 	
-	public int getProductId() {
-		return productId;
+	public int getLaptopPartId() {
+		return laptopPartId;
 	}
-	public void setProductId(int productId) {
-		this.productId = productId;
+	public void setLaptopPartId(int laptopPartId) {
+		this.laptopPartId = laptopPartId;
 	}
 	public String getBrand() {
 		return brand;
@@ -45,11 +45,11 @@ public class Computers {
 	public void setBrand(String brand) {
 		this.brand = brand;
 	}
-	public String getModelName() {
-		return modelName;
+	public String getPartName() {
+		return partName;
 	}
-	public void setModelName(String modelName) {
-		this.modelName = modelName;
+	public void setPartName(String partName) {
+		this.partName = partName;
 	}
 	public String getCategory() {
 		return category;
@@ -93,6 +93,8 @@ public class Computers {
 	public void setImageFileName(String imageFileName) {
 		this.imageFileName = imageFileName;
 	}
+	
+	
 	
 	
 	
