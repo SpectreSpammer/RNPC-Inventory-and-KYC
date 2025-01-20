@@ -58,9 +58,14 @@
                 <td>
                     <img th:if="${part.imageFileName}" th:src="@{'/images/' + ${part.imageFileName}}" alt="Laptop Part Image" style="max-width: 100px; max-height: 100px;">
                 </td>
-                <td>
-                    <a th:href="@{'/laptop/edit/' + ${part.laptopPartId}}" class="btn btn-primary btn-sm">Edit</a>
-                    <a th:href="@{'/laptop/delete/' + ${part.laptopPartId}}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this item?')">Delete</a>
+                <td style="white-space:nowrap">
+                    <a class="btn btn-primary btn-sm"
+                       th:href="@{/laptop/edit/{id} (id=${part.laptopPartId})}">Edit
+                    </a>
+                    <a class="btn btn-danger btn-sm"
+                       th:href="@{/laptop/delete/{id} (id=${part.laptopPartId})}"
+                       onclick="return confirm('Are you sure?')">Delete
+                    </a>
                 </td>
             </tr>
         </tbody>

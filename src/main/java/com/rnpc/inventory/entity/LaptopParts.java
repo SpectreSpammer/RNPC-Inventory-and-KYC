@@ -93,10 +93,5 @@ public class LaptopParts {
 	public void setImageFileName(String imageFileName) {
 		this.imageFileName = imageFileName;
 	}
-	
-	
-	
-	
-	
-	
+
 }
