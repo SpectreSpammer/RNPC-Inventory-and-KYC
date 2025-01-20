@@ -46,6 +46,12 @@ public class LaptopPartsController {
 		return "redirect:/laptop";
 	}
 
+	@GetMapping("/create")
+	public String showCreateLaptopPartForm(Model model) {
+		model.addAttribute("laptopPartsDto", new LaptopPartsDto());
+		return "products/laptopCreateParts";
+	}
+
 	@GetMapping("/delete/{id}")
 	public String deleteLaptopPart(@PathVariable("id") int id) {
 		laptopPartsService.deleteLaptopPart(id);
