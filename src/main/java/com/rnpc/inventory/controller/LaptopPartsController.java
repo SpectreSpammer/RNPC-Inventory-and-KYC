@@ -1,13 +1,5 @@
 package com.rnpc.inventory.controller;
 
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.Date;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -41,7 +33,7 @@ public class LaptopPartsController {
 	}
 
 	@PostMapping("/create")
-	public String createLaptopPart(@ModelAttribute LaptopPartsDto laptopPartsDto) {
+	public String createLaptopPart(@Valid @ModelAttribute LaptopPartsDto laptopPartsDto) {
 		laptopPartsService.saveLaptopPart(laptopPartsDto);
 		return "redirect:/laptop";
 	}
@@ -73,7 +65,7 @@ public class LaptopPartsController {
 		laptopPartsDto.setDescription(product.getDescription());
 
 		model.addAttribute("laptopPartsDto", laptopPartsDto); // Changed here
-		model.addAttribute("productId", id);
+		model.addAttribute("laptopPartId", id);
 		return "products/laptopEditParts";
 	}
 
@@ -85,7 +77,7 @@ public class LaptopPartsController {
 								BindingResult result,
 								Model model) {
 		if (result.hasErrors()) {
-			model.addAttribute("productId", id);
+			model.addAttribute("laptopPartId", id);
 			return "products/laptopEditParts";
 		}
 

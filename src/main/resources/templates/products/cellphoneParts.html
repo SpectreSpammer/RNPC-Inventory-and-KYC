@@ -1,0 +1,104 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:color="http://www.w3.org/1999/xhtml">
+<head>
+    <title>RN PC and Cellphone Repair Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body{
+            background-color: #17171f;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/">
+        <h1 class="text-center my-4">Cellphone Products</h1>
+    </a>
+    <div class="row mb-3">
+        <div class="col-md-3 mb-3">
+            <a class="btn btn-primary w-150" href="/cellphone/create">Add Cellphone Parts</a>
+        </div>
+        <div class="col-md-9">
+            <div class="input-group rounded">
+                <input type="search" class="form-control rounded" id="brandSearch" placeholder="Search by brand" aria-label="Search" aria-describedby="search-addon" />
+                <span class="input-group-text border-0" id="search-addon">
+                    <i class="fas fa-search"></i>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <table class="table" id="cellphonePartsTable">
+        <thead>
+        <tr style="color: white">
+            <th>Id</th>
+            <th>Brand</th>
+            <th>Part Name</th>
+            <th>Category</th>
+            <th>Storage Size</th>
+            <th>Stocks</th>
+            <th>Price</th>
+            <th>Description</th>
+            <th>Created At</th>
+            <th>Image</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody style="color: #fff">
+        <tr th:each="part : ${cellphone}">
+            <td th:text="${part.cellphonePartId}"></td>
+            <td th:text="${part.brand}"></td>
+            <td th:text="${part.partName}"></td>
+            <td th:text="${part.category}"></td>
+            <td th:text="${part.storageSize}"></td>
+            <td th:text="${part.stocks}"></td>
+            <td th:text="${part.price}"></td>
+            <td th:text="${part.description}"></td>
+            <td th:text="${#dates.format(part.createdAt, 'yyyy-MM-dd')}"></td>
+            <td>
+                <img th:if="${part.imageFileName}" th:src="@{'/images/' + ${part.imageFileName}}" alt="Cellphone Part Image" style="max-width: 100px; max-height: 100px;">
+            </td>
+            <td style="white-space:nowrap">
+                <a class="btn btn-primary btn-sm"
+                   th:href="@{/cellphone/edit/{id} (id=${part.cellphonePartId})}">Edit
+                </a>
+                <a class="btn btn-danger btn-sm"
+                   th:href="@{/cellphone/delete/{id} (id=${part.cellphonePartId})}"
+                   onclick="return confirm('Are you sure?')">Delete
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const brandSearch = document.getElementById('brandSearch');
+        const table = document.getElementById('cellphonePartsTable');
+        const rows = table.getElementsByTagName('tr');
+        brandSearch.addEventListener('input', function() {
+            const filter = this.value.toLowerCase();
+            for (let i = 1; i < rows.length; i++) {
+                const brandCell = rows[i].getElementsByTagName('td')[1];
+                if (brandCell) {
+                    const brandText = brandCell.textContent || brandCell.innerText;
+                    if (brandText.toLowerCase().indexOf(filter) > -1) {
+                        rows[i].style.display = '';
+                    } else {
+                        rows[i].style.display = 'none';
+                    }
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>

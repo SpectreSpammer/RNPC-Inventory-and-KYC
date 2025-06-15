@@ -2,16 +2,23 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>RN PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+            crossorigin="anonymous">
+    <link
+            rel="stylesheet"
+            th:href="@{/css/demo.css}"/>
 </head>
 <body>
 <div class="container">
     <a href="/">
-        <h1 class="text-center my-4">Edit Laptop Part</h1>
+        <h1 class="text-center my-4">Create Product</h1>
     </a>
-    <form th:action="@{/laptop/update/{id}(id=${laptopPartId})}" th:object="${laptopPartsDto}" method="post" enctype="multipart/form-data">
+    <form action="#" th:action="@{/laptop/create}" th:object="${laptopPartsDto}" method="post" enctype="multipart/form-data">
+
+
         <div class="mb-3">
             <label for="brand" class="form-label">Brand</label>
             <select th:field="*{brand}" class="form-select" id="brand">
@@ -25,19 +32,21 @@
             </select>
             <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
         </div>
+
+
         <div class="mb-3">
             <label for="partName" class="form-label">Part Name</label>
             <select th:field="*{partName}" class="form-select" id="partName">
-                <option value="">Select a part name</option>
+                <option value="">Select a category</option>
                 <option value="LCD">LCD</option>
                 <option value="Keyboard">Keyboard</option>
                 <option value="Trackpad">Trackpad</option>
                 <option value="Ram">Ram</option>
                 <option value="SSD">SSD</option>
-                <option value="M.2">M.2</option>
+                <option value="">M.2</option>
             </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('partName')}" th:errors="*{partName}"></div>
         </div>
+
         <div class="mb-3">
             <label for="category" class="form-label">Category</label>
             <select th:field="*{category}" class="form-select" id="category">
@@ -50,6 +59,7 @@
             </select>
             <div class="text-danger" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
         </div>
+
         <div class="mb-3">
             <label for="storageSize" class="form-label">Storage Size</label>
             <select th:field="*{storageSize}" class="form-select" id="storageSize">
@@ -63,11 +73,13 @@
             </select>
             <div class="text-danger" th:if="${#fields.hasErrors('storageSize')}" th:errors="*{storageSize}"></div>
         </div>
+
         <div class="mb-3">
             <label for="stocks" class="form-label">Stocks</label>
             <input type="number" th:field="*{stocks}" class="form-control" id="stocks" placeholder="Enter stocks">
             <div class="text-danger" th:if="${#fields.hasErrors('stocks')}" th:errors="*{stocks}"></div>
         </div>
+
         <div class="mb-3">
             <label for="price" class="form-label">Price</label>
             <div class="input-group">
@@ -76,6 +88,7 @@
             </div>
             <div class="text-danger" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
         </div>
+
         <div class="mb-3">
             <label for="description" class="form-label">Description</label>
             <textarea th:field="*{description}" class="form-control" id="description" rows="3"></textarea>
@@ -86,14 +99,17 @@
             <input type="file" th:field="*{imageFile}" class="form-control" id="imageFile">
             <div class="text-danger" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></div>
         </div>
+
+
         <div class="row">
             <div class="offset-sm-4 col-sm-4 d-grid">
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
             <div class="col-sm-4 d-grid">
-                <a class="btn btn-outline-primary" href="/laptop" role="button">Cancel</a>
+                <a class= "btn btn-outline-primary" href="/laptop" role="button">Cancel</a>
             </div>
         </div>
+
     </form>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
