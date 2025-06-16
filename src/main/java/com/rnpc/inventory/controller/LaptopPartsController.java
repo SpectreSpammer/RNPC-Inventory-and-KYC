@@ -52,7 +52,7 @@ public class LaptopPartsController {
 		return "products/laptopCreateParts";
 	}
 
-	@GetMapping("/delete/{id}")
+	@DeleteMapping("/delete/{id}")
 	public String deleteLaptopPart(@PathVariable("id") int id) {
 		laptopPartsService.deleteLaptopPart(id);
 		return "redirect:/laptop";
