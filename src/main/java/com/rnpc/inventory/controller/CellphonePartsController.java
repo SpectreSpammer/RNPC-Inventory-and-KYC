@@ -21,7 +21,7 @@ public class CellphonePartsController {
         this.cellphonePartsService = cellphonePartsService;
     }
 
-    @GetMapping
+    @GetMapping({"", "/"})
     public String showLaptopPartsList(Model model){
         model.addAttribute("cellphone", cellphonePartsService.getAllCellphoneParts());
         return "products/cellphoneParts";
@@ -39,8 +39,8 @@ public class CellphonePartsController {
         return "products/cellphoneCreateParts";
     }
 
-    @GetMapping("/delete/{id}")
-    public String deleteCellphonePart(@PathVariable("id") int id){
+    @DeleteMapping("/delete/{id}")
+    public String deleteCellphonePart(@PathVariable ("id") int id){
         cellphonePartsService.deleteCellphonePart(id);
         return "redirect:/cellphone";
     }
@@ -64,7 +64,7 @@ public class CellphonePartsController {
         return "products/cellphoneEditParts";
     }
 
-    @PostMapping("/update/{id}")
+    @PutMapping("/update/{id}")
     public String updateProduct(@PathVariable("id") int id,
                                 @Valid @ModelAttribute CellphonePartsDto cellphonePartsDto, BindingResult result, Model model){
         if (result.hasErrors()){

@@ -26,7 +26,7 @@ public class LaptopPartsController {
 		this.laptopPartsService = laptopPartsService;
 	}
 
-	@GetMapping
+	@GetMapping({"","/"})
 	public String showLaptopPartsList(Model model) {
 		model.addAttribute("laptop", laptopPartsService.getAllLaptopParts());
 		return "products/laptopParts";
@@ -44,7 +44,7 @@ public class LaptopPartsController {
 		return "products/laptopCreateParts";
 	}
 
-	@GetMapping("/delete/{id}")
+	@DeleteMapping("/delete/{id}")
 	public String deleteLaptopPart(@PathVariable("id") int id) {
 		laptopPartsService.deleteLaptopPart(id);
 		return "redirect:/laptop";
@@ -71,7 +71,7 @@ public class LaptopPartsController {
 
 
 	// Update the laptop details
-	@PostMapping("/update/{id}")
+	@PutMapping("/update/{id}")
 	public String updateProduct(@PathVariable("id") int id,
 								@Valid @ModelAttribute LaptopPartsDto laptopDto,
 								BindingResult result,

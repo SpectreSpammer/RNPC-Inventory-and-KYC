@@ -12,6 +12,7 @@
         <h1 class="text-center my-4">Edit Laptop Part</h1>
     </a>
     <form th:action="@{/laptop/update/{id}(id=${laptopPartId})}" th:object="${laptopPartsDto}" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="_method" value="put"/>
         <div class="mb-3">
             <label for="brand" class="form-label">Brand</label>
             <select th:field="*{brand}" class="form-select" id="brand">

@@ -8,11 +8,6 @@
           crossorigin="anonymous">
     <link rel="stylesheet" th:href="@{/css/demo.css}"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <style>
-        body{
-            background-color: #17171f;
-        }
-    </style>
 </head>
 <body>
 <div class="container">
@@ -35,7 +30,7 @@
 
     <table class="table" id="cellphonePartsTable">
         <thead>
-        <tr style="color: white">
+        <tr>
             <th>Id</th>
             <th>Brand</th>
             <th>Part Name</th>
@@ -49,7 +44,7 @@
             <th>Action</th>
         </tr>
         </thead>
-        <tbody style="color: #fff">
+        <tbody>
         <tr th:each="part : ${cellphone}">
             <td th:text="${part.cellphonePartId}"></td>
             <td th:text="${part.brand}"></td>
@@ -67,10 +62,16 @@
                 <a class="btn btn-primary btn-sm"
                    th:href="@{/cellphone/edit/{id} (id=${part.cellphonePartId})}">Edit
                 </a>
-                <a class="btn btn-danger btn-sm"
-                   th:href="@{/cellphone/delete/{id} (id=${part.cellphonePartId})}"
-                   onclick="return confirm('Are you sure?')">Delete
-                </a>
+                <form th:action="@{/cellphone/delete/{id}(id=${part.cellphonePartId})}"
+                      method="post"
+                      style="display:inline;">
+                    <input type="hidden" name="_method" value="delete"/>
+                    <button type="submit"
+                            class="btn btn-danger btn-sm"
+                            onclick="return confirm('Are you sure?')">
+                        Delete</button>
+                </form>
+
             </td>
         </tr>
         </tbody>

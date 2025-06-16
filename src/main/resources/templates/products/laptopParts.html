@@ -62,10 +62,21 @@
                     <a class="btn btn-primary btn-sm"
                        th:href="@{/laptop/edit/{id} (id=${part.laptopPartId})}">Edit
                     </a>
-                    <a class="btn btn-danger btn-sm"
-                       th:href="@{/laptop/delete/{id} (id=${part.laptopPartId})}"
-                       onclick="return confirm('Are you sure?')">Delete
-                    </a>
+<!--                    <a class="btn btn-danger btn-sm"-->
+<!--                       th:href="@{/laptop/delete/{id} (id=${part.laptopPartId})}"-->
+<!--                       onclick="return confirm('Are you sure?')">Delete-->
+<!--                    </a>-->
+
+                    <form th:action="@{/laptop/delete/{id}(id=${part.laptopPartId})}"
+                          method="post"
+                          style="display:inline;">
+                        <input type="hidden" name="_method" value="delete"/>
+                        <button type="submit"
+                                class="btn btn-danger btn-sm"
+                                onclick="return confirm('Are you sure?')">
+                            Delete
+                        </button>
+                    </form>
                 </td>
             </tr>
         </tbody>

@@ -10,23 +10,17 @@
     <link
             rel="stylesheet"
             th:href="@{/css/demo.css}"/>
-
-    <style>
-        body{
-           background-color: #17171f;
-       }
-    </style>
 </head>
 <body>
 <div class="container">
-    <a href="/cellphone">
+    <a href="/">
         <h1 class="text-center my-4">Create Cellphone Part</h1>
     </a>
     <form action="#" th:action="@{/cellphone/create}" th:object="${cellphonePartsDto}" method="post" enctype="multipart/form-data">
 
 
         <div class="mb-3">
-            <label for="brand" class="form-label" style="color: #fff">Brand</label>
+            <label for="brand" class="form-label" >Brand</label>
             <select th:field="*{brand}" class="form-select" id="brand">
                 <option value="">Select a brand</option>
                 <option value="Samsung">Samsung</option>
@@ -42,7 +36,7 @@
 
 
         <div class="mb-3">
-            <label for="partName" class="form-label" style="color: #fff">Part Name</label>
+            <label for="partName" class="form-label" >Part Name</label>
             <select th:field="*{partName}" class="form-select" id="partName">
                 <option value="">Select a category</option>
                 <option value="Super AMOLED Display">Super AMOLED Display</option>
@@ -56,7 +50,7 @@
         </div>
 
         <div class="mb-3">
-            <label for="category" class="form-label"style="color: #fff">Category</label>
+            <label for="category" class="form-label">Category</label>
             <select th:field="*{category}" class="form-select" id="category">
                 <option value="">Select a category</option>
                 <option value="Display">Display</option>
@@ -71,7 +65,7 @@
         </div>
 
         <div class="mb-3">
-            <label for="storageSize" class="form-label" style="color: #fff">Storage Size</label>
+            <label for="storageSize" class="form-label" >Storage Size</label>
             <select th:field="*{storageSize}" class="form-select" id="storageSize">
                 <option value="">Select storage size</option>
                 <option value="None Applicable">None Applicable</option>
@@ -87,13 +81,13 @@
         </div>
 
         <div class="mb-3">
-            <label for="stocks" class="form-label"style="color: #fff">Stocks</label>
+            <label for="stocks" class="form-label">Stocks</label>
             <input type="number" th:field="*{stocks}" class="form-control" id="stocks" placeholder="Enter stocks">
             <div class="text-danger" th:if="${#fields.hasErrors('stocks')}" th:errors="*{stocks}"></div>
         </div>
 
         <div class="mb-3">
-            <label for="price" class="form-label" style="color: #fff">Price</label>
+            <label for="price" class="form-label">Price</label>
             <div class="input-group">
                 <span class="input-group-text">Php</span>
                 <input type="number" th:field="*{price}" class="form-control" id="price" placeholder="Enter price" step="0.01" min="0">
@@ -102,12 +96,12 @@
         </div>
 
         <div class="mb-3">
-            <label for="description" class="form-label" style="color: #fff">Description</label>
+            <label for="description" class="form-label">Description</label>
             <textarea th:field="*{description}" class="form-control" id="description" rows="3"></textarea>
             <div class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
         </div>
         <div class="mb-3">
-            <label for="imageFile" class="form-label" style="color: #fff">Image</label>
+            <label for="imageFile" class="form-label" >Image</label>
             <input type="file" th:field="*{imageFile}" class="form-control" id="imageFile">
             <div class="text-danger" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></div>
         </div>

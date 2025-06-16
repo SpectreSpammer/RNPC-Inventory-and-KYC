@@ -10,7 +10,7 @@ import java.util.Date;
 public class CellphoneParts {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int cellphonePartId;
+    private Long cellphonePartId;
 
     private String brand;
     private String partName;
@@ -25,11 +25,11 @@ public class CellphoneParts {
     private String imageFileName;
 
 
-    public int getCellphonePartId() {
+    public Long getCellphonePartId() {
         return cellphonePartId;
     }
 
-    public void setCellphonePartId(int cellphonePartId) {
+    public void setCellphonePartId(Long cellphonePartId) {
         this.cellphonePartId = cellphonePartId;
     }
 

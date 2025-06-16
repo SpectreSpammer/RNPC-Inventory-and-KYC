@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Date;
 
 public class CellphonePartsDto {
-    private int cellphonePartId;
+    private Long cellphonePartId;
 
     @NotEmpty(message = "The brand is required!")
     @Pattern(regexp = "Samsung|Apple|Xiaomi|Oppo|Vivo|OnePlus|Realme", message = "Invalid brand selected")
@@ -43,11 +43,11 @@ public class CellphonePartsDto {
 
     private MultipartFile imageFile;
 
-    public int getCellphonePartId() {
+    public Long getCellphonePartId() {
         return cellphonePartId;
     }
 
-    public void setCellphonePartId(int cellphonePartId) {
+    public void setCellphonePartId(Long cellphonePartId) {
         this.cellphonePartId = cellphonePartId;
     }
 

@@ -7,11 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import com.rnpc.inventory.entity.Computers;
 
@@ -74,7 +70,7 @@ public class ComputerPartsController {
 		return "products/computerEditParts";
 	}
 
-	@PostMapping("/update/{id}")
+	@PutMapping("/update/{id}")
 	public String updateProduct(@PathVariable("id") int id,
 								@Valid @ModelAttribute ComputerDto computerDto,
 								BindingResult result,
@@ -88,7 +84,7 @@ public class ComputerPartsController {
 		return "redirect:/computer";
 	}
 
-	@GetMapping("/delete/{id}")
+	@DeleteMapping("/delete/{id}")
 	public String deleteProduct(@PathVariable("id") int id) {
 		service.deleteComputer(id);
 		return "redirect:/computer";
