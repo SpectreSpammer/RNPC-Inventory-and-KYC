@@ -40,13 +40,13 @@ public class CellphonePartsController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public String deleteCellphonePart(@PathVariable ("id") int id){
+    public String deleteCellphonePart(@PathVariable ("id") Long id){
         cellphonePartsService.deleteCellphonePart(id);
         return "redirect:/cellphone";
     }
 
     @GetMapping("/edit/{id}")
-    public String showEditProductForm(@PathVariable("id") int id, Model model){
+    public String showEditProductForm(@PathVariable("id") Long id, Model model){
         CellphoneParts product = cellphonePartsService.getCellphonePartById(id);
 
         CellphonePartsDto cellphonePartsDto = new CellphonePartsDto();
@@ -65,7 +65,7 @@ public class CellphonePartsController {
     }
 
     @PutMapping("/update/{id}")
-    public String updateProduct(@PathVariable("id") int id,
+    public String updateProduct(@PathVariable("id") Long id,
                                 @Valid @ModelAttribute CellphonePartsDto cellphonePartsDto, BindingResult result, Model model){
         if (result.hasErrors()){
             model.addAttribute("cellphonePartId", id);

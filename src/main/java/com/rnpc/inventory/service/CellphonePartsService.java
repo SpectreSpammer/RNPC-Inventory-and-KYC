@@ -29,7 +29,7 @@ public class CellphonePartsService {
         return cellphonePartsRepository.findAll(Sort.by(Sort.Direction.DESC, "cellphonePartId"));
     }
 
-    public CellphoneParts getCellphonePartById(int id){
+    public CellphoneParts getCellphonePartById(Long id){
         return cellphonePartsRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Cellphone part with ID " + id + " not found"));
     }
@@ -82,7 +82,7 @@ public class CellphonePartsService {
     }
 
 
-    public CellphoneParts updateCellphonePart(int id, CellphonePartsDto cellphonePartsDto){
+    public CellphoneParts updateCellphonePart(Long id, CellphonePartsDto cellphonePartsDto){
         CellphoneParts cellphonePart = getCellphonePartById(id);
         updateEntity(cellphonePart, cellphonePartsDto);
 
@@ -104,7 +104,7 @@ public class CellphonePartsService {
         cellphonePart.setDescription(cellphonePartsDto.getDescription());
     }
 
-    public void deleteCellphonePart(int id){
+    public void deleteCellphonePart(Long id){
         CellphoneParts cellphonePart = getCellphonePartById(id);
         deleteImageFile(cellphonePart.getImageFileName());
         cellphonePartsRepository.delete(cellphonePart);
