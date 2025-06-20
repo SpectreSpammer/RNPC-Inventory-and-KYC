@@ -38,8 +38,7 @@ public class ComputerPartsController {
 
 	@PostMapping("/create")
 	public String createProduct(
-			@Valid @ModelAttribute ComputerDto computerDto,
-			BindingResult result) {
+			@Valid @ModelAttribute ComputerDto computerDto, BindingResult result) {
 
 		if (computerDto.getImageFile().isEmpty()) {
 			result.addError(new FieldError("computerDto", "imageFile", "The image file is required!"));
@@ -71,7 +70,7 @@ public class ComputerPartsController {
 		return "products/computerEditParts";
 	}
 
-	@PostMapping("/update/{id}")
+	@PutMapping("/update/{id}")
 	public String updateProduct(@PathVariable("id") int id,
 								@Valid @ModelAttribute ComputerDto computerDto,
 								BindingResult result,

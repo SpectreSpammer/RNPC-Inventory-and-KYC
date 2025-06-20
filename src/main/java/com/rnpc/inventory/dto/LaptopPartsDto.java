@@ -134,10 +134,7 @@ import jakarta.validation.constraints.Size;
 		public void setImageFile(MultipartFile imageFile) {
 			this.imageFile = imageFile;
 		}
-
-
-
-	    
+		
 	}
 	
 

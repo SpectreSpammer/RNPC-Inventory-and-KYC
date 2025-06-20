@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Size;
 public class ComputerDto {
 	
 	@NotEmpty(message = "The brand is required!")
-	  @Pattern(regexp = "WD|Kingston|Samsung|ADATA|Crucial", message = "Invalid brand selected")
+	@Pattern(regexp = "WD|Kingston|Samsung|ADATA|Crucial", message = "Invalid brand selected")
 
 	private String brand;
 	

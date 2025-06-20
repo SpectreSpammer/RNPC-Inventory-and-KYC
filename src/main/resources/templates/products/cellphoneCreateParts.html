@@ -2,73 +2,90 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>RN PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+            crossorigin="anonymous">
+    <link
+            rel="stylesheet"
+            th:href="@{/css/demo.css}"/>
 </head>
 <body>
 <div class="container">
     <a href="/">
-        <h1 class="text-center my-4">Edit Laptop Part</h1>
+        <h1 class="text-center my-4">Create Cellphone Part</h1>
     </a>
-    <form th:action="@{/laptop/update/{id}(id=${laptopPartId})}" th:object="${laptopPartsDto}" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="_method" value="put"/>
+    <form action="#" th:action="@{/cellphone/create}" th:object="${cellphonePartsDto}" method="post" enctype="multipart/form-data">
+
+
         <div class="mb-3">
-            <label for="brand" class="form-label">Brand</label>
+            <label for="brand" class="form-label" >Brand</label>
             <select th:field="*{brand}" class="form-select" id="brand">
                 <option value="">Select a brand</option>
-                <option value="Asus">Asus</option>
-                <option value="Acer">Acer</option>
-                <option value="Dell">Dell</option>
-                <option value="Hp">Hp</option>
-                <option value="Lenovo">Lenovo</option>
-                <option value="MSI">MSI</option>
+                <option value="Samsung">Samsung</option>
+                <option value="Apple">Apple</option>
+                <option value="Xiaomi">Xiaomi</option>
+                <option value="Oppo">Oppo</option>
+                <option value="Vivo">Vivo</option>
+                <option value="OnePlus">OnePlus</option>
+                <option value="Realme">Realme</option>
             </select>
             <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
         </div>
+
+
         <div class="mb-3">
-            <label for="partName" class="form-label">Part Name</label>
+            <label for="partName" class="form-label" >Part Name</label>
             <select th:field="*{partName}" class="form-select" id="partName">
-                <option value="">Select a part name</option>
-                <option value="LCD">LCD</option>
-                <option value="Keyboard">Keyboard</option>
-                <option value="Trackpad">Trackpad</option>
-                <option value="Ram">Ram</option>
-                <option value="SSD">SSD</option>
-                <option value="M.2">M.2</option>
+                <option value="">Select a category</option>
+                <option value="Super AMOLED Display">Super AMOLED Display</option>
+                <option value="Li-Ion Battery">Li-Ion Battery</option>
+                <option value="USB-C Charging Port">SB-C Charging Port</option>
+                <option value="Triple Camera Module">Triple Camera Module</option>
+                <option value="Motherboard Flex Cable">Motherboard Flex Cable</option>
+                <option value="Fingerprint Scanner">Fingerprint Scanner</option>
+                <option value="Back Glass Panel">Back Glass Panel</option>
             </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('partName')}" th:errors="*{partName}"></div>
         </div>
+
         <div class="mb-3">
             <label for="category" class="form-label">Category</label>
             <select th:field="*{category}" class="form-select" id="category">
                 <option value="">Select a category</option>
-                <option value="Convertible">Convertible</option>
-                <option value="Netbook">Netbook</option>
-                <option value="Notebook">Notebook</option>
-                <option value="Gaming Laptop">Gaming Laptop</option>
-                <option value="Macbook">Macbook</option>
+                <option value="Display">Display</option>
+                <option value="Battery">Battery</option>
+                <option value="Camera">Camera</option>
+                <option value="Charging Port">Charging Port</option>
+                <option value="Motherboard">Motherboard</option>
+                <option value="Sensor">Sensor</option>
+                <option value="Back Cover">Back Cover</option>
             </select>
             <div class="text-danger" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
         </div>
+
         <div class="mb-3">
-            <label for="storageSize" class="form-label">Storage Size</label>
+            <label for="storageSize" class="form-label" >Storage Size</label>
             <select th:field="*{storageSize}" class="form-select" id="storageSize">
                 <option value="">Select storage size</option>
                 <option value="None Applicable">None Applicable</option>
-                <option value="120 GB">120 GB</option>
-                <option value="240 GB">240 GB</option>
-                <option value="500 GB">500 GB</option>
-                <option value="1 TB">1 TB</option>
-                <option value="2 TB">2 TB</option>
+                <option value="32GB">32GB</option>
+                <option value="64GB">64GB</option>
+                <option value="128GB">128GB</option>
+                <option value="256GB">256GB</option>
+                <option value="512GB">512GB</option>
+                <option value="1TB">1TB</option>
+                <option value="2TB">2TB</option>
             </select>
             <div class="text-danger" th:if="${#fields.hasErrors('storageSize')}" th:errors="*{storageSize}"></div>
         </div>
+
         <div class="mb-3">
             <label for="stocks" class="form-label">Stocks</label>
             <input type="number" th:field="*{stocks}" class="form-control" id="stocks" placeholder="Enter stocks">
             <div class="text-danger" th:if="${#fields.hasErrors('stocks')}" th:errors="*{stocks}"></div>
         </div>
+
         <div class="mb-3">
             <label for="price" class="form-label">Price</label>
             <div class="input-group">
@@ -77,24 +94,28 @@
             </div>
             <div class="text-danger" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
         </div>
+
         <div class="mb-3">
             <label for="description" class="form-label">Description</label>
             <textarea th:field="*{description}" class="form-control" id="description" rows="3"></textarea>
             <div class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
         </div>
         <div class="mb-3">
-            <label for="imageFile" class="form-label">Image</label>
+            <label for="imageFile" class="form-label" >Image</label>
             <input type="file" th:field="*{imageFile}" class="form-control" id="imageFile">
             <div class="text-danger" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></div>
         </div>
+
+
         <div class="row">
             <div class="offset-sm-4 col-sm-4 d-grid">
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
             <div class="col-sm-4 d-grid">
-                <a class="btn btn-outline-primary" href="/laptop" role="button">Cancel</a>
+                <a class= "btn btn-outline-primary" href="/cellphone" role="button">Cancel</a>
             </div>
         </div>
+
     </form>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>

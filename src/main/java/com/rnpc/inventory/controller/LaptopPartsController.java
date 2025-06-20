@@ -1,13 +1,5 @@
 package com.rnpc.inventory.controller;
 
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.Date;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -34,14 +26,22 @@ public class LaptopPartsController {
 		this.laptopPartsService = laptopPartsService;
 	}
 
-	@GetMapping
+	@GetMapping({"","/"})
 	public String showLaptopPartsList(Model model) {
 		model.addAttribute("laptop", laptopPartsService.getAllLaptopParts());
 		return "products/laptopParts";
 	}
 
 	@PostMapping("/create")
-	public String createLaptopPart(@ModelAttribute LaptopPartsDto laptopPartsDto) {
+	public String createLaptopPart(@Valid @ModelAttribute LaptopPartsDto laptopPartsDto, BindingResult result) {
+		if (laptopPartsDto.getImageFile().isEmpty()) {
+			result.addError(new FieldError("laptopPartsDto", "imageFile", "The image file is required!"));
+		}
+
+		if (result.hasErrors()) {
+			return "products/laptopCreateParts";
+		}
+
 		laptopPartsService.saveLaptopPart(laptopPartsDto);
 		return "redirect:/laptop";
 	}
@@ -73,19 +73,19 @@ public class LaptopPartsController {
 		laptopPartsDto.setDescription(product.getDescription());
 
 		model.addAttribute("laptopPartsDto", laptopPartsDto); // Changed here
-		model.addAttribute("productId", id);
+		model.addAttribute("laptopPartId", id);
 		return "products/laptopEditParts";
 	}
 
 
 	// Update the laptop details
-	@PostMapping("/update/{id}")
+	@PutMapping("/update/{id}")
 	public String updateProduct(@PathVariable("id") int id,
 								@Valid @ModelAttribute LaptopPartsDto laptopDto,
 								BindingResult result,
 								Model model) {
 		if (result.hasErrors()) {
-			model.addAttribute("productId", id);
+			model.addAttribute("laptopPartId", id);
 			return "products/laptopEditParts";
 		}
 
