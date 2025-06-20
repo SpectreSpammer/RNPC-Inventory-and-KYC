@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
@@ -28,7 +29,14 @@ public class CellphonePartsController {
     }
 
     @PostMapping("/create")
-    public String createCellphonePart(@ModelAttribute CellphonePartsDto cellphonePartsDto){
+    public String createCellphonePart(@Valid @ModelAttribute CellphonePartsDto cellphonePartsDto, BindingResult result){
+        if (cellphonePartsDto.getImageFile().isEmpty()) {
+            result.addError(new FieldError("cellphonePartsDto", "imageFile", "The image file is required!"));
+        }
+
+        if (result.hasErrors()) {
+            return "products/cellphoneCreateParts";
+        }
         cellphonePartsService.saveCellphonePart(cellphonePartsDto);
         return "redirect:/cellphone";
     }

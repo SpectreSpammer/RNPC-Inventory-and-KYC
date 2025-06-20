@@ -33,7 +33,15 @@ public class LaptopPartsController {
 	}
 
 	@PostMapping("/create")
-	public String createLaptopPart(@Valid @ModelAttribute LaptopPartsDto laptopPartsDto) {
+	public String createLaptopPart(@Valid @ModelAttribute LaptopPartsDto laptopPartsDto, BindingResult result) {
+		if (laptopPartsDto.getImageFile().isEmpty()) {
+			result.addError(new FieldError("laptopPartsDto", "imageFile", "The image file is required!"));
+		}
+
+		if (result.hasErrors()) {
+			return "products/laptopCreateParts";
+		}
+
 		laptopPartsService.saveLaptopPart(laptopPartsDto);
 		return "redirect:/laptop";
 	}
