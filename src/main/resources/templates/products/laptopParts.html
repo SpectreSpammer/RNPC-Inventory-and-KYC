@@ -1,10 +1,10 @@
-<!DOCTYPE HTML> 
+<!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>RN PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" 
-          rel="stylesheet" 
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
           crossorigin="anonymous">
     <link rel="stylesheet" th:href="@{/css/demo.css}"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
@@ -27,54 +27,54 @@
             </div>
         </div>
     </div>
-    
+
     <table class="table" id="laptopartsTable">
         <thead>
-            <tr>
-                <th>Id</th>
-                <th>Brand</th>
-                <th>Part Name</th>
-                <th>Category</th>
-                <th>Storage Size</th>
-                <th>Stocks</th>
-                <th>Price</th>
-                <th>Description</th>
-                <th>Created At</th>
-                <th>Image</th>
-                <th>Action</th>
-            </tr>
+        <tr>
+            <th>Id</th>
+            <th>Brand</th>
+            <th>Part Name</th>
+            <th>Category</th>
+            <th>Storage Size</th>
+            <th>Stocks</th>
+            <th>Price</th>
+            <th>Description</th>
+            <th>Created At</th>
+            <th>Image</th>
+            <th>Action</th>
+        </tr>
         </thead>
         <tbody>
-            <tr th:each="part : ${laptop}">
-                <td th:text="${part.laptopPartId}"></td>
-                <td th:text="${part.brand}"></td>
-                <td th:text="${part.partName}"></td>
-                <td th:text="${part.category}"></td>
-                <td th:text="${part.storageSize}"></td>
-                <td th:text="${part.stocks}"></td>
-                <td th:text="${part.price}"></td>
-                <td th:text="${part.description}"></td>
-                <td th:text="${#dates.format(part.createdAt, 'yyyy-MM-dd')}"></td>
-                <td>
-                    <img th:if="${part.imageFileName}" th:src="@{'/images/' + ${part.imageFileName}}" alt="Laptop Part Image" style="max-width: 100px; max-height: 100px;">
-                </td>
-                <td style="white-space:nowrap">
-                    <a class="btn btn-primary btn-sm"
-                       th:href="@{/laptop/edit/{id} (id=${part.laptopPartId})}">Edit
-                    </a>
-                    <!-- Replace the delete link with a form -->
-                    <form th:action="@{/laptop/delete/{id}(id=${part.laptopPartId})}"
-                          method="post"
-                          style="display:inline;">
-                        <input type="hidden" name="_method" value="delete"/>
-                        <button type="submit"
-                                class="btn btn-danger btn-sm"
-                                onclick="return confirm('Are you sure?')">
-                            Delete
-                        </button>
-                    </form>
-                </td>
-            </tr>
+        <tr th:each="part : ${laptop}">
+            <td th:text="${part.laptopPartId}"></td>
+            <td th:text="${part.brand}"></td>
+            <td th:text="${part.partName}"></td>
+            <td th:text="${part.category}"></td>
+            <td th:text="${part.storageSize}"></td>
+            <td th:text="${part.stocks}"></td>
+            <td th:text="${part.price}"></td>
+            <td th:text="${part.description}"></td>
+            <td th:text="${#dates.format(part.createdAt, 'yyyy-MM-dd')}"></td>
+            <td>
+                <img th:if="${part.imageFileName}" th:src="@{'/images/' + ${part.imageFileName}}" alt="Laptop Part Image" style="max-width: 100px; max-height: 100px;">
+            </td>
+            <td style="white-space:nowrap">
+                <a class="btn btn-primary btn-sm"
+                   th:href="@{/laptop/edit/{id} (id=${part.laptopPartId})}">Edit
+                </a>
+                <!-- Replace the delete link with a form -->
+                <form th:action="@{/laptop/delete/{id}(id=${part.laptopPartId})}"
+                      method="post"
+                      style="display:inline;">
+                    <input type="hidden" name="_method" value="delete"/>
+                    <button type="submit"
+                            class="btn btn-danger btn-sm"
+                            onclick="return confirm('Are you sure?')">
+                        Delete
+                    </button>
+                </form>
+            </td>
+        </tr>
         </tbody>
     </table>
 </div>
