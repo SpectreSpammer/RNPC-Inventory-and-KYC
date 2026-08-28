@@ -1,0 +1,884 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>PC and Cellphone Repair Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .build-row td { vertical-align: middle; }
+        .part-name { font-weight: 600; }
+        .part-specs { font-size: 0.85em; color: #6c757d; white-space: pre-line; }
+        .compat-ok { color: #198754; }
+        .compat-warn { color: #dc3545; }
+        #pickerTableBody tr.out-of-stock { opacity: 0.55; }
+        .picker-modal-dialog {
+            max-width: 95vw;
+            margin-top: 2.5vh;
+            margin-bottom: 2.5vh;
+        }
+        .picker-modal-dialog .modal-content {
+            height: 90vh;
+        }
+        .filter-menu, .sort-menu { min-width: 220px; padding: 0.75rem; }
+        .filter-menu { max-height: 70vh; overflow-y: auto; }
+        .filter-section-list { max-height: 150px; overflow-y: auto; }
+        .filter-accordion-item { border-bottom: 1px solid #e9ecef; }
+        .filter-accordion-item:last-of-type { border-bottom: none; }
+        .filter-accordion-toggle {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: none;
+            border: none;
+            padding: 0.5rem 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #495057;
+        }
+        .filter-accordion-toggle .chevron { transition: transform 0.2s ease; color: #6c757d; }
+        .filter-accordion-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+        .filter-badge { font-size: 0.7rem; }
+        .filter-accordion-body { padding-bottom: 0.5rem; }
+        .price-badge { font-size: 1rem; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/">
+        <h1 class="text-center my-4">Build a PC</h1>
+    </a>
+</div>
+
+<div class="content-wrapper">
+    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+
+    <main class="main-content">
+    <div th:replace="~{fragments/nav :: back}"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="text-muted mb-0">Pick a CPU brand and the compatible motherboards and memory are filtered for you automatically — just like a parts picker.</p>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="resetBuildBtn">Reset Build</button>
+    </div>
+
+    <div id="compatMessages" class="mb-3"></div>
+
+    <div class="table-responsive">
+        <table class="table align-middle" id="buildTable">
+            <thead>
+            <tr>
+                <th style="width: 15%">Component</th>
+                <th style="width: 45%">Selection</th>
+                <th style="width: 15%">Price</th>
+                <th style="width: 25%">Action</th>
+            </tr>
+            </thead>
+            <tbody id="buildTableBody"></tbody>
+            <tfoot>
+            <tr>
+                <th colspan="2" class="text-end">Estimated Total</th>
+                <th id="buildSubtotal">Php 0.00</th>
+                <th></th>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+    </main>
+</div>
+
+<!-- Part picker modal -->
+<div class="modal fade" id="pickerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog picker-modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pickerModalTitle">Choose a part</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+                    <div class="input-group rounded" style="max-width: 650px;">
+                        <span class="input-group-text border-0" id="picker-search-addon">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="search" class="form-control rounded" id="pickerSearch" placeholder="Search" aria-label="Search" aria-describedby="picker-search-addon" />
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="pickerFilterBtn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                        <div class="dropdown-menu filter-menu" aria-labelledby="pickerFilterBtn">
+                            <div id="pickerFilterAccordion">
+                                <div class="filter-accordion-item">
+                                    <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#pickerCollapseAvail" aria-expanded="false">
+                                        <span>Availability <span class="badge bg-primary rounded-pill filter-badge" id="pickerAvailBadge" style="display:none;"></span></span>
+                                        <i class="fas fa-chevron-down chevron"></i>
+                                    </button>
+                                    <div class="collapse" id="pickerCollapseAvail" data-bs-parent="#pickerFilterAccordion">
+                                        <div class="filter-accordion-body">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="pickerAvailability" id="pickerAvailAll" value="all" checked>
+                                                <label class="form-check-label" for="pickerAvailAll">All</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="pickerAvailability" id="pickerAvailInStock" value="inStock">
+                                                <label class="form-check-label" for="pickerAvailInStock">In Stock</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="pickerAvailability" id="pickerAvailOutOfStock" value="outOfStock">
+                                                <label class="form-check-label" for="pickerAvailOutOfStock">Out of Stock</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="filter-accordion-item">
+                                    <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#pickerCollapseBrand" aria-expanded="false">
+                                        <span>Brand <span class="badge bg-primary rounded-pill filter-badge" id="pickerBrandBadge" style="display:none;"></span></span>
+                                        <i class="fas fa-chevron-down chevron"></i>
+                                    </button>
+                                    <div class="collapse" id="pickerCollapseBrand" data-bs-parent="#pickerFilterAccordion">
+                                        <div class="filter-accordion-body">
+                                            <div class="d-flex justify-content-end mb-1">
+                                                <a href="#" id="pickerSelectAllBrands" class="small">Select All</a>
+                                                <a href="#" id="pickerUnselectAllBrands" class="small" style="display:none;">Unselect All</a>
+                                            </div>
+                                            <div id="pickerBrandChecklist" class="filter-section-list"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="pickerFieldFilterSections"></div>
+                            </div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" id="pickerResetFilterBtn">Reset</button>
+                                <button type="button" class="btn btn-primary btn-sm flex-fill" id="pickerApplyFilterBtn">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="pickerSortBtn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                            Sort by
+                        </button>
+                        <div class="dropdown-menu sort-menu" aria-labelledby="pickerSortBtn">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="pickerSortOption" id="pickerSortRelevance" value="relevance" checked>
+                                <label class="form-check-label" for="pickerSortRelevance">Relevance</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="pickerSortOption" id="pickerSortPriceLow" value="priceLow">
+                                <label class="form-check-label" for="pickerSortPriceLow">Price: Low to High</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="pickerSortOption" id="pickerSortPriceHigh" value="priceHigh">
+                                <label class="form-check-label" for="pickerSortPriceHigh">Price: High to Low</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-check mb-2" id="pickerCompatWrapper" style="display:none;">
+                    <input class="form-check-input" type="checkbox" id="pickerCompatOnly" checked>
+                    <label class="form-check-label" for="pickerCompatOnly">
+                        Only show compatible parts
+                    </label>
+                </div>
+                <div id="pickerCompatNote" class="text-muted small mb-2"></div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead id="pickerTableHead"></thead>
+                        <tbody id="pickerTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View modal -->
+<div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewDetailsModalTitle">Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <img id="viewDetailsImg" src="" class="img-fluid d-block mb-3" style="display:none; max-height: 260px; margin: 0 auto;" alt="Component image"/>
+                <span class="badge bg-success price-badge mb-3" id="viewDetailsPrice"></span>
+                <table class="table table-sm" id="viewDetailsTable">
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
+<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+const ALL_PARTS = /*[[${components}]]*/ [];
+/*]]>*/
+
+const CATEGORY_ORDER = ['CPU', 'MOTHERBOARD', 'RAM', 'STORAGE', 'GPU', 'PSU', 'CASE', 'COOLER'];
+const CATEGORY_LABELS = {
+    CPU: 'CPU',
+    MOTHERBOARD: 'Motherboard',
+    RAM: 'Memory (RAM)',
+    STORAGE: 'Storage',
+    GPU: 'Video Card (GPU)',
+    PSU: 'Power Supply (PSU)',
+    CASE: 'Case',
+    COOLER: 'CPU Cooler'
+};
+
+const FIELD_FILTER_EXCLUDED_COMMON = ['Brand', 'Model'];
+const FIELD_FILTER_EXCLUDED_BY_CATEGORY = {
+    CPU: ['Socket', 'Cores', 'Thread', 'Memory Support', 'Launch Year'],
+    MOTHERBOARD: ['CPU Platform'],
+    RAM: ['Voltage']
+};
+
+function isFieldFilterExcluded(category, key) {
+    if (FIELD_FILTER_EXCLUDED_COMMON.indexOf(key) > -1) return true;
+    const categoryList = FIELD_FILTER_EXCLUDED_BY_CATEGORY[category] || [];
+    return categoryList.indexOf(key) > -1;
+}
+
+const FIELD_FILTER_MAX_DISTINCT = 15;
+const FIELD_FILTER_RADIO_STYLE = ['Integrated Graphics'];
+const FIELD_FILTER_RADIO_CATEGORIES = ['MOTHERBOARD', 'RAM', 'GPU', 'STORAGE', 'PSU', 'CASE', 'COOLER'];
+const FIELD_VALUE_TRANSFORMS = {
+    'Integrated Graphics': function (raw) {
+        return (!raw || raw.trim() === '' || raw.trim().toLowerCase() === 'none') ? 'No' : 'Yes';
+    }
+};
+
+const FIELD_OPTION_ORDER = {
+    'Integrated Graphics': ['Yes', 'No']
+};
+
+function orderFieldValues(key, values) {
+    const order = FIELD_OPTION_ORDER[key];
+    if (!order) return values.slice().sort();
+    return order.filter(function (v) { return values.indexOf(v) > -1; });
+}
+
+function getFieldFilterValue(p, key) {
+    const raw = (p.fields || {})[key];
+    const transform = FIELD_VALUE_TRANSFORMS[key];
+    return transform ? transform(raw) : raw;
+}
+
+const BRAND_RADIO_MAX_BRANDS = 2;
+const BRAND_OPTION_ORDER = ['AMD', 'Intel'];
+
+function orderBrandValues(brands) {
+    const preferred = BRAND_OPTION_ORDER.filter(function (b) { return brands.indexOf(b) > -1; });
+    const rest = brands.filter(function (b) { return BRAND_OPTION_ORDER.indexOf(b) === -1; }).sort();
+    return preferred.concat(rest);
+}
+
+const selected = {};
+let pickerCategory = null;
+let pickerActiveBrands = [];
+let pickerBrandMode = 'checkbox';
+let pickerSearchTerm = '';
+let pickerSort = 'relevance';
+let pickerAvailability = 'all';
+let pickerFieldFilterState = {};
+
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
+}
+
+function formatPrice(value) {
+    return 'Php ' + Number(value).toFixed(2);
+}
+
+function partsByCategory(category) {
+    return ALL_PARTS.filter(function (p) { return p.category === category; });
+}
+
+function computeCompatibilityMessages() {
+    const messages = [];
+    const cpu = selected.CPU;
+    const mobo = selected.MOTHERBOARD;
+    const ram = selected.RAM;
+
+    if (cpu && mobo) {
+        if (cpu.socket === mobo.socket) {
+            messages.push({ ok: true, text: 'CPU and Motherboard sockets match (' + cpu.socket + ').' });
+        } else {
+            messages.push({ ok: false, text: 'CPU socket (' + cpu.socket + ') does not match Motherboard socket (' + mobo.socket + ').' });
+        }
+    }
+
+    if (mobo && ram) {
+        if (mobo.ramType === ram.ramType) {
+            messages.push({ ok: true, text: 'Motherboard and RAM types match (' + mobo.ramType + ').' });
+        } else {
+            messages.push({ ok: false, text: 'Motherboard RAM type (' + mobo.ramType + ') does not match selected RAM (' + ram.ramType + ').' });
+        }
+    }
+
+    return messages;
+}
+
+function renderCompatMessages() {
+    const container = document.getElementById('compatMessages');
+    const messages = computeCompatibilityMessages();
+
+    if (messages.length === 0) {
+        container.innerHTML = '<div class="text-muted small">Pick a CPU, Motherboard and RAM to see live compatibility checks here.</div>';
+        return;
+    }
+
+    container.innerHTML = messages.map(function (m) {
+        const icon = m.ok ? '✓' : '⚠';
+        const cls = m.ok ? 'compat-ok' : 'compat-warn';
+        return '<div class="' + cls + '">' + icon + ' ' + escapeHtml(m.text) + '</div>';
+    }).join('');
+}
+
+function renderBuildTable() {
+    const tbody = document.getElementById('buildTableBody');
+    let subtotal = 0;
+    let rows = '';
+
+    CATEGORY_ORDER.forEach(function (category) {
+        const part = selected[category];
+        if (part) subtotal += Number(part.price);
+
+        const selectionHtml = part
+            ? '<div class="part-name">' + escapeHtml(part.brand) + ' ' + escapeHtml(part.modelName) + '</div>' +
+              '<div class="part-specs">' + escapeHtml(part.specs || '') + '</div>'
+            : '<span class="text-muted">No part selected</span>';
+
+        const priceHtml = part ? formatPrice(part.price) : '-';
+
+        const actionsHtml =
+            '<button type="button" class="btn btn-primary btn-sm me-2" onclick="openPicker(\'' + category + '\')">' +
+            (part ? 'Change' : 'Choose') + '</button>' +
+            (part ? '<button type="button" class="btn btn-outline-danger btn-sm" onclick="removePart(\'' + category + '\')">Remove</button>' : '');
+
+        rows += '<tr class="build-row">' +
+            '<td>' + CATEGORY_LABELS[category] + '</td>' +
+            '<td>' + selectionHtml + '</td>' +
+            '<td>' + priceHtml + '</td>' +
+            '<td>' + actionsHtml + '</td>' +
+            '</tr>';
+    });
+
+    tbody.innerHTML = rows;
+    document.getElementById('buildSubtotal').textContent = formatPrice(subtotal);
+    renderCompatMessages();
+}
+
+function removePart(category) {
+    delete selected[category];
+    renderBuildTable();
+}
+
+function resetBuild() {
+    Object.keys(selected).forEach(function (key) { delete selected[key]; });
+    renderBuildTable();
+}
+
+function getFilterableFields(parts) {
+    if (parts.length === 0) return [];
+    const keys = Object.keys(parts[0].fields || {});
+    return keys.filter(function (key) {
+        if (isFieldFilterExcluded(pickerCategory, key)) return false;
+        if (FIELD_VALUE_TRANSFORMS[key]) return true;
+        const values = new Set(parts.map(function (p) { return (p.fields || {})[key]; }));
+        return values.size > 1 && values.size <= FIELD_FILTER_MAX_DISTINCT && values.size < parts.length;
+    });
+}
+
+function openPicker(category) {
+    pickerCategory = category;
+    pickerSearchTerm = '';
+    pickerSort = 'relevance';
+    pickerAvailability = 'all';
+
+    const parts = partsByCategory(pickerCategory);
+    pickerActiveBrands = Array.from(new Set(parts.map(function (p) { return p.brand; }))).sort();
+
+    pickerFieldFilterState = {};
+    getFilterableFields(parts).forEach(function (key) {
+        pickerFieldFilterState[key] = Array.from(new Set(parts.map(function (p) { return getFieldFilterValue(p, key); })));
+    });
+
+    document.getElementById('pickerModalTitle').textContent = 'Choose a ' + CATEGORY_LABELS[category];
+    document.getElementById('pickerSearch').value = '';
+    document.getElementById('pickerSortRelevance').checked = true;
+    document.getElementById('pickerAvailAll').checked = true;
+    updateAvailabilityBadge();
+
+    renderBrandChecklist();
+    renderFieldFilterSections();
+    renderCompatToggle();
+    renderPickerTable();
+
+    const modalEl = document.getElementById('pickerModal');
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+}
+
+function renderFieldFilterSections() {
+    const parts = partsByCategory(pickerCategory);
+    const container = document.getElementById('pickerFieldFilterSections');
+    const fields = getFilterableFields(parts);
+
+    container.innerHTML = fields.map(function (key, fi) {
+        const values = orderFieldValues(key, Array.from(new Set(parts.map(function (p) { return getFieldFilterValue(p, key); }))));
+        const activeValues = pickerFieldFilterState[key] || values;
+        const collapseId = 'pickerCollapseField_' + fi;
+        const badgeId = 'pickerFieldBadge_' + fi;
+        const isRadioStyle = FIELD_FILTER_RADIO_STYLE.indexOf(key) > -1 || FIELD_FILTER_RADIO_CATEGORIES.indexOf(pickerCategory) > -1;
+
+        let optionsHtml;
+        if (isRadioStyle) {
+            const radioName = 'pickerFieldRadio_' + fi;
+            const isAllSelected = activeValues.length === values.length;
+            optionsHtml = '<div class="form-check">' +
+                '<input class="form-check-input picker-field-radio" data-field="' + escapeHtml(key) + '" data-badge-id="' + badgeId + '" type="radio" name="' + radioName + '" value="__ALL__" id="' + radioName + '_all" ' + (isAllSelected ? 'checked' : '') + '>' +
+                '<label class="form-check-label" for="' + radioName + '_all">All</label>' +
+                '</div>' +
+                values.map(function (val, vi) {
+                    const checked = (!isAllSelected && activeValues.length === 1 && activeValues[0] === val) ? 'checked' : '';
+                    const id = radioName + '_' + vi;
+                    return '<div class="form-check">' +
+                        '<input class="form-check-input picker-field-radio" data-field="' + escapeHtml(key) + '" data-badge-id="' + badgeId + '" type="radio" name="' + radioName + '" value="' + escapeHtml(val) + '" id="' + id + '" ' + checked + '>' +
+                        '<label class="form-check-label" for="' + id + '">' + escapeHtml(val) + '</label>' +
+                        '</div>';
+                }).join('');
+        } else {
+            optionsHtml = values.map(function (val, vi) {
+                const checked = activeValues.indexOf(val) > -1 ? 'checked' : '';
+                const id = 'pickerField_' + fi + '_' + vi;
+                return '<div class="form-check">' +
+                    '<input class="form-check-input picker-field-checkbox" data-field="' + escapeHtml(key) + '" data-badge-id="' + badgeId + '" type="checkbox" value="' + escapeHtml(val) + '" id="' + id + '" ' + checked + '>' +
+                    '<label class="form-check-label" for="' + id + '">' + escapeHtml(val) + '</label>' +
+                    '</div>';
+            }).join('');
+        }
+
+        return '<div class="filter-accordion-item">' +
+            '<button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#' + collapseId + '" aria-expanded="false">' +
+            '<span>' + escapeHtml(key) + ' <span class="badge bg-primary rounded-pill filter-badge" id="' + badgeId + '" style="display:none;"></span></span>' +
+            '<i class="fas fa-chevron-down chevron"></i>' +
+            '</button>' +
+            '<div class="collapse" id="' + collapseId + '" data-bs-parent="#pickerFilterAccordion">' +
+            '<div class="filter-accordion-body">' +
+            '<div class="filter-section-list">' + optionsHtml + '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+    }).join('');
+
+    updateAllFieldBadges();
+
+    document.querySelectorAll('.picker-field-checkbox').forEach(function (cb) {
+        cb.addEventListener('change', function () {
+            updateFieldBadge(cb.dataset.badgeId);
+        });
+    });
+
+    document.querySelectorAll('.picker-field-radio').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            const badge = document.getElementById(radio.dataset.badgeId);
+            if (!badge) return;
+            if (radio.value === '__ALL__') {
+                badge.style.display = 'none';
+            } else {
+                badge.textContent = '1';
+                badge.style.display = '';
+            }
+        });
+    });
+}
+
+function updateChecklistBadge(badgeId, checkedCount, totalCount) {
+    const badge = document.getElementById(badgeId);
+    if (!badge) return;
+    if (checkedCount < totalCount) {
+        badge.textContent = checkedCount;
+        badge.style.display = '';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function updateBrandBadge() {
+    if (pickerBrandMode === 'radio') {
+        const checked = document.querySelector('.picker-brand-radio:checked');
+        const badge = document.getElementById('pickerBrandBadge');
+        if (checked && checked.value !== '__ALL__') {
+            badge.textContent = '1';
+            badge.style.display = '';
+        } else {
+            badge.style.display = 'none';
+        }
+        return;
+    }
+
+    const checkboxes = document.querySelectorAll('.picker-brand-checkbox');
+    const checked = Array.from(checkboxes).filter(function (cb) { return cb.checked; });
+    updateChecklistBadge('pickerBrandBadge', checked.length, checkboxes.length);
+}
+
+function updateFieldBadge(badgeId) {
+    const checkboxes = document.querySelectorAll('.picker-field-checkbox[data-badge-id="' + badgeId + '"]');
+    const checked = Array.from(checkboxes).filter(function (cb) { return cb.checked; });
+    updateChecklistBadge(badgeId, checked.length, checkboxes.length);
+}
+
+function updateAllFieldBadges() {
+    const badgeIds = new Set();
+    document.querySelectorAll('.picker-field-checkbox').forEach(function (cb) { badgeIds.add(cb.dataset.badgeId); });
+    badgeIds.forEach(updateFieldBadge);
+}
+
+function updateAvailabilityBadge() {
+    const checked = document.querySelector('input[name="pickerAvailability"]:checked');
+    const badge = document.getElementById('pickerAvailBadge');
+    if (checked && checked.value !== 'all') {
+        badge.textContent = '1';
+        badge.style.display = '';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function renderBrandChecklist() {
+    const parts = partsByCategory(pickerCategory);
+    const allBrands = Array.from(new Set(parts.map(function (p) { return p.brand; }))).sort();
+    const container = document.getElementById('pickerBrandChecklist');
+    const selectAllLink = document.getElementById('pickerSelectAllBrands');
+    const unselectAllLink = document.getElementById('pickerUnselectAllBrands');
+
+    pickerBrandMode = (allBrands.length <= BRAND_RADIO_MAX_BRANDS || FIELD_FILTER_RADIO_CATEGORIES.indexOf(pickerCategory) > -1) ? 'radio' : 'checkbox';
+
+    if (pickerBrandMode === 'radio') {
+        selectAllLink.style.display = 'none';
+        unselectAllLink.style.display = 'none';
+
+        const ordered = orderBrandValues(allBrands);
+        const isAllSelected = pickerActiveBrands.length === allBrands.length;
+
+        container.innerHTML = '<div class="form-check">' +
+            '<input class="form-check-input picker-brand-radio" type="radio" name="pickerBrandRadio" value="__ALL__" id="pickerBrandRadio_all" ' + (isAllSelected ? 'checked' : '') + '>' +
+            '<label class="form-check-label" for="pickerBrandRadio_all">All</label>' +
+            '</div>' +
+            ordered.map(function (brand, i) {
+                const checked = (!isAllSelected && pickerActiveBrands.length === 1 && pickerActiveBrands[0] === brand) ? 'checked' : '';
+                const id = 'pickerBrandRadio_' + i;
+                return '<div class="form-check">' +
+                    '<input class="form-check-input picker-brand-radio" type="radio" name="pickerBrandRadio" value="' + escapeHtml(brand) + '" id="' + id + '" ' + checked + '>' +
+                    '<label class="form-check-label" for="' + id + '">' + escapeHtml(brand) + '</label>' +
+                    '</div>';
+            }).join('');
+
+        updateBrandBadge();
+
+        document.querySelectorAll('.picker-brand-radio').forEach(function (radio) {
+            radio.addEventListener('change', updateBrandBadge);
+        });
+        return;
+    }
+
+    selectAllLink.style.display = '';
+    unselectAllLink.style.display = 'none';
+
+    container.innerHTML = allBrands.map(function (brand, i) {
+        const checked = pickerActiveBrands.indexOf(brand) > -1 ? 'checked' : '';
+        return '<div class="form-check">' +
+            '<input class="form-check-input picker-brand-checkbox" type="checkbox" value="' + escapeHtml(brand) + '" id="pickerBrand' + i + '" ' + checked + '>' +
+            '<label class="form-check-label" for="pickerBrand' + i + '">' + escapeHtml(brand) + '</label>' +
+            '</div>';
+    }).join('');
+
+    updatePickerSelectAllToggle();
+    updateBrandBadge();
+
+    document.querySelectorAll('.picker-brand-checkbox').forEach(function (cb) {
+        cb.addEventListener('change', function () {
+            updatePickerSelectAllToggle();
+            updateBrandBadge();
+        });
+    });
+}
+
+function updatePickerSelectAllToggle() {
+    const checkboxes = document.querySelectorAll('.picker-brand-checkbox');
+    const allChecked = Array.from(checkboxes).every(function (cb) { return cb.checked; });
+    document.getElementById('pickerSelectAllBrands').style.display = allChecked ? 'none' : '';
+    document.getElementById('pickerUnselectAllBrands').style.display = allChecked ? '' : 'none';
+}
+
+function compatApplies() {
+    return (pickerCategory === 'MOTHERBOARD' && selected.CPU) ||
+           (pickerCategory === 'RAM' && selected.MOTHERBOARD);
+}
+
+function renderCompatToggle() {
+    const wrapper = document.getElementById('pickerCompatWrapper');
+    const note = document.getElementById('pickerCompatNote');
+    const checkbox = document.getElementById('pickerCompatOnly');
+
+    if (compatApplies()) {
+        wrapper.style.display = '';
+        checkbox.checked = true;
+        checkbox.onchange = renderPickerTable;
+
+        if (pickerCategory === 'MOTHERBOARD') {
+            note.textContent = 'Filtering to motherboards with socket ' + selected.CPU.socket + ' to match your selected CPU (' + selected.CPU.brand + ' ' + selected.CPU.modelName + ').';
+        } else {
+            note.textContent = 'Filtering to RAM with type ' + selected.MOTHERBOARD.ramType + ' to match your selected motherboard (' + selected.MOTHERBOARD.modelName + ').';
+        }
+    } else {
+        wrapper.style.display = 'none';
+        note.textContent = '';
+    }
+}
+
+function renderPickerTable() {
+    let parts = partsByCategory(pickerCategory);
+
+    parts = parts.filter(function (p) { return pickerActiveBrands.indexOf(p.brand) > -1; });
+
+    if (pickerAvailability === 'inStock') {
+        parts = parts.filter(function (p) { return p.stocks > 0; });
+    } else if (pickerAvailability === 'outOfStock') {
+        parts = parts.filter(function (p) { return p.stocks <= 0; });
+    }
+
+    Object.keys(pickerFieldFilterState).forEach(function (key) {
+        const activeValues = pickerFieldFilterState[key];
+        parts = parts.filter(function (p) { return activeValues.indexOf(getFieldFilterValue(p, key)) > -1; });
+    });
+
+    if (pickerSearchTerm) {
+        const term = pickerSearchTerm.toLowerCase();
+        parts = parts.filter(function (p) {
+            return (p.brand || '').toLowerCase().indexOf(term) > -1 ||
+                   (p.modelName || '').toLowerCase().indexOf(term) > -1;
+        });
+    }
+
+    const compatOnly = compatApplies() && document.getElementById('pickerCompatOnly').checked;
+    if (compatOnly) {
+        if (pickerCategory === 'MOTHERBOARD') {
+            parts = parts.filter(function (p) { return p.socket === selected.CPU.socket; });
+        } else if (pickerCategory === 'RAM') {
+            parts = parts.filter(function (p) { return p.ramType === selected.MOTHERBOARD.ramType; });
+        }
+    }
+
+    if (pickerSort === 'priceLow') {
+        parts = parts.slice().sort(function (a, b) { return a.price - b.price; });
+    } else if (pickerSort === 'priceHigh') {
+        parts = parts.slice().sort(function (a, b) { return b.price - a.price; });
+    }
+
+    const allInCategory = partsByCategory(pickerCategory);
+    const fieldKeys = allInCategory.length > 0 ? Object.keys(allInCategory[0].fields || {}) : [];
+    const columnCount = fieldKeys.length + 3; // + Stocks, Price, Action
+
+    const thead = document.getElementById('pickerTableHead');
+    thead.innerHTML = '<tr>' +
+        fieldKeys.map(function (key) { return '<th>' + escapeHtml(key) + '</th>'; }).join('') +
+        '<th>Stocks</th><th>Price</th><th></th>' +
+        '</tr>';
+
+    const tbody = document.getElementById('pickerTableBody');
+
+    if (parts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="' + columnCount + '" class="text-center text-muted">No matching parts found.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = parts.map(function (p) {
+        const outOfStock = p.stocks <= 0;
+        const fieldCells = fieldKeys.map(function (key) {
+            return '<td>' + escapeHtml((p.fields || {})[key]) + '</td>';
+        }).join('');
+
+        return '<tr class="' + (outOfStock ? 'out-of-stock' : '') + '">' +
+            fieldCells +
+            '<td>' + (outOfStock ? 'Out of stock' : p.stocks) + '</td>' +
+            '<td>' + formatPrice(p.price) + '</td>' +
+            '<td style="white-space:nowrap">' +
+            '<button type="button" class="btn btn-outline-secondary btn-sm" onclick="viewPartDetails(' + p.componentId + ')">View</button> ' +
+            '<button type="button" class="btn btn-success btn-sm" ' + (outOfStock ? 'disabled' : '') +
+            ' onclick="selectPart(' + p.componentId + ')">Select</button></td>' +
+            '</tr>';
+    }).join('');
+}
+
+function viewPartDetails(componentId) {
+    const part = ALL_PARTS.find(function (p) { return p.componentId === componentId && p.category === pickerCategory; });
+    if (!part) return;
+
+    document.getElementById('viewDetailsModalTitle').textContent = part.brand + ' ' + part.modelName;
+    document.getElementById('viewDetailsPrice').textContent = formatPrice(part.price);
+
+    const img = document.getElementById('viewDetailsImg');
+    if (part.imageFileName) {
+        img.src = '/images/' + part.imageFileName;
+        img.style.display = '';
+    } else {
+        img.removeAttribute('src');
+        img.style.display = 'none';
+    }
+
+    const fields = part.fields || {};
+    const rows = Object.keys(fields).map(function (key) {
+        return '<tr><th class="text-muted" style="width:45%">' + escapeHtml(key) + '</th><td>' + escapeHtml(fields[key]) + '</td></tr>';
+    }).join('');
+
+    document.querySelector('#viewDetailsTable tbody').innerHTML = rows +
+        '<tr><th class="text-muted">Stocks</th><td>' + part.stocks + '</td></tr>';
+
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('viewDetailsModal')).show();
+}
+
+function selectPart(componentId) {
+    // componentId is only unique WITHIN a category (each category's DB id starts back at 1),
+    // so it must be matched together with pickerCategory or this picks up the first part with
+    // a matching id from a completely different category (e.g. CPU id=1 instead of RAM id=1).
+    const part = ALL_PARTS.find(function (p) { return p.componentId === componentId && p.category === pickerCategory; });
+    if (!part) return;
+
+    selected[pickerCategory] = part;
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('pickerModal')).hide();
+    renderBuildTable();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('resetBuildBtn').addEventListener('click', function () {
+        if (confirm('Clear your entire build?')) {
+            resetBuild();
+        }
+    });
+    renderBuildTable();
+
+    // The picker modal's body scrolls (modal-dialog-scrollable), which otherwise clips
+    // Bootstrap's absolutely-positioned dropdown-menu at the modal's edge — cutting off
+    // the Apply/Reset buttons at the bottom of the Filter panel. Fixed positioning escapes
+    // that clipping since it's relative to the viewport, not the scrolling ancestor.
+    ['pickerFilterBtn', 'pickerSortBtn'].forEach(function (id) {
+        bootstrap.Dropdown.getOrCreateInstance(document.getElementById(id), {
+            popperConfig: function (defaultConfig) {
+                return Object.assign({}, defaultConfig, { strategy: 'fixed' });
+            }
+        });
+    });
+
+    document.getElementById('pickerSearch').addEventListener('input', function () {
+        pickerSearchTerm = this.value;
+        renderPickerTable();
+    });
+
+    document.getElementById('pickerSelectAllBrands').addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelectorAll('.picker-brand-checkbox').forEach(function (cb) { cb.checked = true; });
+        updatePickerSelectAllToggle();
+        updateBrandBadge();
+    });
+
+    document.getElementById('pickerUnselectAllBrands').addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelectorAll('.picker-brand-checkbox').forEach(function (cb) { cb.checked = false; });
+        updatePickerSelectAllToggle();
+        updateBrandBadge();
+    });
+
+    document.querySelectorAll('input[name="pickerAvailability"]').forEach(function (radio) {
+        radio.addEventListener('change', updateAvailabilityBadge);
+    });
+
+    function commitPickerFilters() {
+        if (pickerBrandMode === 'radio') {
+            const checkedBrand = document.querySelector('.picker-brand-radio:checked');
+            if (!checkedBrand || checkedBrand.value === '__ALL__') {
+                pickerActiveBrands = Array.from(new Set(partsByCategory(pickerCategory).map(function (p) { return p.brand; })));
+            } else {
+                pickerActiveBrands = [checkedBrand.value];
+            }
+        } else {
+            pickerActiveBrands = Array.from(document.querySelectorAll('.picker-brand-checkbox:checked')).map(function (cb) { return cb.value; });
+        }
+
+        const checkedAvailability = document.querySelector('input[name="pickerAvailability"]:checked');
+        pickerAvailability = checkedAvailability ? checkedAvailability.value : 'all';
+
+        const fieldState = {};
+        document.querySelectorAll('.picker-field-checkbox').forEach(function (cb) {
+            const key = cb.dataset.field;
+            if (!fieldState[key]) fieldState[key] = [];
+            if (cb.checked) fieldState[key].push(cb.value);
+        });
+
+        const radioFieldKeys = new Set();
+        document.querySelectorAll('.picker-field-radio').forEach(function (radio) { radioFieldKeys.add(radio.dataset.field); });
+        radioFieldKeys.forEach(function (key) {
+            const options = document.querySelectorAll('.picker-field-radio[data-field="' + key + '"]');
+            const checked = Array.from(options).find(function (r) { return r.checked; });
+            if (!checked || checked.value === '__ALL__') {
+                fieldState[key] = Array.from(options).map(function (r) { return r.value; }).filter(function (v) { return v !== '__ALL__'; });
+            } else {
+                fieldState[key] = [checked.value];
+            }
+        });
+
+        pickerFieldFilterState = fieldState;
+
+        renderPickerTable();
+        bootstrap.Dropdown.getOrCreateInstance(document.getElementById('pickerFilterBtn')).hide();
+    }
+
+    document.getElementById('pickerApplyFilterBtn').addEventListener('click', commitPickerFilters);
+
+    document.getElementById('pickerResetFilterBtn').addEventListener('click', function () {
+        const parts = partsByCategory(pickerCategory);
+
+        pickerAvailability = 'all';
+        pickerActiveBrands = Array.from(new Set(parts.map(function (p) { return p.brand; })));
+        pickerFieldFilterState = {};
+        getFilterableFields(parts).forEach(function (key) {
+            pickerFieldFilterState[key] = Array.from(new Set(parts.map(function (p) { return getFieldFilterValue(p, key); })));
+        });
+
+        document.getElementById('pickerAvailAll').checked = true;
+        updateAvailabilityBadge();
+
+        renderBrandChecklist();
+        renderFieldFilterSections();
+        renderPickerTable();
+
+        bootstrap.Dropdown.getOrCreateInstance(document.getElementById('pickerFilterBtn')).hide();
+    });
+
+    document.querySelectorAll('input[name="pickerSortOption"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            pickerSort = this.value;
+            renderPickerTable();
+            bootstrap.Dropdown.getOrCreateInstance(document.getElementById('pickerSortBtn')).hide();
+        });
+    });
+});
+</script>
+</body>
+</html>
