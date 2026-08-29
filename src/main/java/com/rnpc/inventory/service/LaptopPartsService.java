@@ -8,7 +8,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
 
-import com.rnpc.inventory.entity.Computers;
 import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,11 +50,19 @@ public class LaptopPartsService {
         updateEntity(laptopPart, laptopPartsDto);
 
         if (laptopPartsDto.getImageFile() != null && !laptopPartsDto.getImageFile().isEmpty()) {
+            deleteImageFile(laptopPart.getImageFileName());
             String storageFileName = handleFileUpload(laptopPartsDto.getImageFile());
             laptopPart.setImageFileName(storageFileName);
         }
 
         return repo.save(laptopPart);
+    }
+
+    public void removePhoto(int id) {
+        LaptopParts laptopPart = getLaptopPartById(id);
+        deleteImageFile(laptopPart.getImageFileName());
+        laptopPart.setImageFileName(null);
+        repo.save(laptopPart);
     }
 
     public void deleteLaptopPart(int id) {

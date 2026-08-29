@@ -1,0 +1,123 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>PC and Cellphone Repair Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+</head>
+<body>
+<div class="container">
+    <a href="/">
+        <h1 class="text-center my-4">Add RAM</h1>
+    </a>
+</div>
+
+<div class="content-wrapper">
+    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+
+    <main class="main-content">
+    <div th:replace="~{fragments/nav :: back}"></div>
+    <form action="#" th:action="@{/ram/create}" th:object="${ramPartsDto}" method="post" enctype="multipart/form-data">
+
+        <div class="mb-3">
+            <label for="brand" class="form-label">Brand</label>
+            <input type="text" th:field="*{brand}" class="form-control" id="brand" placeholder="e.g. Kingston, Corsair, G.Skill">
+            <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="modelName" class="form-label">Model</label>
+            <input type="text" th:field="*{modelName}" class="form-control" id="modelName" placeholder="e.g. FURY Beast DDR5">
+            <div class="text-danger" th:if="${#fields.hasErrors('modelName')}" th:errors="*{modelName}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="type" class="form-label">Type</label>
+            <input type="text" th:field="*{type}" class="form-control" id="type" placeholder="e.g. DDR4, DDR5">
+            <div class="text-danger" th:if="${#fields.hasErrors('type')}" th:errors="*{type}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="kitCapacity" class="form-label">Kit Capacity</label>
+            <input type="text" th:field="*{kitCapacity}" class="form-control" id="kitCapacity" placeholder="e.g. 32 GB">
+            <div class="text-danger" th:if="${#fields.hasErrors('kitCapacity')}" th:errors="*{kitCapacity}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="moduleConfig" class="form-label">Module Config</label>
+            <input type="text" th:field="*{moduleConfig}" class="form-control" id="moduleConfig" placeholder="e.g. 2 x 16 GB">
+            <div class="text-danger" th:if="${#fields.hasErrors('moduleConfig')}" th:errors="*{moduleConfig}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="speedMts" class="form-label">Speed(MT/s)</label>
+            <input type="number" th:field="*{speedMts}" class="form-control" id="speedMts">
+            <div class="text-danger" th:if="${#fields.hasErrors('speedMts')}" th:errors="*{speedMts}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="casLatency" class="form-label">CAS Latency</label>
+            <input type="text" th:field="*{casLatency}" class="form-control" id="casLatency" placeholder="e.g. CL36">
+            <div class="text-danger" th:if="${#fields.hasErrors('casLatency')}" th:errors="*{casLatency}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="voltage" class="form-label">Voltage</label>
+            <input type="number" step="0.01" th:field="*{voltage}" class="form-control" id="voltage">
+            <div class="text-danger" th:if="${#fields.hasErrors('voltage')}" th:errors="*{voltage}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="rgb" class="form-label">RGB</label>
+            <input type="text" th:field="*{rgb}" class="form-control" id="rgb" placeholder="e.g. Yes, No">
+            <div class="text-danger" th:if="${#fields.hasErrors('rgb')}" th:errors="*{rgb}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="typicalUse" class="form-label">Typical Use</label>
+            <input type="text" th:field="*{typicalUse}" class="form-control" id="typicalUse" placeholder="e.g. Mainstream gaming">
+            <div class="text-danger" th:if="${#fields.hasErrors('typicalUse')}" th:errors="*{typicalUse}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="stocks" class="form-label">Stocks</label>
+            <input type="number" th:field="*{stocks}" class="form-control" id="stocks" placeholder="Enter stocks">
+            <div class="text-danger" th:if="${#fields.hasErrors('stocks')}" th:errors="*{stocks}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="price" class="form-label">Price</label>
+            <div class="input-group">
+                <span class="input-group-text">Php</span>
+                <input type="number" th:field="*{price}" class="form-control" id="price" placeholder="Enter price" step="0.01" min="0">
+            </div>
+            <div class="text-danger" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="imageFile" class="form-label">Image <span class="text-muted">(optional)</span></label>
+            <input type="file" th:field="*{imageFile}" class="form-control" id="imageFile">
+            <div class="text-danger" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></div>
+        </div>
+
+        <div class="row">
+            <div class="offset-sm-4 col-sm-4 d-grid">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            <div class="col-sm-4 d-grid">
+                <a class="btn btn-outline-primary" href="/computer" role="button">Cancel</a>
+            </div>
+        </div>
+
+    </form>
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
+<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+</body>
+</html>

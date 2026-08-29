@@ -1,0 +1,135 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>PC and Cellphone Repair Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+</head>
+<body>
+<div class="container">
+    <a href="/">
+        <h1 class="text-center my-4">Add Motherboard</h1>
+    </a>
+</div>
+
+<div class="content-wrapper">
+    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+
+    <main class="main-content">
+    <div th:replace="~{fragments/nav :: back}"></div>
+    <form action="#" th:action="@{/motherboard/create}" th:object="${motherboardPartsDto}" method="post" enctype="multipart/form-data">
+
+        <div class="mb-3">
+            <label for="brand" class="form-label">Brand</label>
+            <input type="text" th:field="*{brand}" class="form-control" id="brand" placeholder="e.g. ASUS, MSI, Gigabyte, ASRock">
+            <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="modelName" class="form-label">Model</label>
+            <input type="text" th:field="*{modelName}" class="form-control" id="modelName" placeholder="e.g. ROG Strix B650-A">
+            <div class="text-danger" th:if="${#fields.hasErrors('modelName')}" th:errors="*{modelName}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="chipset" class="form-label">Chipset</label>
+            <input type="text" th:field="*{chipset}" class="form-control" id="chipset" placeholder="e.g. B650">
+            <div class="text-danger" th:if="${#fields.hasErrors('chipset')}" th:errors="*{chipset}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="socket" class="form-label">Socket</label>
+            <input type="text" th:field="*{socket}" class="form-control" id="socket" placeholder="e.g. AM5, LGA1700">
+            <div class="text-danger" th:if="${#fields.hasErrors('socket')}" th:errors="*{socket}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="cpuPlatform" class="form-label">CPU Platform</label>
+            <input type="text" th:field="*{cpuPlatform}" class="form-control" id="cpuPlatform" placeholder="e.g. AMD Ryzen 7000-9000">
+            <div class="text-danger" th:if="${#fields.hasErrors('cpuPlatform')}" th:errors="*{cpuPlatform}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="formFactor" class="form-label">Form Factor</label>
+            <input type="text" th:field="*{formFactor}" class="form-control" id="formFactor" placeholder="e.g. ATX, Micro-ATX">
+            <div class="text-danger" th:if="${#fields.hasErrors('formFactor')}" th:errors="*{formFactor}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="memoryType" class="form-label">Memory Type</label>
+            <input type="text" th:field="*{memoryType}" class="form-control" id="memoryType" placeholder="e.g. DDR5">
+            <div class="text-danger" th:if="${#fields.hasErrors('memoryType')}" th:errors="*{memoryType}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="ramSlots" class="form-label">RAM Slots</label>
+            <input type="number" th:field="*{ramSlots}" class="form-control" id="ramSlots">
+            <div class="text-danger" th:if="${#fields.hasErrors('ramSlots')}" th:errors="*{ramSlots}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="maxRam" class="form-label">Max Ram</label>
+            <input type="text" th:field="*{maxRam}" class="form-control" id="maxRam" placeholder="e.g. 128 GB">
+            <div class="text-danger" th:if="${#fields.hasErrors('maxRam')}" th:errors="*{maxRam}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="m2Slots" class="form-label">M.2 Slots</label>
+            <input type="number" th:field="*{m2Slots}" class="form-control" id="m2Slots">
+            <div class="text-danger" th:if="${#fields.hasErrors('m2Slots')}" th:errors="*{m2Slots}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="pcieVersion" class="form-label">PCIe Version</label>
+            <input type="text" th:field="*{pcieVersion}" class="form-control" id="pcieVersion" placeholder="e.g. PCIe 5.0">
+            <div class="text-danger" th:if="${#fields.hasErrors('pcieVersion')}" th:errors="*{pcieVersion}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="notableFeatures" class="form-label">Notable Features</label>
+            <textarea th:field="*{notableFeatures}" class="form-control" id="notableFeatures" rows="3"></textarea>
+            <div class="text-danger" th:if="${#fields.hasErrors('notableFeatures')}" th:errors="*{notableFeatures}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="stocks" class="form-label">Stocks</label>
+            <input type="number" th:field="*{stocks}" class="form-control" id="stocks" placeholder="Enter stocks">
+            <div class="text-danger" th:if="${#fields.hasErrors('stocks')}" th:errors="*{stocks}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="price" class="form-label">Price</label>
+            <div class="input-group">
+                <span class="input-group-text">Php</span>
+                <input type="number" th:field="*{price}" class="form-control" id="price" placeholder="Enter price" step="0.01" min="0">
+            </div>
+            <div class="text-danger" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label for="imageFile" class="form-label">Image <span class="text-muted">(optional)</span></label>
+            <input type="file" th:field="*{imageFile}" class="form-control" id="imageFile">
+            <div class="text-danger" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></div>
+        </div>
+
+        <div class="row">
+            <div class="offset-sm-4 col-sm-4 d-grid">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            <div class="col-sm-4 d-grid">
+                <a class="btn btn-outline-primary" href="/computer" role="button">Cancel</a>
+            </div>
+        </div>
+
+    </form>
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
+<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+</body>
+</html>

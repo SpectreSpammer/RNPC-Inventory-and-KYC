@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<nav class="sidebar" th:fragment="sidebar">
+    <div class="flex-column">
+        <ul class="nav flex-column">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="partsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Parts
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="partsDropdown">
+                    <li><a class="dropdown-item" href="/laptop">Laptop Parts</a></li>
+                    <li><a class="dropdown-item" href="/cellphone">Cellphone Parts</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/computer">PC Parts</a></li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/build">Build a PC</a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="kycDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    KYC
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="kycDropdown">
+                    <li><a class="dropdown-item" href="/client">All Clients</a></li>
+                    <li><a class="dropdown-item" href="/repair">Repair History</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div th:fragment="back">
+    <a href="#" onclick="history.back(); return false;" class="btn btn-outline-secondary btn-sm mb-3">
+        &larr; Back
+    </a>
+</div>
+
+<script th:fragment="sidebarScript">
+    document.addEventListener("DOMContentLoaded", function () {
+        var dropdowns = document.querySelectorAll('.sidebar .dropdown');
+        dropdowns.forEach(function (dropdown) {
+            dropdown.addEventListener('mouseover', function () {
+                this.querySelector('.dropdown-menu').style.display = 'block';
+            });
+            dropdown.addEventListener('mouseout', function () {
+                this.querySelector('.dropdown-menu').style.display = 'none';
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
