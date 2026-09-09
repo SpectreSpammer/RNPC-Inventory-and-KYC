@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Secrets (never commit real API keys) ###
+application-secrets.properties
+secret_api_key.csv
+
+### Chat scratch (screenshots dropped into Claude Code conversations, not project deliverables) ###
+screenshots/
