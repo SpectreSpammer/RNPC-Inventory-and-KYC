@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Standalone fragment only - rendered inside the notification/list modals via
+     "repairs/repairDetail :: repairCard", never served as a full page of its own. -->
+<div class="card" th:fragment="repairCard">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h5 class="mb-0" th:text="${repair.jobOrderNumber}"></h5>
+                <div class="text-muted small" th:text="${repair.client.fullName}"></div>
+                <div class="text-muted small" th:text="${repair.client.contactNumber}"></div>
+            </div>
+            <span class="badge"
+                  th:classappend="${repair.status.name() == 'COMPLETED' or repair.status.name() == 'RELEASED'} ? 'bg-success' : (${repair.status.name() == 'CANCELLED'} ? 'bg-danger' : (${repair.status.name() == 'IN_PROGRESS'} ? 'bg-warning text-dark' : 'bg-secondary'))"
+                  th:text="${repair.status}"></span>
+        </div>
+
+        <table class="table table-sm">
+            <tbody>
+            <tr>
+                <th>Device</th>
+                <td th:text="${repair.deviceType + ' ' + (repair.brand ?: '') + ' ' + (repair.modelName ?: '')}"></td>
+            </tr>
+            <tr th:if="${repair.serialNumber != null and !#strings.isEmpty(repair.serialNumber)}">
+                <th>Serial Number</th>
+                <td th:text="${repair.serialNumber}"></td>
+            </tr>
+            <tr>
+                <th>Issue</th>
+                <td th:text="${repair.issueDescription}"></td>
+            </tr>
+            <tr th:if="${repair.fix != null and !#strings.isEmpty(repair.fix)}">
+                <th>Fix</th>
+                <td th:text="${repair.fix}"></td>
+            </tr>
+            <tr th:if="${repair.recommendation != null and !#strings.isEmpty(repair.recommendation)}">
+                <th>Recommendation</th>
+                <td th:text="${repair.recommendation}"></td>
+            </tr>
+            <tr>
+                <th>Date of Repair</th>
+                <td th:text="${#dates.format(repair.repairDate, 'yyyy-MM-dd')}"></td>
+            </tr>
+            <tr th:if="${repair.warrantyEndDate != null}">
+                <th>Warranty Ends</th>
+                <td th:text="${#dates.format(repair.warrantyEndDate, 'yyyy-MM-dd')}"></td>
+            </tr>
+            <tr>
+                <th>Cost</th>
+                <td>Php <span th:text="${repair.cost}"></span></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div th:if="${repair.imageFileName}" class="text-center">
+            <img th:src="@{/images/{f}(f=${repair.imageFileName})}" class="img-fluid" style="max-width:280px;"/>
+        </div>
+    </div>
+</div>
+</body>
+</html>
