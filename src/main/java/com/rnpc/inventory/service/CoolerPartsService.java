@@ -20,6 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class CoolerPartsService {
@@ -37,6 +38,21 @@ public class CoolerPartsService {
     public CoolerParts getPartById(int id) {
         return repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Cooler part Id: " + id));
+    }
+
+    public List<String> getDistinctBrands() {
+        return repo.findAll().stream().map(CoolerParts::getBrand)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctTypes() {
+        return repo.findAll().stream().map(CoolerParts::getType)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctRgbOptions() {
+        return repo.findAll().stream().map(CoolerParts::getRgb)
+                .filter(Objects::nonNull).distinct().sorted().toList();
     }
 
     public CoolerParts saveComponent(CoolerPartsDto dto) {

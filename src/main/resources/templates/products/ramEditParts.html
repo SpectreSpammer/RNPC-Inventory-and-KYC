@@ -8,15 +8,16 @@
 </head>
 <body>
 <div class="container">
-    <a href="/">
         <h1 class="text-center my-4">Edit RAM</h1>
-    </a>
     <form th:action="@{/ram/update/{id}(id=${partId})}" th:object="${ramPartsDto}" method="post" enctype="multipart/form-data">
         <input type="hidden" name="_method" value="put"/>
 
         <div class="mb-3">
             <label for="brand" class="form-label">Brand</label>
-            <input type="text" th:field="*{brand}" class="form-control" id="brand">
+            <select th:field="*{brand}" class="form-select" id="brand">
+                <option value="">-- Select Brand --</option>
+                <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
         </div>
 
@@ -28,7 +29,10 @@
 
         <div class="mb-3">
             <label for="type" class="form-label">Type</label>
-            <input type="text" th:field="*{type}" class="form-control" id="type">
+            <select th:field="*{type}" class="form-select" id="type">
+                <option value="">-- Select Type --</option>
+                <option th:each="opt : ${typeOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('type')}" th:errors="*{type}"></div>
         </div>
 
@@ -64,7 +68,10 @@
 
         <div class="mb-3">
             <label for="rgb" class="form-label">RGB</label>
-            <input type="text" th:field="*{rgb}" class="form-control" id="rgb">
+            <select th:field="*{rgb}" class="form-select" id="rgb">
+                <option value="">-- Select RGB --</option>
+                <option th:each="opt : ${rgbOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('rgb')}" th:errors="*{rgb}"></div>
         </div>
 
@@ -108,7 +115,7 @@
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
             <div class="col-sm-4 d-grid">
-                <a class="btn btn-outline-primary" href="/computer" role="button">Cancel</a>
+                <a class="btn btn-outline-primary" th:href="@{/computer(category='RAM')}" role="button">Cancel</a>
             </div>
         </div>
     </form>

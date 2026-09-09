@@ -10,9 +10,7 @@
 </head>
 <body>
 <div class="container">
-    <a href="/">
         <h1 class="text-center my-4">Add CPU</h1>
-    </a>
 </div>
 
 <div class="content-wrapper">
@@ -24,7 +22,10 @@
 
         <div class="mb-3">
             <label for="brand" class="form-label">Brand</label>
-            <input type="text" th:field="*{brand}" class="form-control" id="brand" placeholder="e.g. AMD, Intel">
+            <select th:field="*{brand}" class="form-select" id="brand">
+                <option value="">-- Select Brand --</option>
+                <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
         </div>
 
@@ -42,7 +43,10 @@
 
         <div class="mb-3">
             <label for="socket" class="form-label">Socket</label>
-            <input type="text" th:field="*{socket}" class="form-control" id="socket" placeholder="e.g. AM5, LGA1700">
+            <select th:field="*{socket}" class="form-select" id="socket">
+                <option value="">-- Select Socket --</option>
+                <option th:each="opt : ${socketOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('socket')}" th:errors="*{socket}"></div>
         </div>
 
@@ -114,7 +118,7 @@
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
             <div class="col-sm-4 d-grid">
-                <a class="btn btn-outline-primary" href="/computer" role="button">Cancel</a>
+                <a class="btn btn-outline-primary" th:href="@{/computer(category='CPU')}" role="button">Cancel</a>
             </div>
         </div>
 

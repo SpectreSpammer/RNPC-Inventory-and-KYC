@@ -20,6 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class PsuPartsService {
@@ -37,6 +38,26 @@ public class PsuPartsService {
     public PsuParts getPartById(int id) {
         return repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid PSU part Id: " + id));
+    }
+
+    public List<String> getDistinctBrands() {
+        return repo.findAll().stream().map(PsuParts::getBrand)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctPlusRatings() {
+        return repo.findAll().stream().map(PsuParts::getPlusRating)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctModularityOptions() {
+        return repo.findAll().stream().map(PsuParts::getModularity)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctFormFactors() {
+        return repo.findAll().stream().map(PsuParts::getFormFactor)
+                .filter(Objects::nonNull).distinct().sorted().toList();
     }
 
     public PsuParts saveComponent(PsuPartsDto dto) {

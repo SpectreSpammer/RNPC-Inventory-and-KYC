@@ -8,15 +8,16 @@
 </head>
 <body>
 <div class="container">
-    <a href="/">
         <h1 class="text-center my-4">Edit Storage</h1>
-    </a>
     <form th:action="@{/storage/update/{id}(id=${partId})}" th:object="${storagePartsDto}" method="post" enctype="multipart/form-data">
         <input type="hidden" name="_method" value="put"/>
 
         <div class="mb-3">
             <label for="brand" class="form-label">Brand</label>
-            <input type="text" th:field="*{brand}" class="form-control" id="brand">
+            <select th:field="*{brand}" class="form-select" id="brand">
+                <option value="">-- Select Brand --</option>
+                <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
         </div>
 
@@ -28,13 +29,19 @@
 
         <div class="mb-3">
             <label for="category" class="form-label">Category</label>
-            <input type="text" th:field="*{category}" class="form-control" id="category">
+            <select th:field="*{category}" class="form-select" id="category">
+                <option value="">-- Select Category --</option>
+                <option th:each="opt : ${categoryOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
         </div>
 
         <div class="mb-3">
             <label for="formFactor" class="form-label">Form Factor</label>
-            <input type="text" th:field="*{formFactor}" class="form-control" id="formFactor">
+            <select th:field="*{formFactor}" class="form-select" id="formFactor">
+                <option value="">-- Select Form Factor --</option>
+                <option th:each="opt : ${formFactorOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('formFactor')}" th:errors="*{formFactor}"></div>
         </div>
 
@@ -64,7 +71,10 @@
 
         <div class="mb-3">
             <label for="dramCache" class="form-label">DRAM Cache</label>
-            <input type="text" th:field="*{dramCache}" class="form-control" id="dramCache">
+            <select th:field="*{dramCache}" class="form-select" id="dramCache">
+                <option value="">-- Select DRAM Cache --</option>
+                <option th:each="opt : ${dramCacheOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('dramCache')}" th:errors="*{dramCache}"></div>
         </div>
 
@@ -114,7 +124,7 @@
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
             <div class="col-sm-4 d-grid">
-                <a class="btn btn-outline-primary" href="/computer" role="button">Cancel</a>
+                <a class="btn btn-outline-primary" th:href="@{/computer(category='Storage')}" role="button">Cancel</a>
             </div>
         </div>
     </form>

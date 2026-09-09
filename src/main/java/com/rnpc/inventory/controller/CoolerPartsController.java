@@ -30,17 +30,19 @@ public class CoolerPartsController {
     @GetMapping("/create")
     public String showCreatePage(Model model) {
         model.addAttribute("coolerPartsDto", new CoolerPartsDto());
+        addDropdownOptions(model);
         return "products/coolerCreateParts";
     }
 
     @PostMapping("/create")
-    public String createPart(@Valid @ModelAttribute CoolerPartsDto coolerPartsDto, BindingResult result) {
+    public String createPart(@Valid @ModelAttribute CoolerPartsDto coolerPartsDto, BindingResult result, Model model) {
         if (result.hasErrors()) {
+            addDropdownOptions(model);
             return "products/coolerCreateParts";
         }
 
         service.saveComponent(coolerPartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=CPU%20Cooler";
     }
 
     @GetMapping("/edit/{id}")
@@ -61,6 +63,7 @@ public class CoolerPartsController {
         model.addAttribute("coolerPartsDto", dto);
         model.addAttribute("partId", id);
         model.addAttribute("currentImage", part.getImageFileName());
+        addDropdownOptions(model);
         return "products/coolerEditParts";
     }
 
@@ -72,11 +75,18 @@ public class CoolerPartsController {
         if (result.hasErrors()) {
             model.addAttribute("partId", id);
             model.addAttribute("currentImage", service.getPartById(id).getImageFileName());
+            addDropdownOptions(model);
             return "products/coolerEditParts";
         }
 
         service.updateComponent(id, coolerPartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=CPU%20Cooler";
+    }
+
+    private void addDropdownOptions(Model model) {
+        model.addAttribute("brandOptions", service.getDistinctBrands());
+        model.addAttribute("typeOptions", service.getDistinctTypes());
+        model.addAttribute("rgbOptions", service.getDistinctRgbOptions());
     }
 
     @DeleteMapping("/removePhoto/{id}")
@@ -88,6 +98,6 @@ public class CoolerPartsController {
     @DeleteMapping("/delete/{id}")
     public String deletePart(@PathVariable("id") int id) {
         service.deleteComponent(id);
-        return "redirect:/computer";
+        return "redirect:/computer?category=CPU%20Cooler";
     }
 }

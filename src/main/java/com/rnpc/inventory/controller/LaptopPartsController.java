@@ -74,6 +74,7 @@ public class LaptopPartsController {
 
 		model.addAttribute("laptopPartsDto", laptopPartsDto); // Changed here
 		model.addAttribute("laptopPartId", id);
+		model.addAttribute("currentImage", product.getImageFileName());
 		return "products/laptopEditParts";
 	}
 
@@ -86,10 +87,17 @@ public class LaptopPartsController {
 								Model model) {
 		if (result.hasErrors()) {
 			model.addAttribute("laptopPartId", id);
+			model.addAttribute("currentImage", laptopPartsService.getLaptopPartById(id).getImageFileName());
 			return "products/laptopEditParts";
 		}
 
 		laptopPartsService.updateLaptopPart(id, laptopDto);
 		return "redirect:/laptop";
+	}
+
+	@DeleteMapping("/removePhoto/{id}")
+	public String removePhoto(@PathVariable("id") int id) {
+		laptopPartsService.removePhoto(id);
+		return "redirect:/laptop/edit/" + id;
 	}
 }

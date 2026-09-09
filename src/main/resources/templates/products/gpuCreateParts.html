@@ -10,9 +10,7 @@
 </head>
 <body>
 <div class="container">
-    <a href="/">
         <h1 class="text-center my-4">Add GPU</h1>
-    </a>
 </div>
 
 <div class="content-wrapper">
@@ -24,7 +22,10 @@
 
         <div class="mb-3">
             <label for="brand" class="form-label">Brand</label>
-            <input type="text" th:field="*{brand}" class="form-control" id="brand" placeholder="e.g. NVIDIA, AMD, Intel">
+            <select th:field="*{brand}" class="form-select" id="brand">
+                <option value="">-- Select Brand --</option>
+                <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
         </div>
 
@@ -54,7 +55,10 @@
 
         <div class="mb-3">
             <label for="memoryType" class="form-label">Memory Type</label>
-            <input type="text" th:field="*{memoryType}" class="form-control" id="memoryType" placeholder="e.g. GDDR6X">
+            <select th:field="*{memoryType}" class="form-select" id="memoryType">
+                <option value="">-- Select Memory Type --</option>
+                <option th:each="opt : ${memoryTypeOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('memoryType')}" th:errors="*{memoryType}"></div>
         </div>
 
@@ -108,7 +112,7 @@
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
             <div class="col-sm-4 d-grid">
-                <a class="btn btn-outline-primary" href="/computer" role="button">Cancel</a>
+                <a class="btn btn-outline-primary" th:href="@{/computer(category='GPU')}" role="button">Cancel</a>
             </div>
         </div>
 

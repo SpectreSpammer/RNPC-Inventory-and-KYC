@@ -20,6 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class CasePartsService {
@@ -37,6 +38,16 @@ public class CasePartsService {
     public CaseParts getPartById(int id) {
         return repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Case part Id: " + id));
+    }
+
+    public List<String> getDistinctBrands() {
+        return repo.findAll().stream().map(CaseParts::getBrand)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctTowerClasses() {
+        return repo.findAll().stream().map(CaseParts::getTowerClass)
+                .filter(Objects::nonNull).distinct().sorted().toList();
     }
 
     public CaseParts saveComponent(CasePartsDto dto) {

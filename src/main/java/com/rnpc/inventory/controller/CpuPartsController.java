@@ -30,17 +30,19 @@ public class CpuPartsController {
     @GetMapping("/create")
     public String showCreatePage(Model model) {
         model.addAttribute("cpuPartsDto", new CpuPartsDto());
+        addDropdownOptions(model);
         return "products/cpuCreateParts";
     }
 
     @PostMapping("/create")
-    public String createPart(@Valid @ModelAttribute CpuPartsDto cpuPartsDto, BindingResult result) {
+    public String createPart(@Valid @ModelAttribute CpuPartsDto cpuPartsDto, BindingResult result, Model model) {
         if (result.hasErrors()) {
+            addDropdownOptions(model);
             return "products/cpuCreateParts";
         }
 
         service.saveComponent(cpuPartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=CPU";
     }
 
     @GetMapping("/edit/{id}")
@@ -65,6 +67,7 @@ public class CpuPartsController {
         model.addAttribute("cpuPartsDto", dto);
         model.addAttribute("partId", id);
         model.addAttribute("currentImage", part.getImageFileName());
+        addDropdownOptions(model);
         return "products/cpuEditParts";
     }
 
@@ -76,11 +79,17 @@ public class CpuPartsController {
         if (result.hasErrors()) {
             model.addAttribute("partId", id);
             model.addAttribute("currentImage", service.getPartById(id).getImageFileName());
+            addDropdownOptions(model);
             return "products/cpuEditParts";
         }
 
         service.updateComponent(id, cpuPartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=CPU";
+    }
+
+    private void addDropdownOptions(Model model) {
+        model.addAttribute("brandOptions", service.getDistinctBrands());
+        model.addAttribute("socketOptions", service.getDistinctSockets());
     }
 
     @DeleteMapping("/removePhoto/{id}")
@@ -92,6 +101,6 @@ public class CpuPartsController {
     @DeleteMapping("/delete/{id}")
     public String deletePart(@PathVariable("id") int id) {
         service.deleteComponent(id);
-        return "redirect:/computer";
+        return "redirect:/computer?category=CPU";
     }
 }

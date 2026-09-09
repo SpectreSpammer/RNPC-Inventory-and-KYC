@@ -20,6 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class MotherboardPartsService {
@@ -37,6 +38,26 @@ public class MotherboardPartsService {
     public MotherboardParts getPartById(int id) {
         return repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Motherboard part Id: " + id));
+    }
+
+    public List<String> getDistinctBrands() {
+        return repo.findAll().stream().map(MotherboardParts::getBrand)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctSockets() {
+        return repo.findAll().stream().map(MotherboardParts::getSocket)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctFormFactors() {
+        return repo.findAll().stream().map(MotherboardParts::getFormFactor)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctMemoryTypes() {
+        return repo.findAll().stream().map(MotherboardParts::getMemoryType)
+                .filter(Objects::nonNull).distinct().sorted().toList();
     }
 
     public MotherboardParts saveComponent(MotherboardPartsDto dto) {

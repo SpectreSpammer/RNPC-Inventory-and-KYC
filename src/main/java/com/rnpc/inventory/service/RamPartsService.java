@@ -20,6 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class RamPartsService {
@@ -37,6 +38,21 @@ public class RamPartsService {
     public RamParts getPartById(int id) {
         return repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid RAM part Id: " + id));
+    }
+
+    public List<String> getDistinctBrands() {
+        return repo.findAll().stream().map(RamParts::getBrand)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctTypes() {
+        return repo.findAll().stream().map(RamParts::getType)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctRgbOptions() {
+        return repo.findAll().stream().map(RamParts::getRgb)
+                .filter(Objects::nonNull).distinct().sorted().toList();
     }
 
     public RamParts saveComponent(RamPartsDto dto) {

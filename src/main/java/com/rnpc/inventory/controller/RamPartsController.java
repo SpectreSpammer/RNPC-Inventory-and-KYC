@@ -30,17 +30,19 @@ public class RamPartsController {
     @GetMapping("/create")
     public String showCreatePage(Model model) {
         model.addAttribute("ramPartsDto", new RamPartsDto());
+        addDropdownOptions(model);
         return "products/ramCreateParts";
     }
 
     @PostMapping("/create")
-    public String createPart(@Valid @ModelAttribute RamPartsDto ramPartsDto, BindingResult result) {
+    public String createPart(@Valid @ModelAttribute RamPartsDto ramPartsDto, BindingResult result, Model model) {
         if (result.hasErrors()) {
+            addDropdownOptions(model);
             return "products/ramCreateParts";
         }
 
         service.saveComponent(ramPartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=RAM";
     }
 
     @GetMapping("/edit/{id}")
@@ -64,6 +66,7 @@ public class RamPartsController {
         model.addAttribute("ramPartsDto", dto);
         model.addAttribute("partId", id);
         model.addAttribute("currentImage", part.getImageFileName());
+        addDropdownOptions(model);
         return "products/ramEditParts";
     }
 
@@ -75,11 +78,18 @@ public class RamPartsController {
         if (result.hasErrors()) {
             model.addAttribute("partId", id);
             model.addAttribute("currentImage", service.getPartById(id).getImageFileName());
+            addDropdownOptions(model);
             return "products/ramEditParts";
         }
 
         service.updateComponent(id, ramPartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=RAM";
+    }
+
+    private void addDropdownOptions(Model model) {
+        model.addAttribute("brandOptions", service.getDistinctBrands());
+        model.addAttribute("typeOptions", service.getDistinctTypes());
+        model.addAttribute("rgbOptions", service.getDistinctRgbOptions());
     }
 
     @DeleteMapping("/removePhoto/{id}")
@@ -91,6 +101,6 @@ public class RamPartsController {
     @DeleteMapping("/delete/{id}")
     public String deletePart(@PathVariable("id") int id) {
         service.deleteComponent(id);
-        return "redirect:/computer";
+        return "redirect:/computer?category=RAM";
     }
 }

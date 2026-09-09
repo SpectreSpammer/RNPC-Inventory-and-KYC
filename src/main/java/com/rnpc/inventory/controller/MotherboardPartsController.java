@@ -30,17 +30,19 @@ public class MotherboardPartsController {
     @GetMapping("/create")
     public String showCreatePage(Model model) {
         model.addAttribute("motherboardPartsDto", new MotherboardPartsDto());
+        addDropdownOptions(model);
         return "products/motherboardCreateParts";
     }
 
     @PostMapping("/create")
-    public String createPart(@Valid @ModelAttribute MotherboardPartsDto motherboardPartsDto, BindingResult result) {
+    public String createPart(@Valid @ModelAttribute MotherboardPartsDto motherboardPartsDto, BindingResult result, Model model) {
         if (result.hasErrors()) {
+            addDropdownOptions(model);
             return "products/motherboardCreateParts";
         }
 
         service.saveComponent(motherboardPartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=Motherboard";
     }
 
     @GetMapping("/edit/{id}")
@@ -66,6 +68,7 @@ public class MotherboardPartsController {
         model.addAttribute("motherboardPartsDto", dto);
         model.addAttribute("partId", id);
         model.addAttribute("currentImage", part.getImageFileName());
+        addDropdownOptions(model);
         return "products/motherboardEditParts";
     }
 
@@ -77,11 +80,19 @@ public class MotherboardPartsController {
         if (result.hasErrors()) {
             model.addAttribute("partId", id);
             model.addAttribute("currentImage", service.getPartById(id).getImageFileName());
+            addDropdownOptions(model);
             return "products/motherboardEditParts";
         }
 
         service.updateComponent(id, motherboardPartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=Motherboard";
+    }
+
+    private void addDropdownOptions(Model model) {
+        model.addAttribute("brandOptions", service.getDistinctBrands());
+        model.addAttribute("socketOptions", service.getDistinctSockets());
+        model.addAttribute("formFactorOptions", service.getDistinctFormFactors());
+        model.addAttribute("memoryTypeOptions", service.getDistinctMemoryTypes());
     }
 
     @DeleteMapping("/removePhoto/{id}")
@@ -93,6 +104,6 @@ public class MotherboardPartsController {
     @DeleteMapping("/delete/{id}")
     public String deletePart(@PathVariable("id") int id) {
         service.deleteComponent(id);
-        return "redirect:/computer";
+        return "redirect:/computer?category=Motherboard";
     }
 }

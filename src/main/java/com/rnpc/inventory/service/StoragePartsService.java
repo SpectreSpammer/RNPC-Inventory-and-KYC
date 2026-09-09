@@ -20,6 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class StoragePartsService {
@@ -37,6 +38,26 @@ public class StoragePartsService {
     public StorageParts getPartById(int id) {
         return repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Storage part Id: " + id));
+    }
+
+    public List<String> getDistinctBrands() {
+        return repo.findAll().stream().map(StorageParts::getBrand)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctCategories() {
+        return repo.findAll().stream().map(StorageParts::getCategory)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctFormFactors() {
+        return repo.findAll().stream().map(StorageParts::getFormFactor)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctDramCacheOptions() {
+        return repo.findAll().stream().map(StorageParts::getDramCache)
+                .filter(Objects::nonNull).distinct().sorted().toList();
     }
 
     public StorageParts saveComponent(StoragePartsDto dto) {

@@ -10,15 +10,34 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         .filter-menu, .sort-menu { min-width: 220px; padding: 0.75rem; }
+        .filter-menu { max-height: 70vh; overflow-y: auto; }
         #partsTableBody tr.out-of-stock { opacity: 0.6; }
         .price-badge { font-size: 1rem; }
+        .filter-section-list { max-height: 180px; overflow-y: auto; }
+        .filter-accordion-item { border-bottom: 1px solid #e9ecef; }
+        .filter-accordion-item:last-of-type { border-bottom: none; }
+        .filter-accordion-toggle {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: none;
+            border: none;
+            padding: 0.5rem 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #495057;
+        }
+        .filter-accordion-toggle .chevron { transition: transform 0.2s ease; color: #6c757d; }
+        .filter-accordion-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+        .filter-badge { font-size: 0.7rem; }
+        .filter-accordion-body { padding-bottom: 0.5rem; }
     </style>
 </head>
 <body>
 <div class="container">
-    <a href="/">
         <h1 class="text-center my-4">PC Parts</h1>
-    </a>
 </div>
 
 <div class="content-wrapper">
@@ -37,17 +56,109 @@
             </div>
         </div>
         <div class="col-md-6 d-flex justify-content-end gap-2">
-            <div class="dropdown">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterBtn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+            <div class="dropdown hover-dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterBtn" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" data-bs-auto-close="outside">
                     Filter
                 </button>
                 <div class="dropdown-menu filter-menu dropdown-menu-end" aria-labelledby="filterBtn">
-                    <div id="categoryChecklist"></div>
-                    <button type="button" class="btn btn-primary btn-sm w-100 mt-2" id="applyFilterBtn">Apply</button>
+                    <div id="partsFilterAccordion">
+                        <div class="filter-accordion-item">
+                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_CPU" aria-expanded="false">
+                                <span>CPU <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_CPU" style="display:none;"></span></span>
+                                <i class="fas fa-chevron-down chevron"></i>
+                            </button>
+                            <div class="collapse" id="filterCollapse_CPU" data-bs-parent="#partsFilterAccordion">
+                                <div class="filter-accordion-body">
+                                    <div class="filter-section-list" id="filterOptions_CPU"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-accordion-item">
+                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_CPUCooler" aria-expanded="false">
+                                <span>CPU Cooler <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_CPUCooler" style="display:none;"></span></span>
+                                <i class="fas fa-chevron-down chevron"></i>
+                            </button>
+                            <div class="collapse" id="filterCollapse_CPUCooler" data-bs-parent="#partsFilterAccordion">
+                                <div class="filter-accordion-body">
+                                    <div class="filter-section-list" id="filterOptions_CPUCooler"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-accordion-item">
+                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_Case" aria-expanded="false">
+                                <span>Case <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_Case" style="display:none;"></span></span>
+                                <i class="fas fa-chevron-down chevron"></i>
+                            </button>
+                            <div class="collapse" id="filterCollapse_Case" data-bs-parent="#partsFilterAccordion">
+                                <div class="filter-accordion-body">
+                                    <div class="filter-section-list" id="filterOptions_Case"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-accordion-item">
+                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_GPU" aria-expanded="false">
+                                <span>GPU <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_GPU" style="display:none;"></span></span>
+                                <i class="fas fa-chevron-down chevron"></i>
+                            </button>
+                            <div class="collapse" id="filterCollapse_GPU" data-bs-parent="#partsFilterAccordion">
+                                <div class="filter-accordion-body">
+                                    <div class="filter-section-list" id="filterOptions_GPU"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-accordion-item">
+                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_Motherboard" aria-expanded="false">
+                                <span>Motherboard <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_Motherboard" style="display:none;"></span></span>
+                                <i class="fas fa-chevron-down chevron"></i>
+                            </button>
+                            <div class="collapse" id="filterCollapse_Motherboard" data-bs-parent="#partsFilterAccordion">
+                                <div class="filter-accordion-body">
+                                    <div class="filter-section-list" id="filterOptions_Motherboard"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-accordion-item">
+                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_PSU" aria-expanded="false">
+                                <span>PSU <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_PSU" style="display:none;"></span></span>
+                                <i class="fas fa-chevron-down chevron"></i>
+                            </button>
+                            <div class="collapse" id="filterCollapse_PSU" data-bs-parent="#partsFilterAccordion">
+                                <div class="filter-accordion-body">
+                                    <div class="filter-section-list" id="filterOptions_PSU"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-accordion-item">
+                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_RAM" aria-expanded="false">
+                                <span>RAM <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_RAM" style="display:none;"></span></span>
+                                <i class="fas fa-chevron-down chevron"></i>
+                            </button>
+                            <div class="collapse" id="filterCollapse_RAM" data-bs-parent="#partsFilterAccordion">
+                                <div class="filter-accordion-body">
+                                    <div class="filter-section-list" id="filterOptions_RAM"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-accordion-item">
+                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_Storage" aria-expanded="false">
+                                <span>Storage <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_Storage" style="display:none;"></span></span>
+                                <i class="fas fa-chevron-down chevron"></i>
+                            </button>
+                            <div class="collapse" id="filterCollapse_Storage" data-bs-parent="#partsFilterAccordion">
+                                <div class="filter-accordion-body">
+                                    <div class="filter-section-list" id="filterOptions_Storage"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" id="resetFilterBtn">Reset</button>
+                        <button type="button" class="btn btn-primary btn-sm flex-fill" id="applyFilterBtn">Apply</button>
+                    </div>
                 </div>
             </div>
-            <div class="dropdown">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortBtn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+            <div class="dropdown hover-dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortBtn" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" data-bs-auto-close="outside">
                     Sort by
                 </button>
                 <div class="dropdown-menu sort-menu dropdown-menu-end" aria-labelledby="sortBtn">
@@ -65,8 +176,8 @@
                     </div>
                 </div>
             </div>
-            <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" id="addComponentBtn" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="dropdown hover-dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="addComponentBtn" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
                     Add Component
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="addComponentBtn">
@@ -89,6 +200,7 @@
             <th>Category</th>
             <th>Brand</th>
             <th>Model</th>
+            <th>Socket / Type / Tower Class / Memory Type / Modularity / Form Factor</th>
             <th>Stocks</th>
             <th>Price</th>
             <th>Action</th>
@@ -130,8 +242,91 @@ const ALL_CATEGORIES = (/*[[${categories}]]*/ []).slice().sort();
 /*]]>*/
 
 let activeCategories = ALL_CATEGORIES.slice();
+let activeAttributeValue = null;
 let currentSort = 'relevance';
 let searchTerm = '';
+
+// The one attribute filtered on per category, matching the /build picker's per-category filters.
+// Keyed by the display names PartsController sends as each part's "category" (e.g. "CPU Cooler",
+// not the raw "COOLER" code /build uses internally) since that's what p.category holds here.
+const CATEGORY_FIELD_MAP = {
+    CPU: 'Brand',
+    GPU: 'Brand',
+    Motherboard: 'Socket',
+    RAM: 'Type',
+    Storage: 'Category',
+    PSU: 'Wattage',
+    Case: 'Tower Class',
+    'CPU Cooler': 'Socket Support'
+};
+
+// Storage's raw Category values ("NVMe SSD", "SATA SSD", "HDD 7200 RPM", ...) collapse down
+// to the three groupings requested for the filter: SSD, HDD, NVMe.
+function storageCategoryLabel(raw) {
+    if (!raw) return raw;
+    if (raw.indexOf('NVMe') > -1) return 'NVMe';
+    if (raw.indexOf('HDD') > -1) return 'HDD';
+    return 'SSD';
+}
+
+// Case's raw Tower Class values ("Mid Tower", "Mid Tower (compact)", "Full Tower",
+// "Super / Full Tower") collapse down to: Mid, Mid(Compact), Full, Super Full.
+function caseTowerClassLabel(raw) {
+    if (!raw) return raw;
+    if (raw.indexOf('Super') > -1) return 'Super Full';
+    if (raw.toLowerCase().indexOf('compact') > -1) return 'Mid(Compact)';
+    if (raw.indexOf('Mid') > -1) return 'Mid';
+    if (raw.indexOf('Full') > -1) return 'Full';
+    return raw;
+}
+
+const CANONICAL_SOCKETS = ['AM4', 'AM5', 'LGA1200', 'LGA1700', 'LGA1851'];
+
+// Cooler Socket Support is a compound string like "LGA1700/1200, AM5/AM4" or
+// "LGA1851/1700/1200, AM5/AM4" meaning that one cooler supports several sockets.
+// Each comma-separated group shares one letter prefix (LGA/AM) that carries over to
+// the bare numbers after each "/" (so "LGA1700/1200" means LGA1700 AND LGA1200).
+// Returns which of the canonical sockets that string covers.
+function coolerSupportedSockets(raw) {
+    if (!raw) return [];
+    const supported = new Set();
+
+    raw.split(',').forEach(function (group) {
+        let prefix = '';
+        group.trim().split('/').forEach(function (token) {
+            token = token.trim();
+            const letterMatch = token.match(/^([A-Za-z]+)/);
+            if (letterMatch) {
+                prefix = letterMatch[1];
+                supported.add(token);
+            } else if (prefix) {
+                supported.add(prefix + token);
+            }
+        });
+    });
+
+    return CANONICAL_SOCKETS.filter(function (socket) { return supported.has(socket); });
+}
+
+// Most categories filter on a single value per part; Cooler can match several sockets
+// at once, so this always returns an array (single-value categories return a 1-item array).
+function getAttributeValues(part, category) {
+    if (category === 'CPU Cooler') {
+        return coolerSupportedSockets((part.fields || {})['Socket Support']);
+    }
+    const fieldKey = CATEGORY_FIELD_MAP[category];
+    if (!fieldKey) return [];
+    const raw = (part.fields || {})[fieldKey];
+    if (raw === undefined || raw === null || raw === '') return [];
+    if (category === 'Storage') return [storageCategoryLabel(raw)];
+    if (category === 'Case') return [caseTowerClassLabel(raw)];
+    return [raw];
+}
+
+// Values present in the catalog but deliberately left out of the filter's option list.
+const ATTRIBUTE_VALUE_EXCLUSIONS = {
+    GPU: ['Intel']
+};
 
 function escapeHtml(str) {
     if (str === null || str === undefined) return '';
@@ -146,25 +341,83 @@ function formatPrice(value) {
     return 'Php ' + Number(value).toFixed(2);
 }
 
-function renderCategoryChecklist() {
-    const container = document.getElementById('categoryChecklist');
-    const isAllSelected = activeCategories.length === ALL_CATEGORIES.length;
+// Each component is its own accordion section; picking a value inside one implicitly
+// means "show only this component, filtered to this value" (there's no separate
+// category picker anymore). Only one section can be the active filter at a time.
+const FILTER_SECTIONS = ['CPU', 'CPU Cooler', 'Case', 'GPU', 'Motherboard', 'PSU', 'RAM', 'Storage'];
+
+function sectionId(category) {
+    return category.replace(/[^A-Za-z0-9]/g, '');
+}
+
+function renderAllFilterSections() {
+    FILTER_SECTIONS.forEach(renderFilterSection);
+}
+
+function renderFilterSection(category) {
+    const id = sectionId(category);
+    const container = document.getElementById('filterOptions_' + id);
+    if (!container) return;
+
+    const radioName = 'filterRadio_' + id;
+    const isActiveSection = activeCategories.length === 1 && activeCategories[0] === category;
+
+    const excluded = ATTRIBUTE_VALUE_EXCLUSIONS[category] || [];
+    const partsInCategory = ALL_PARTS.filter(function (p) { return p.category === category; });
+    const values = Array.from(new Set(
+        partsInCategory.reduce(function (acc, p) { return acc.concat(getAttributeValues(p, category)); }, [])
+    ))
+        .filter(function (val) { return excluded.indexOf(val) === -1; })
+        .sort(category === 'PSU' ? function (a, b) { return Number(a) - Number(b); } : undefined);
+
+    const selectedValue = isActiveSection ? activeAttributeValue : undefined;
 
     container.innerHTML = '<div class="form-check">' +
-        '<input class="form-check-input category-radio" type="radio" name="categoryFilter" value="__ALL__" id="catAll" ' + (isAllSelected ? 'checked' : '') + '>' +
-        '<label class="form-check-label" for="catAll">All</label>' +
+        '<input class="form-check-input filter-option-radio" type="radio" name="' + radioName + '" data-category="' + escapeHtml(category) + '" value="__ALL__" id="' + radioName + '_all" ' + (isActiveSection && selectedValue === null ? 'checked' : '') + '>' +
+        '<label class="form-check-label" for="' + radioName + '_all">All</label>' +
         '</div>' +
-        ALL_CATEGORIES.map(function (cat, i) {
-            const checked = (!isAllSelected && activeCategories.length === 1 && activeCategories[0] === cat) ? 'checked' : '';
+        values.map(function (val, i) {
+            const checked = isActiveSection && selectedValue === val ? 'checked' : '';
+            const displayLabel = category === 'PSU' ? val + 'W' : val;
+            const optId = radioName + '_' + i;
             return '<div class="form-check">' +
-                '<input class="form-check-input category-radio" type="radio" name="categoryFilter" value="' + escapeHtml(cat) + '" id="cat' + i + '" ' + checked + '>' +
-                '<label class="form-check-label" for="cat' + i + '">' + escapeHtml(cat) + '</label>' +
+                '<input class="form-check-input filter-option-radio" type="radio" name="' + radioName + '" data-category="' + escapeHtml(category) + '" value="' + escapeHtml(val) + '" id="' + optId + '" ' + checked + '>' +
+                '<label class="form-check-label" for="' + optId + '">' + escapeHtml(displayLabel) + '</label>' +
                 '</div>';
         }).join('');
+
+    updateSectionBadge(category);
+}
+
+function updateSectionBadge(category) {
+    const id = sectionId(category);
+    const badge = document.getElementById('filterBadge_' + id);
+    if (!badge) return;
+
+    const isActiveSection = activeCategories.length === 1 && activeCategories[0] === category;
+    if (isActiveSection) {
+        badge.textContent = '1';
+        badge.style.display = '';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+// Selecting a radio in one component's section clears any selection in the others,
+// since only one component can be the active filter at a time.
+function selectFilterOption(category, value) {
+    activeCategories = [category];
+    activeAttributeValue = (value === '__ALL__') ? null : value;
+    renderAllFilterSections();
 }
 
 function getFilteredSortedParts() {
     let parts = ALL_PARTS.filter(function (p) { return activeCategories.indexOf(p.category) > -1; });
+
+    if (activeAttributeValue !== null && activeCategories.length === 1) {
+        const category = activeCategories[0];
+        parts = parts.filter(function (p) { return getAttributeValues(p, category).indexOf(activeAttributeValue) > -1; });
+    }
 
     if (searchTerm) {
         const term = searchTerm.toLowerCase();
@@ -183,12 +436,29 @@ function getFilteredSortedParts() {
     return parts;
 }
 
+const SOCKET_OR_TYPE_FIELD = {
+    CPU: 'Socket',
+    Motherboard: 'Socket',
+    'CPU Cooler': 'Socket Support',
+    RAM: 'Type',
+    Case: 'Tower Class',
+    GPU: 'Memory Type',
+    PSU: 'Modularity',
+    Storage: 'Form Factor'
+};
+
+function socketOrType(part) {
+    const fieldKey = SOCKET_OR_TYPE_FIELD[part.category];
+    if (!fieldKey) return '';
+    return (part.fields || {})[fieldKey] || '';
+}
+
 function renderTable() {
     const tbody = document.getElementById('partsTableBody');
     const parts = getFilteredSortedParts();
 
     if (parts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No matching parts found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No matching parts found.</td></tr>';
         return;
     }
 
@@ -199,6 +469,7 @@ function renderTable() {
             '<td>' + escapeHtml(p.category) + '</td>' +
             '<td>' + escapeHtml(p.brand) + '</td>' +
             '<td>' + escapeHtml(p.modelName) + '</td>' +
+            '<td>' + escapeHtml(socketOrType(p)) + '</td>' +
             '<td>' + (outOfStock ? 'Out of stock' : p.stocks) + '</td>' +
             '<td>' + formatPrice(p.price) + '</td>' +
             '<td style="white-space:nowrap">' +
@@ -245,7 +516,16 @@ function viewDetails(componentId, category) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    renderCategoryChecklist();
+    // Lets Cancel/Save on a category's create-edit form send the admin back to that same
+    // filtered view instead of the unfiltered list (which visually looks like it "jumped to
+    // CPU" since CPU sorts first alphabetically).
+    const requestedCategory = new URLSearchParams(window.location.search).get('category');
+    if (requestedCategory && ALL_CATEGORIES.indexOf(requestedCategory) > -1) {
+        activeCategories = [requestedCategory];
+        activeAttributeValue = null;
+    }
+
+    renderAllFilterSections();
     renderTable();
 
     document.getElementById('brandSearch').addEventListener('input', function () {
@@ -253,14 +533,23 @@ document.addEventListener('DOMContentLoaded', function () {
         renderTable();
     });
 
+    document.getElementById('partsFilterAccordion').addEventListener('change', function (e) {
+        if (!e.target.classList.contains('filter-option-radio')) return;
+        selectFilterOption(e.target.getAttribute('data-category'), e.target.value);
+    });
+
     document.getElementById('applyFilterBtn').addEventListener('click', function () {
-        const checkedCategory = document.querySelector('.category-radio:checked');
-        if (!checkedCategory || checkedCategory.value === '__ALL__') {
-            activeCategories = ALL_CATEGORIES.slice();
-        } else {
-            activeCategories = [checkedCategory.value];
-        }
         renderTable();
+        bootstrap.Dropdown.getOrCreateInstance(document.getElementById('filterBtn')).hide();
+    });
+
+    document.getElementById('resetFilterBtn').addEventListener('click', function () {
+        activeCategories = ALL_CATEGORIES.slice();
+        activeAttributeValue = null;
+
+        renderAllFilterSections();
+        renderTable();
+
         bootstrap.Dropdown.getOrCreateInstance(document.getElementById('filterBtn')).hide();
     });
 

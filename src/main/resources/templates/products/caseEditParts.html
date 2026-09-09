@@ -8,15 +8,16 @@
 </head>
 <body>
 <div class="container">
-    <a href="/">
         <h1 class="text-center my-4">Edit Case</h1>
-    </a>
     <form th:action="@{/case/update/{id}(id=${partId})}" th:object="${casePartsDto}" method="post" enctype="multipart/form-data">
         <input type="hidden" name="_method" value="put"/>
 
         <div class="mb-3">
             <label for="brand" class="form-label">Brand</label>
-            <input type="text" th:field="*{brand}" class="form-control" id="brand">
+            <select th:field="*{brand}" class="form-select" id="brand">
+                <option value="">-- Select Brand --</option>
+                <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
         </div>
 
@@ -28,7 +29,10 @@
 
         <div class="mb-3">
             <label for="towerClass" class="form-label">Tower Class</label>
-            <input type="text" th:field="*{towerClass}" class="form-control" id="towerClass">
+            <select th:field="*{towerClass}" class="form-select" id="towerClass">
+                <option value="">-- Select Tower Class --</option>
+                <option th:each="opt : ${towerClassOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('towerClass')}" th:errors="*{towerClass}"></div>
         </div>
 
@@ -78,7 +82,7 @@
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
             <div class="col-sm-4 d-grid">
-                <a class="btn btn-outline-primary" href="/computer" role="button">Cancel</a>
+                <a class="btn btn-outline-primary" th:href="@{/computer(category='Case')}" role="button">Cancel</a>
             </div>
         </div>
     </form>

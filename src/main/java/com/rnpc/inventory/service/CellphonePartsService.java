@@ -87,11 +87,19 @@ public class CellphonePartsService {
         updateEntity(cellphonePart, cellphonePartsDto);
 
         if (cellphonePartsDto.getImageFile() != null && !cellphonePartsDto.getImageFile().isEmpty()) {
+            deleteImageFile(cellphonePart.getImageFileName());
             String storageFileName = handleFileUpload(cellphonePartsDto.getImageFile());
             cellphonePart.setImageFileName(storageFileName);
         }
 
         return cellphonePartsRepository.save(cellphonePart);
+    }
+
+    public void removePhoto(Long id) {
+        CellphoneParts cellphonePart = getCellphonePartById(id);
+        deleteImageFile(cellphonePart.getImageFileName());
+        cellphonePart.setImageFileName(null);
+        cellphonePartsRepository.save(cellphonePart);
     }
 
     private void updateEntity(CellphoneParts cellphonePart, CellphonePartsDto cellphonePartsDto){
@@ -113,9 +121,9 @@ public class CellphonePartsService {
     private void deleteImageFile(String filename){
         if (filename != null && !filename.isEmpty()){
             try{
-                String uploadDir = "public/images";
+                String uploadDir = "public/images/";
                 Path filePath = Paths.get(uploadDir + filename);
-
+                Files.deleteIfExists(filePath);
             }catch (Exception e){
                 System.out.println("Error deleting file: " + e.getMessage());
             }

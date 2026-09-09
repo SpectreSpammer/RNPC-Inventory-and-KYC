@@ -20,6 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class CpuPartsService {
@@ -37,6 +38,16 @@ public class CpuPartsService {
     public CpuParts getPartById(int id) {
         return repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid CPU part Id: " + id));
+    }
+
+    public List<String> getDistinctBrands() {
+        return repo.findAll().stream().map(CpuParts::getBrand)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctSockets() {
+        return repo.findAll().stream().map(CpuParts::getSocket)
+                .filter(Objects::nonNull).distinct().sorted().toList();
     }
 
     public CpuParts saveComponent(CpuPartsDto dto) {

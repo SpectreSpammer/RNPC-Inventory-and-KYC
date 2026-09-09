@@ -69,6 +69,7 @@ public class CellphonePartsController {
 
         model.addAttribute("cellphonePartsDto", cellphonePartsDto);
         model.addAttribute("cellphonePartId", id);
+        model.addAttribute("currentImage", product.getImageFileName());
 
         return "products/cellphoneEditParts";
     }
@@ -78,9 +79,16 @@ public class CellphonePartsController {
                                 @Valid @ModelAttribute CellphonePartsDto cellphonePartsDto, BindingResult result, Model model){
         if (result.hasErrors()){
             model.addAttribute("cellphonePartId", id);
+            model.addAttribute("currentImage", cellphonePartsService.getCellphonePartById(id).getImageFileName());
             return "products/cellphoneEditParts";
         }
         cellphonePartsService.updateCellphonePart(id, cellphonePartsDto);
         return "redirect:/cellphone";
+    }
+
+    @DeleteMapping("/removePhoto/{id}")
+    public String removePhoto(@PathVariable("id") Long id) {
+        cellphonePartsService.removePhoto(id);
+        return "redirect:/cellphone/edit/" + id;
     }
 }

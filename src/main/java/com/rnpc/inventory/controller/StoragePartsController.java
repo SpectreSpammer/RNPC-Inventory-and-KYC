@@ -30,17 +30,19 @@ public class StoragePartsController {
     @GetMapping("/create")
     public String showCreatePage(Model model) {
         model.addAttribute("storagePartsDto", new StoragePartsDto());
+        addDropdownOptions(model);
         return "products/storageCreateParts";
     }
 
     @PostMapping("/create")
-    public String createPart(@Valid @ModelAttribute StoragePartsDto storagePartsDto, BindingResult result) {
+    public String createPart(@Valid @ModelAttribute StoragePartsDto storagePartsDto, BindingResult result, Model model) {
         if (result.hasErrors()) {
+            addDropdownOptions(model);
             return "products/storageCreateParts";
         }
 
         service.saveComponent(storagePartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=Storage";
     }
 
     @GetMapping("/edit/{id}")
@@ -65,6 +67,7 @@ public class StoragePartsController {
         model.addAttribute("storagePartsDto", dto);
         model.addAttribute("partId", id);
         model.addAttribute("currentImage", part.getImageFileName());
+        addDropdownOptions(model);
         return "products/storageEditParts";
     }
 
@@ -76,11 +79,19 @@ public class StoragePartsController {
         if (result.hasErrors()) {
             model.addAttribute("partId", id);
             model.addAttribute("currentImage", service.getPartById(id).getImageFileName());
+            addDropdownOptions(model);
             return "products/storageEditParts";
         }
 
         service.updateComponent(id, storagePartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=Storage";
+    }
+
+    private void addDropdownOptions(Model model) {
+        model.addAttribute("brandOptions", service.getDistinctBrands());
+        model.addAttribute("categoryOptions", service.getDistinctCategories());
+        model.addAttribute("formFactorOptions", service.getDistinctFormFactors());
+        model.addAttribute("dramCacheOptions", service.getDistinctDramCacheOptions());
     }
 
     @DeleteMapping("/removePhoto/{id}")
@@ -92,6 +103,6 @@ public class StoragePartsController {
     @DeleteMapping("/delete/{id}")
     public String deletePart(@PathVariable("id") int id) {
         service.deleteComponent(id);
-        return "redirect:/computer";
+        return "redirect:/computer?category=Storage";
     }
 }

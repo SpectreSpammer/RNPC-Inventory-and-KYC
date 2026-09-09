@@ -8,15 +8,16 @@
 </head>
 <body>
 <div class="container">
-    <a href="/">
         <h1 class="text-center my-4">Edit PSU</h1>
-    </a>
     <form th:action="@{/psu/update/{id}(id=${partId})}" th:object="${psuPartsDto}" method="post" enctype="multipart/form-data">
         <input type="hidden" name="_method" value="put"/>
 
         <div class="mb-3">
             <label for="brand" class="form-label">Brand</label>
-            <input type="text" th:field="*{brand}" class="form-control" id="brand">
+            <select th:field="*{brand}" class="form-select" id="brand">
+                <option value="">-- Select Brand --</option>
+                <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
         </div>
 
@@ -34,19 +35,28 @@
 
         <div class="mb-3">
             <label for="plusRating" class="form-label">80 PLUS Rating</label>
-            <input type="text" th:field="*{plusRating}" class="form-control" id="plusRating">
+            <select th:field="*{plusRating}" class="form-select" id="plusRating">
+                <option value="">-- Select Rating --</option>
+                <option th:each="opt : ${plusRatingOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('plusRating')}" th:errors="*{plusRating}"></div>
         </div>
 
         <div class="mb-3">
             <label for="modularity" class="form-label">Modularity</label>
-            <input type="text" th:field="*{modularity}" class="form-control" id="modularity">
+            <select th:field="*{modularity}" class="form-select" id="modularity">
+                <option value="">-- Select Modularity --</option>
+                <option th:each="opt : ${modularityOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('modularity')}" th:errors="*{modularity}"></div>
         </div>
 
         <div class="mb-3">
             <label for="formFactor" class="form-label">Form Factor</label>
-            <input type="text" th:field="*{formFactor}" class="form-control" id="formFactor">
+            <select th:field="*{formFactor}" class="form-select" id="formFactor">
+                <option value="">-- Select Form Factor --</option>
+                <option th:each="opt : ${formFactorOptions}" th:value="${opt}" th:text="${opt}"></option>
+            </select>
             <div class="text-danger" th:if="${#fields.hasErrors('formFactor')}" th:errors="*{formFactor}"></div>
         </div>
 
@@ -96,7 +106,7 @@
                 <button type="submit" class="btn btn-primary">Submit</button>
             </div>
             <div class="col-sm-4 d-grid">
-                <a class="btn btn-outline-primary" href="/computer" role="button">Cancel</a>
+                <a class="btn btn-outline-primary" th:href="@{/computer(category='PSU')}" role="button">Cancel</a>
             </div>
         </div>
     </form>

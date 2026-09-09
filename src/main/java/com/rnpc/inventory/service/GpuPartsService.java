@@ -20,6 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class GpuPartsService {
@@ -37,6 +38,16 @@ public class GpuPartsService {
     public GpuParts getPartById(int id) {
         return repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid GPU part Id: " + id));
+    }
+
+    public List<String> getDistinctBrands() {
+        return repo.findAll().stream().map(GpuParts::getBrand)
+                .filter(Objects::nonNull).distinct().sorted().toList();
+    }
+
+    public List<String> getDistinctMemoryTypes() {
+        return repo.findAll().stream().map(GpuParts::getMemoryType)
+                .filter(Objects::nonNull).distinct().sorted().toList();
     }
 
     public GpuParts saveComponent(GpuPartsDto dto) {

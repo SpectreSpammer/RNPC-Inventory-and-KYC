@@ -30,17 +30,19 @@ public class GpuPartsController {
     @GetMapping("/create")
     public String showCreatePage(Model model) {
         model.addAttribute("gpuPartsDto", new GpuPartsDto());
+        addDropdownOptions(model);
         return "products/gpuCreateParts";
     }
 
     @PostMapping("/create")
-    public String createPart(@Valid @ModelAttribute GpuPartsDto gpuPartsDto, BindingResult result) {
+    public String createPart(@Valid @ModelAttribute GpuPartsDto gpuPartsDto, BindingResult result, Model model) {
         if (result.hasErrors()) {
+            addDropdownOptions(model);
             return "products/gpuCreateParts";
         }
 
         service.saveComponent(gpuPartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=GPU";
     }
 
     @GetMapping("/edit/{id}")
@@ -64,6 +66,7 @@ public class GpuPartsController {
         model.addAttribute("gpuPartsDto", dto);
         model.addAttribute("partId", id);
         model.addAttribute("currentImage", part.getImageFileName());
+        addDropdownOptions(model);
         return "products/gpuEditParts";
     }
 
@@ -75,11 +78,17 @@ public class GpuPartsController {
         if (result.hasErrors()) {
             model.addAttribute("partId", id);
             model.addAttribute("currentImage", service.getPartById(id).getImageFileName());
+            addDropdownOptions(model);
             return "products/gpuEditParts";
         }
 
         service.updateComponent(id, gpuPartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=GPU";
+    }
+
+    private void addDropdownOptions(Model model) {
+        model.addAttribute("brandOptions", service.getDistinctBrands());
+        model.addAttribute("memoryTypeOptions", service.getDistinctMemoryTypes());
     }
 
     @DeleteMapping("/removePhoto/{id}")
@@ -91,6 +100,6 @@ public class GpuPartsController {
     @DeleteMapping("/delete/{id}")
     public String deletePart(@PathVariable("id") int id) {
         service.deleteComponent(id);
-        return "redirect:/computer";
+        return "redirect:/computer?category=GPU";
     }
 }

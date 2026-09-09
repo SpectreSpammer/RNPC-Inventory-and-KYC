@@ -45,7 +45,7 @@ import jakarta.validation.constraints.Size;
 	    private String imageFileName;
 	    
 	    private MultipartFile imageFile;
-	    
+
 
 		public int getLaptopPartId() {
 			return laptopPartId;
@@ -134,7 +134,7 @@ import jakarta.validation.constraints.Size;
 		public void setImageFile(MultipartFile imageFile) {
 			this.imageFile = imageFile;
 		}
-		
+
 	}
 	
 

@@ -30,17 +30,19 @@ public class PsuPartsController {
     @GetMapping("/create")
     public String showCreatePage(Model model) {
         model.addAttribute("psuPartsDto", new PsuPartsDto());
+        addDropdownOptions(model);
         return "products/psuCreateParts";
     }
 
     @PostMapping("/create")
-    public String createPart(@Valid @ModelAttribute PsuPartsDto psuPartsDto, BindingResult result) {
+    public String createPart(@Valid @ModelAttribute PsuPartsDto psuPartsDto, BindingResult result, Model model) {
         if (result.hasErrors()) {
+            addDropdownOptions(model);
             return "products/psuCreateParts";
         }
 
         service.saveComponent(psuPartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=PSU";
     }
 
     @GetMapping("/edit/{id}")
@@ -62,6 +64,7 @@ public class PsuPartsController {
         model.addAttribute("psuPartsDto", dto);
         model.addAttribute("partId", id);
         model.addAttribute("currentImage", part.getImageFileName());
+        addDropdownOptions(model);
         return "products/psuEditParts";
     }
 
@@ -73,11 +76,19 @@ public class PsuPartsController {
         if (result.hasErrors()) {
             model.addAttribute("partId", id);
             model.addAttribute("currentImage", service.getPartById(id).getImageFileName());
+            addDropdownOptions(model);
             return "products/psuEditParts";
         }
 
         service.updateComponent(id, psuPartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=PSU";
+    }
+
+    private void addDropdownOptions(Model model) {
+        model.addAttribute("brandOptions", service.getDistinctBrands());
+        model.addAttribute("plusRatingOptions", service.getDistinctPlusRatings());
+        model.addAttribute("modularityOptions", service.getDistinctModularityOptions());
+        model.addAttribute("formFactorOptions", service.getDistinctFormFactors());
     }
 
     @DeleteMapping("/removePhoto/{id}")
@@ -89,6 +100,6 @@ public class PsuPartsController {
     @DeleteMapping("/delete/{id}")
     public String deletePart(@PathVariable("id") int id) {
         service.deleteComponent(id);
-        return "redirect:/computer";
+        return "redirect:/computer?category=PSU";
     }
 }

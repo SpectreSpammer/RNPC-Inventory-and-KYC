@@ -30,17 +30,19 @@ public class CasePartsController {
     @GetMapping("/create")
     public String showCreatePage(Model model) {
         model.addAttribute("casePartsDto", new CasePartsDto());
+        addDropdownOptions(model);
         return "products/caseCreateParts";
     }
 
     @PostMapping("/create")
-    public String createPart(@Valid @ModelAttribute CasePartsDto casePartsDto, BindingResult result) {
+    public String createPart(@Valid @ModelAttribute CasePartsDto casePartsDto, BindingResult result, Model model) {
         if (result.hasErrors()) {
+            addDropdownOptions(model);
             return "products/caseCreateParts";
         }
 
         service.saveComponent(casePartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=Case";
     }
 
     @GetMapping("/edit/{id}")
@@ -59,6 +61,7 @@ public class CasePartsController {
         model.addAttribute("casePartsDto", dto);
         model.addAttribute("partId", id);
         model.addAttribute("currentImage", part.getImageFileName());
+        addDropdownOptions(model);
         return "products/caseEditParts";
     }
 
@@ -70,11 +73,17 @@ public class CasePartsController {
         if (result.hasErrors()) {
             model.addAttribute("partId", id);
             model.addAttribute("currentImage", service.getPartById(id).getImageFileName());
+            addDropdownOptions(model);
             return "products/caseEditParts";
         }
 
         service.updateComponent(id, casePartsDto);
-        return "redirect:/computer";
+        return "redirect:/computer?category=Case";
+    }
+
+    private void addDropdownOptions(Model model) {
+        model.addAttribute("brandOptions", service.getDistinctBrands());
+        model.addAttribute("towerClassOptions", service.getDistinctTowerClasses());
     }
 
     @DeleteMapping("/removePhoto/{id}")
@@ -86,6 +95,6 @@ public class CasePartsController {
     @DeleteMapping("/delete/{id}")
     public String deletePart(@PathVariable("id") int id) {
         service.deleteComponent(id);
-        return "redirect:/computer";
+        return "redirect:/computer?category=Case";
     }
 }
