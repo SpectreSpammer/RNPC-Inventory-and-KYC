@@ -44,18 +44,34 @@ public class OrderController {
         this.notificationService = notificationService;
     }
 
+    // Non-admin visibility mirrors AppointmentController.showAppointmentList and
+    // RepairRecordController.showRepairList: a signed-in customer only ever sees Orders tied to
+    // their own linked Client(s), never the full getAllOrders() list, and clientId (an
+    // admin-only drill-down param) is ignored entirely for non-admins rather than trusted from
+    // the query string - otherwise every order in the shop, including other customers' receipts
+    // and reference numbers, was visible to anyone who loaded /order (even signed out).
     @GetMapping({"", "/"})
     public String showOrderList(@RequestParam(value = "clientId", required = false) Long clientId,
                                  Authentication authentication, Model model) {
-        List<Order> orders = clientId != null
-                ? orderService.getOrdersByClient(clientId)
-                : orderService.getAllOrders();
+        boolean admin = isAdmin(authentication);
+        List<Order> orders;
+        if (admin) {
+            orders = clientId != null
+                    ? orderService.getOrdersByClient(clientId)
+                    : orderService.getAllOrders();
+        } else if (isSignedIn(authentication)) {
+            clientId = null;
+            orders = orderService.getOrdersForUser(authentication.getName());
+        } else {
+            clientId = null;
+            orders = List.of();
+        }
 
         model.addAttribute("orders", orders);
         model.addAttribute("clientId", clientId);
-        model.addAttribute("isAdmin", isAdmin(authentication));
+        model.addAttribute("isAdmin", admin);
         model.addAttribute("currentUsername", isSignedIn(authentication) ? authentication.getName() : null);
-        if (clientId != null) {
+        if (admin && clientId != null) {
             model.addAttribute("client", clientService.getClientById(clientId));
         }
         return "orders/orderIndex";

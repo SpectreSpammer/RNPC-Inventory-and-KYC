@@ -58,6 +58,13 @@ public class OrderService {
         return repo.findByClient_ClientIdOrderByOrderIdDesc(clientId);
     }
 
+    // A signed-in customer's own Order Summary: everything tied to any Client their account is
+    // linked to. Mirrors AppointmentService.getAppointmentsForUser / RepairRecordService's
+    // equivalent - see OrderController.showOrderList.
+    public List<Order> getOrdersForUser(String username) {
+        return repo.findByClient_User_UsernameOrderByOrderIdDesc(username);
+    }
+
     public Order getOrderById(Long id) {
         return repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid order Id: " + id));
