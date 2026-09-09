@@ -1,0 +1,203 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>PC and Cellphone Repair Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+</head>
+<body>
+<div class="container">
+        <h1 class="text-center my-4">Checkout</h1>
+</div>
+
+<div class="content-wrapper">
+    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+
+    <main class="main-content">
+    <div th:replace="~{fragments/nav :: back}"></div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h5 class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.05em;">Order Summary</h5>
+            <hr class="mt-1"/>
+
+            <table class="table table-sm">
+                <tbody>
+                <tr th:each="entry : ${parts}">
+                    <td>
+                        <div class="text-muted small" th:text="${#strings.replace(entry.key, '_', ' ')}"></div>
+                        <div th:text="${entry.value.brand + ' ' + entry.value.modelName}"></div>
+                    </td>
+                    <td class="text-end">Php <span th:text="${entry.value.price}"></span></td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th>Total</th>
+                    <th class="text-end">Php <span th:text="${#numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}"></span></th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="col-md-6">
+            <h5 class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.05em;">Your Details &amp; Payment</h5>
+            <hr class="mt-1"/>
+
+            <form id="checkoutForm" action="#" th:action="@{/order/place}" th:object="${checkoutDto}" method="post"
+                  enctype="multipart/form-data">
+                <input type="hidden" name="cpuId" th:value="${cpuId}"/>
+                <input type="hidden" name="gpuId" th:value="${gpuId}"/>
+                <input type="hidden" name="motherboardId" th:value="${motherboardId}"/>
+                <input type="hidden" name="ramId" th:value="${ramId}"/>
+                <input type="hidden" name="storageSsdId" th:value="${storageSsdId}"/>
+                <input type="hidden" name="storageHddId" th:value="${storageHddId}"/>
+                <input type="hidden" name="psuId" th:value="${psuId}"/>
+                <input type="hidden" name="caseId" th:value="${caseId}"/>
+                <input type="hidden" name="coolerId" th:value="${coolerId}"/>
+
+                <div class="mb-3">
+                    <label for="fullName" class="form-label">Full Name</label>
+                    <input type="text" th:field="*{fullName}" class="form-control" id="fullName">
+                    <div class="text-danger" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="contactNumber" class="form-label">Contact Number</label>
+                    <input type="text" th:field="*{contactNumber}" class="form-control" id="contactNumber" placeholder="e.g. 0917 234 5678">
+                    <div class="text-danger" th:if="${#fields.hasErrors('contactNumber')}" th:errors="*{contactNumber}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" th:field="*{email}" class="form-control" id="email">
+                    <div class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="address" class="form-label">Address</label>
+                    <textarea th:field="*{address}" class="form-control" id="address" rows="2"></textarea>
+                    <div class="text-danger" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label d-block">Payment Method</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" th:field="*{paymentMethod}" id="pmGcash" value="GCASH">
+                        <label class="form-check-label" for="pmGcash">GCash</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" th:field="*{paymentMethod}" id="pmMaribank" value="MARIBANK">
+                        <label class="form-check-label" for="pmMaribank">Maribank</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" th:field="*{paymentMethod}" id="pmBpi" value="BPI">
+                        <label class="form-check-label" for="pmBpi">BPI</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" th:field="*{paymentMethod}" id="pmRcbc" value="RCBC">
+                        <label class="form-check-label" for="pmRcbc">RCBC</label>
+                    </div>
+                    <div class="text-danger" th:if="${#fields.hasErrors('paymentMethod')}" th:errors="*{paymentMethod}"></div>
+                </div>
+
+                <div class="mb-3 text-center border rounded p-3" id="qrDisplay" style="display:none;">
+                    <div class="fw-bold mb-2">Scan to Pay via <span id="qrBankName"></span></div>
+                    <img src="/images/maribank.jpg" alt="Payment QR code" class="img-fluid" style="max-width:220px;"/>
+                    <div class="text-muted small mt-2">(Testing only - the same sample QR is shown for every payment method)</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="referenceNumber" class="form-label">Reference Number</label>
+                    <input type="text" th:field="*{referenceNumber}" class="form-control" id="referenceNumber"
+                           placeholder="Enter the transaction reference number">
+                    <div class="text-danger" th:if="${#fields.hasErrors('referenceNumber')}" th:errors="*{referenceNumber}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="receiptFile" class="form-label">Upload the Receipt <span class="text-muted">(optional)</span></label>
+                    <input type="file" th:field="*{receiptFile}" class="form-control" id="receiptFile" accept="image/*">
+                    <div class="text-danger" th:if="${#fields.hasErrors('receiptFile')}" th:errors="*{receiptFile}"></div>
+                </div>
+
+                <div class="row">
+                    <div class="offset-sm-4 col-sm-4 d-grid">
+                        <button type="submit" class="btn btn-primary">Paid</button>
+                    </div>
+                    <div class="col-sm-4 d-grid">
+                        <a class="btn btn-outline-primary" href="/build" role="button">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    </main>
+</div>
+
+<!-- Confirmation before submitting a manual payment claim - see checkoutForm's submit handler -->
+<div class="modal fade" id="confirmPaidModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Please confirm you've already sent the payment.</p>
+                <p class="mb-1">Paid via: <strong id="confirmBankName"></strong></p>
+                <p class="mb-0">Reference Number: <strong id="confirmRefNumber"></strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmPaidBtn">Yes, I've Paid</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
+<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('checkoutForm');
+        const qrDisplay = document.getElementById('qrDisplay');
+        const qrBankName = document.getElementById('qrBankName');
+        const radios = document.querySelectorAll('input[name="paymentMethod"]');
+        const bankLabels = { GCASH: 'GCash', MARIBANK: 'Maribank', BPI: 'BPI', RCBC: 'RCBC' };
+
+        radios.forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                qrDisplay.style.display = '';
+                qrBankName.textContent = bankLabels[radio.value] || radio.value;
+            });
+            if (radio.checked) radio.dispatchEvent(new Event('change'));
+        });
+
+        const confirmModal = new bootstrap.Modal(document.getElementById('confirmPaidModal'));
+        let confirmed = false;
+
+        form.addEventListener('submit', function (e) {
+            if (confirmed) return;
+            e.preventDefault();
+
+            const selected = form.querySelector('input[name="paymentMethod"]:checked');
+            document.getElementById('confirmBankName').textContent = selected
+                ? (bankLabels[selected.value] || selected.value) : '(none selected)';
+            document.getElementById('confirmRefNumber').textContent =
+                document.getElementById('referenceNumber').value || '(none entered)';
+            confirmModal.show();
+        });
+
+        document.getElementById('confirmPaidBtn').addEventListener('click', function () {
+            confirmed = true;
+            confirmModal.hide();
+            form.submit();
+        });
+    });
+</script>
+</body>
+</html>

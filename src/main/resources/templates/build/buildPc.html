@@ -50,9 +50,7 @@
 </head>
 <body>
 <div class="container">
-    <a href="/">
         <h1 class="text-center my-4">Build a PC</h1>
-    </a>
 </div>
 
 <div class="content-wrapper">
@@ -63,8 +61,23 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <p class="text-muted mb-0">Pick a CPU brand and the compatible motherboards and memory are filtered for you automatically — just like a parts picker.</p>
-        <button type="button" class="btn btn-outline-secondary btn-sm" id="resetBuildBtn">Reset Build</button>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="resetBuildBtn">Reset Build</button>
+            <button type="button" class="btn btn-primary btn-sm" id="orderNowBtn" disabled>Order Now</button>
+        </div>
     </div>
+
+    <form id="orderReviewForm" action="#" th:action="@{/order/review}" method="post" style="display:none;">
+        <input type="hidden" name="cpuId" id="orderCpuId"/>
+        <input type="hidden" name="gpuId" id="orderGpuId"/>
+        <input type="hidden" name="motherboardId" id="orderMotherboardId"/>
+        <input type="hidden" name="ramId" id="orderRamId"/>
+        <input type="hidden" name="storageSsdId" id="orderStorageSsdId"/>
+        <input type="hidden" name="storageHddId" id="orderStorageHddId"/>
+        <input type="hidden" name="psuId" id="orderPsuId"/>
+        <input type="hidden" name="caseId" id="orderCaseId"/>
+        <input type="hidden" name="coolerId" id="orderCoolerId"/>
+    </form>
 
     <div id="compatMessages" class="mb-3"></div>
 
@@ -215,6 +228,8 @@
     </div>
 </div>
 
+<div th:replace="~{fragments/auth :: authModal}"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
@@ -225,17 +240,29 @@
 const ALL_PARTS = /*[[${components}]]*/ [];
 /*]]>*/
 
-const CATEGORY_ORDER = ['CPU', 'MOTHERBOARD', 'RAM', 'STORAGE', 'GPU', 'PSU', 'CASE', 'COOLER'];
+const CATEGORY_ORDER = ['CPU', 'MOTHERBOARD', 'RAM', 'STORAGE_SSD', 'STORAGE_HDD', 'GPU', 'PSU', 'CASE', 'COOLER'];
 const CATEGORY_LABELS = {
     CPU: 'CPU',
     MOTHERBOARD: 'Motherboard',
     RAM: 'Memory (RAM)',
-    STORAGE: 'Storage',
+    STORAGE_SSD: 'Storage (SSD)',
+    STORAGE_HDD: 'Storage (HDD)',
     GPU: 'Video Card (GPU)',
     PSU: 'Power Supply (PSU)',
     CASE: 'Case',
     COOLER: 'CPU Cooler'
 };
+
+// Storage is a single underlying build category ("STORAGE") in the data, split into two
+// pickable slots here based on each part's "Category" field (e.g. "NVMe SSD" vs "HDD 7200 RPM").
+const VIRTUAL_STORAGE_CATEGORIES = {
+    STORAGE_SSD: 'SSD',
+    STORAGE_HDD: 'HDD'
+};
+
+function actualCategory(category) {
+    return VIRTUAL_STORAGE_CATEGORIES[category] ? 'STORAGE' : category;
+}
 
 const FIELD_FILTER_EXCLUDED_COMMON = ['Brand', 'Model'];
 const FIELD_FILTER_EXCLUDED_BY_CATEGORY = {
@@ -252,7 +279,7 @@ function isFieldFilterExcluded(category, key) {
 
 const FIELD_FILTER_MAX_DISTINCT = 15;
 const FIELD_FILTER_RADIO_STYLE = ['Integrated Graphics'];
-const FIELD_FILTER_RADIO_CATEGORIES = ['MOTHERBOARD', 'RAM', 'GPU', 'STORAGE', 'PSU', 'CASE', 'COOLER'];
+const FIELD_FILTER_RADIO_CATEGORIES = ['MOTHERBOARD', 'RAM', 'GPU', 'STORAGE_SSD', 'STORAGE_HDD', 'PSU', 'CASE', 'COOLER'];
 const FIELD_VALUE_TRANSFORMS = {
     'Integrated Graphics': function (raw) {
         return (!raw || raw.trim() === '' || raw.trim().toLowerCase() === 'none') ? 'No' : 'Yes';
@@ -303,10 +330,16 @@ function escapeHtml(str) {
 }
 
 function formatPrice(value) {
-    return 'Php ' + Number(value).toFixed(2);
+    return 'Php ' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function partsByCategory(category) {
+    const storageType = VIRTUAL_STORAGE_CATEGORIES[category];
+    if (storageType) {
+        return ALL_PARTS.filter(function (p) {
+            return p.category === 'STORAGE' && ((p.fields || {})['Category'] || '').indexOf(storageType) > -1;
+        });
+    }
     return ALL_PARTS.filter(function (p) { return p.category === category; });
 }
 
@@ -383,6 +416,10 @@ function renderBuildTable() {
     tbody.innerHTML = rows;
     document.getElementById('buildSubtotal').textContent = formatPrice(subtotal);
     renderCompatMessages();
+
+    const orderNowBtn = document.getElementById('orderNowBtn');
+    const hasAnySelection = CATEGORY_ORDER.some(function (category) { return !!selected[category]; });
+    orderNowBtn.disabled = !hasAnySelection;
 }
 
 function removePart(category) {
@@ -728,7 +765,7 @@ function renderPickerTable() {
 }
 
 function viewPartDetails(componentId) {
-    const part = ALL_PARTS.find(function (p) { return p.componentId === componentId && p.category === pickerCategory; });
+    const part = ALL_PARTS.find(function (p) { return p.componentId === componentId && p.category === actualCategory(pickerCategory); });
     if (!part) return;
 
     document.getElementById('viewDetailsModalTitle').textContent = part.brand + ' ' + part.modelName;
@@ -758,7 +795,7 @@ function selectPart(componentId) {
     // componentId is only unique WITHIN a category (each category's DB id starts back at 1),
     // so it must be matched together with pickerCategory or this picks up the first part with
     // a matching id from a completely different category (e.g. CPU id=1 instead of RAM id=1).
-    const part = ALL_PARTS.find(function (p) { return p.componentId === componentId && p.category === pickerCategory; });
+    const part = ALL_PARTS.find(function (p) { return p.componentId === componentId && p.category === actualCategory(pickerCategory); });
     if (!part) return;
 
     selected[pickerCategory] = part;
@@ -772,17 +809,93 @@ document.addEventListener('DOMContentLoaded', function () {
             resetBuild();
         }
     });
+
+    document.getElementById('orderNowBtn').addEventListener('click', function () {
+        const fieldByCategory = {
+            CPU: 'orderCpuId',
+            GPU: 'orderGpuId',
+            MOTHERBOARD: 'orderMotherboardId',
+            RAM: 'orderRamId',
+            STORAGE_SSD: 'orderStorageSsdId',
+            STORAGE_HDD: 'orderStorageHddId',
+            PSU: 'orderPsuId',
+            CASE: 'orderCaseId',
+            COOLER: 'orderCoolerId'
+        };
+        // Matches the request-param names /order/review actually expects, used to rebuild the
+        // pending order into a real form on the landing page once the user signs in.
+        const paramByCategory = {
+            CPU: 'cpuId',
+            GPU: 'gpuId',
+            MOTHERBOARD: 'motherboardId',
+            RAM: 'ramId',
+            STORAGE_SSD: 'storageSsdId',
+            STORAGE_HDD: 'storageHddId',
+            PSU: 'psuId',
+            CASE: 'caseId',
+            COOLER: 'coolerId'
+        };
+
+        const hasAnySelection = CATEGORY_ORDER.some(function (category) { return !!selected[category]; });
+        if (!hasAnySelection) return;
+
+        function submitOrderReview() {
+            CATEGORY_ORDER.forEach(function (category) {
+                document.getElementById(fieldByCategory[category]).value = selected[category] ? selected[category].componentId : '';
+            });
+            document.getElementById('orderReviewForm').submit();
+        }
+
+        fetch('/api/auth/status')
+            .then(function (res) { return res.json(); })
+            .then(function (status) {
+                if (status.authenticated) {
+                    submitOrderReview();
+                    return;
+                }
+
+                // Not signed in - save the build so the landing page can resume it automatically
+                // right after login/sign-up, then prompt for sign-in instead of ordering.
+                const pending = {};
+                CATEGORY_ORDER.forEach(function (category) {
+                    if (selected[category]) pending[paramByCategory[category]] = selected[category].componentId;
+                });
+                sessionStorage.setItem('pendingOrder', JSON.stringify(pending));
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('authModal')).show();
+            })
+            .catch(function () {
+                // If the status check itself fails, don't silently do nothing.
+                submitOrderReview();
+            });
+    });
+
     renderBuildTable();
 
     // The picker modal's body scrolls (modal-dialog-scrollable), which otherwise clips
     // Bootstrap's absolutely-positioned dropdown-menu at the modal's edge — cutting off
     // the Apply/Reset buttons at the bottom of the Filter panel. Fixed positioning escapes
     // that clipping since it's relative to the viewport, not the scrolling ancestor.
+    //
+    // Hovering opens these too, but via Bootstrap's own show()/hide() (not a CSS :hover rule)
+    // so Popper computes the exact same position whichever way the menu opened — a CSS-only
+    // hover reveal shows the menu at its unpositioned default first, then jumps once a click
+    // triggers Popper, which is the bug this avoids.
     ['pickerFilterBtn', 'pickerSortBtn'].forEach(function (id) {
-        bootstrap.Dropdown.getOrCreateInstance(document.getElementById(id), {
+        const toggleEl = document.getElementById(id);
+        const wrapperEl = toggleEl.closest('.dropdown');
+        const dropdown = bootstrap.Dropdown.getOrCreateInstance(toggleEl, {
             popperConfig: function (defaultConfig) {
                 return Object.assign({}, defaultConfig, { strategy: 'fixed' });
             }
+        });
+
+        let hideTimer;
+        wrapperEl.addEventListener('mouseenter', function () {
+            clearTimeout(hideTimer);
+            dropdown.show();
+        });
+        wrapperEl.addEventListener('mouseleave', function () {
+            hideTimer = setTimeout(function () { dropdown.hide(); }, 150);
         });
     });
 

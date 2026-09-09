@@ -1,0 +1,290 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>PC and Cellphone Repair Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+</head>
+<body>
+<div class="container">
+        <h1 class="text-center my-4">Order Placed</h1>
+</div>
+
+<div class="content-wrapper">
+    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+
+    <main class="main-content">
+    <div>
+        <a href="/order" class="btn btn-outline-secondary btn-sm mb-3">Go to Orders</a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card" th:fragment="orderCard">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="mb-0" th:text="${order.orderNumber}"></h5>
+                            <div class="text-muted small" th:text="${order.client.fullName}"></div>
+                            <div class="text-muted small" th:text="${order.client.contactNumber}"></div>
+                            <div class="text-muted small" th:text="${order.client.address}"></div>
+                        </div>
+                        <span class="badge"
+                              th:classappend="${order.status.name() == 'PAID'} ? 'bg-success' : (${order.status.name() == 'CANCELLED'} ? 'bg-danger' : (${order.status.name() == 'CANCELLATION_REQUESTED'} ? 'bg-info text-dark' : 'bg-warning text-dark'))"
+                              th:text="${order.status.name() == 'AWAITING_PAYMENT'} ? 'Payment Verification' : (${order.status.name() == 'CANCELLATION_REQUESTED'} ? 'Cancellation Requested' : ${order.status})"></span>
+                    </div>
+
+                    <table class="table table-sm">
+                        <tbody>
+                        <tr th:each="item : ${order.items}">
+                            <td>
+                                <div class="text-muted small" th:text="${item.category}"></div>
+                                <div th:text="${item.brand + ' ' + item.modelName}"></div>
+                            </td>
+                            <td class="text-end">Php <span th:text="${item.price}"></span></td>
+                        </tr>
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th>Total</th>
+                            <th class="text-end">Php <span th:text="${order.totalAmount}"></span></th>
+                        </tr>
+                        </tfoot>
+                    </table>
+
+                    <div th:if="${order.status.name() == 'AWAITING_PAYMENT'}" class="text-center border rounded p-3 mb-3">
+                        <div class="mb-2 fw-bold">Payment Verification</div>
+                        <div class="text-muted small mb-2">
+                            We're verifying your payment against the reference number you submitted. This is checked
+                            manually, so it may take a little while - no action is needed on your end.
+                        </div>
+                        <div>Paid via: <strong th:text="${#strings.capitalize(#strings.toLowerCase(order.paymentMethod.name()))}"></strong></div>
+                        <div>Reference Number: <strong th:text="${order.referenceNumber}"></strong></div>
+                        <div class="mt-2">Amount: <strong>Php <span th:text="${order.totalAmount}"></span></strong></div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm mt-2"
+                                th:if="${!navIsAdmin and currentUsername != null and order.client.user != null and order.client.user.username == currentUsername}"
+                                data-bs-toggle="modal" data-bs-target="#uploadReceiptModal">Upload Receipt</button>
+                        <button type="button" class="btn btn-success btn-sm mt-2"
+                                th:if="${navIsAdmin}"
+                                data-bs-toggle="modal" data-bs-target="#markPaidModal">Mark as Paid</button>
+                    </div>
+
+                    <div th:if="${navIsAdmin and order.status.name() == 'AWAITING_PAYMENT'}"
+                         class="modal fade" id="markPaidModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirm Mark as Paid</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Mark order <strong th:text="${order.orderNumber}"></strong>
+                                    (Php <span th:text="${order.totalAmount}"></span>) as <strong>PAID</strong>?
+                                    Double-check the reference number and uploaded receipt first - this can't be undone here.
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form th:action="@{/order/markPaid/{id}(id=${order.orderId})}" method="post">
+                                        <input type="hidden" name="_method" value="put"/>
+                                        <button type="submit" class="btn btn-success">Yes, Mark as Paid</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${order.verifiedByEmployeeId != null}" class="text-center border rounded p-3 mb-3">
+                        <div class="fw-bold mb-2">Payment Confirmed</div>
+                        <div class="text-muted small">
+                            Payment validated by <strong th:text="${order.verifiedByEmployeeId}"></strong>
+                            on <strong th:text="${#dates.format(order.verifiedAt, 'yyyy-MM-dd HH:mm')}"></strong>
+                        </div>
+                    </div>
+
+                    <div th:if="${order.receiptFileName}" class="text-center border rounded p-3 mb-3">
+                        <div class="fw-bold mb-2">Uploaded Receipt</div>
+                        <img th:src="@{/images/{f}(f=${order.receiptFileName})}" alt="Uploaded receipt"
+                             class="img-fluid" style="max-width:280px; max-height:150px; object-fit:contain;"/>
+                    </div>
+
+                    <div th:if="${order.status.name() == 'CANCELLATION_REQUESTED'}" class="text-center border rounded p-3 mb-3">
+                        <div class="fw-bold mb-2">Cancellation Requested</div>
+                        <div class="text-muted small" th:if="${!navIsAdmin}">
+                            Your cancellation request has been submitted and is awaiting admin approval.
+                        </div>
+                        <div class="d-flex justify-content-center gap-2 mt-2" th:if="${navIsAdmin}">
+                            <button type="button" class="btn btn-success btn-sm"
+                                    data-bs-toggle="modal" data-bs-target="#approveCancelModal">Approve Cancellation</button>
+                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                    data-bs-toggle="modal" data-bs-target="#denyCancelModal">Deny</button>
+                        </div>
+                    </div>
+
+                    <div th:if="${order.refundStatus.name() != 'NOT_APPLICABLE'}" class="text-center border rounded p-3 mb-3">
+                        <div class="fw-bold mb-2">Refund</div>
+                        <span class="badge"
+                              th:classappend="${order.refundStatus.name() == 'REFUNDED'} ? 'bg-success' : 'bg-warning text-dark'"
+                              th:text="${order.refundStatus}"></span>
+                        <div class="text-muted small mt-2" th:if="${order.refundStatus.name() == 'REFUNDED'}">
+                            Refunded by <span th:text="${order.refundedByEmployeeId}"></span>
+                            on <span th:text="${#dates.format(order.refundedAt, 'yyyy-MM-dd HH:mm')}"></span>
+                        </div>
+                        <button th:if="${navIsAdmin and order.refundStatus.name() == 'PENDING'}" type="button"
+                                class="btn btn-success btn-sm mt-2"
+                                data-bs-toggle="modal" data-bs-target="#markRefundedModal">Mark Refunded</button>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3" th:with="cancelEligible=${order.status.name() == 'AWAITING_PAYMENT' or (order.status.name() == 'PAID' and (navIsAdmin or (currentUsername != null and order.client.user != null and order.client.user.username == currentUsername)))}">
+                        <button type="button" class="btn btn-outline-primary btn-sm request-receipt-btn"
+                                th:if="${navIsAdmin and order.status.name() == 'AWAITING_PAYMENT'}"
+                                th:attr="data-request-receipt-url=@{/order/requestReceipt/{id}(id=${order.orderId})}">Request Receipt</button>
+                        <form th:if="${cancelEligible and order.withinCancellationWindow}"
+                              th:action="@{/order/cancel/{id}(id=${order.orderId})}" method="post">
+                            <input type="hidden" name="_method" value="put"/>
+                            <button type="submit" class="btn btn-outline-danger btn-sm"
+                                    th:onclick="${order.status.name() != 'PAID'} ? 'return confirm(\'Cancel this order?\')' : (${navIsAdmin} ? 'return confirm(\'This order is already paid - cancelling it will make a refund owed. Continue?\')' : 'return confirm(\'This order is already paid - your cancellation will be submitted to admin for approval before any refund is processed. Continue?\')')">Cancel Order</button>
+                        </form>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" disabled
+                                th:if="${cancelEligible and !order.withinCancellationWindow}"
+                                title="The 7-day warranty claim window for this order has passed">Cancel Order</button>
+                    </div>
+
+                    <div th:if="${navIsAdmin and order.status.name() == 'CANCELLATION_REQUESTED'}"
+                         class="modal fade" id="approveCancelModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Approve Cancellation</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Approve the cancellation request for order <strong th:text="${order.orderNumber}"></strong>
+                                    (Php <span th:text="${order.totalAmount}"></span>)? This will cancel the order and
+                                    mark a refund as owed to the customer.
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                    <form th:action="@{/order/approveCancellation/{id}(id=${order.orderId})}" method="post">
+                                        <input type="hidden" name="_method" value="put"/>
+                                        <button type="submit" class="btn btn-success">Yes, Approve</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${navIsAdmin and order.status.name() == 'CANCELLATION_REQUESTED'}"
+                         class="modal fade" id="denyCancelModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Deny Cancellation</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Deny the cancellation request for order <strong th:text="${order.orderNumber}"></strong>?
+                                    The order will remain <strong>PAID</strong> and no refund will be recorded.
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                    <form th:action="@{/order/denyCancellation/{id}(id=${order.orderId})}" method="post">
+                                        <input type="hidden" name="_method" value="put"/>
+                                        <button type="submit" class="btn btn-outline-danger">Yes, Deny</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${!navIsAdmin and order.status.name() == 'AWAITING_PAYMENT' and currentUsername != null and order.client.user != null and order.client.user.username == currentUsername}"
+                         class="modal fade" id="uploadReceiptModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <form th:action="@{/order/uploadReceipt/{id}(id=${order.orderId})}" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="_method" value="put"/>
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Upload Receipt</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <label for="receiptFile" class="form-label">Receipt image for order
+                                            <strong th:text="${order.orderNumber}"></strong></label>
+                                        <input type="file" name="receiptFile" id="receiptFile" class="form-control" accept="image/*" required>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Upload</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${navIsAdmin and order.refundStatus.name() == 'PENDING'}"
+                         class="modal fade" id="markRefundedModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirm Mark as Refunded</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Mark order <strong th:text="${order.orderNumber}"></strong>
+                                    (Php <span th:text="${order.totalAmount}"></span>) as <strong>REFUNDED</strong>?
+                                    Only confirm this once the money has actually been sent back to the customer.
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form th:action="@{/order/markRefunded/{id}(id=${order.orderId})}" method="post">
+                                        <input type="hidden" name="_method" value="put"/>
+                                        <button type="submit" class="btn btn-success">Yes, Mark as Refunded</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="requestReceiptSentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-4">
+                    Request receipt message has been sent
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
+<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const requestReceiptSentModalEl = document.getElementById('requestReceiptSentModal');
+        if (!requestReceiptSentModalEl) return;
+        const requestReceiptSentModal = new bootstrap.Modal(requestReceiptSentModalEl);
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.request-receipt-btn');
+            if (!btn) return;
+            fetch(btn.getAttribute('data-request-receipt-url'), { method: 'PUT' })
+                .then(function (res) {
+                    if (res.ok) {
+                        requestReceiptSentModal.show();
+                    }
+                });
+        });
+    });
+</script>
+</body>
+</html>
