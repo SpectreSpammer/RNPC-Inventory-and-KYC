@@ -1,0 +1,724 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Sales Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .sales-report {
+            --sr-surface: #FFFFFF;
+            --sr-surface-2: #EAEDF0;
+            --sr-ink: #12181D;
+            --sr-ink-2: #4B5760;
+            --sr-ink-muted: #7C8791;
+            --sr-border: #DDE2E6;
+            --sr-border-strong: #C7CED4;
+            --sr-accent: #2A78D6;
+            --sr-accent-strong: #1C5CAB;
+            --sr-accent-wash: rgba(42,120,214,0.10);
+            --sr-repairs: #EB6834;
+            --sr-good: #0A8A0A;
+            --sr-critical: #C13333;
+            --sr-grid: #E1E5E8;
+            --sr-tooltip-bg: #12181D;
+            --sr-tooltip-fg: #FFFFFF;
+            --sr-tooltip-muted: #B8C0C7;
+            --sr-shadow: 0 1px 2px rgba(18,24,29,0.05), 0 10px 28px -14px rgba(18,24,29,0.16);
+            --sr-radius: 10px;
+            --sr-font-display: 'Archivo', system-ui, sans-serif;
+            --sr-font-body: 'IBM Plex Sans', system-ui, sans-serif;
+            --sr-font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-family: var(--sr-font-body);
+            color: var(--sr-ink);
+        }
+        .sales-report * { box-sizing: border-box; }
+        .sales-report a { color: inherit; }
+        .sales-report button, .sales-report select { font: inherit; }
+
+        .sr-page-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .sr-page-head p { margin: 0; color: var(--sr-ink-2); font-size: 0.9rem; }
+
+        .sr-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            align-items: center;
+            padding: 14px 18px;
+            background: var(--sr-surface);
+            border: 1px solid var(--sr-border);
+            border-radius: var(--sr-radius);
+            margin-bottom: 20px;
+        }
+        .sr-filter-group { display: flex; align-items: center; gap: 9px; }
+        .sr-filter-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--sr-ink-muted);
+            font-weight: 600;
+        }
+        .sr-filter-select {
+            font-family: var(--sr-font-mono);
+            font-size: 0.84rem;
+            padding: 7px 30px 7px 11px;
+            border-radius: 7px;
+            border: 1px solid var(--sr-border-strong);
+            background: var(--sr-surface) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="%237C8791" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat right 11px center;
+            color: var(--sr-ink);
+            appearance: none;
+            cursor: pointer;
+        }
+        .sr-filter-select:disabled { opacity: 0.45; cursor: not-allowed; }
+        .sr-segmented {
+            display: inline-flex;
+            background: var(--sr-surface-2);
+            border-radius: 8px;
+            padding: 3px;
+            gap: 2px;
+        }
+        .sr-segmented button {
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            font-size: 0.82rem;
+            padding: 6px 13px;
+            border-radius: 6px;
+            color: var(--sr-ink-2);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sr-segmented button.active { background: var(--sr-surface); color: var(--sr-ink); box-shadow: var(--sr-shadow); }
+        .sr-seg-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+        .sr-filters-spacer { flex: 1; }
+        .sr-as-of { font-family: var(--sr-font-mono); font-size: 0.76rem; color: var(--sr-ink-muted); }
+
+        .sr-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .sr-stat-tile {
+            background: var(--sr-surface);
+            border: 1px solid var(--sr-border);
+            border-radius: var(--sr-radius);
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+        .sr-stat-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--sr-ink-muted);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sr-stat-value {
+            font-family: var(--sr-font-display);
+            font-weight: 800;
+            font-size: 1.6rem;
+            letter-spacing: -0.01em;
+            line-height: 1.1;
+        }
+        .sr-stat-foot { display: flex; align-items: center; gap: 8px; }
+        .sr-chip {
+            font-family: var(--sr-font-mono);
+            font-size: 0.76rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .sr-chip.up { color: var(--sr-good); background: rgba(10,138,10,0.10); }
+        .sr-chip.down { color: var(--sr-critical); background: rgba(193,51,51,0.10); }
+        .sr-chip.flat { color: var(--sr-ink-muted); background: var(--sr-surface-2); }
+        .sr-stat-caption { font-size: 0.76rem; color: var(--sr-ink-muted); }
+
+        .sr-card {
+            background: var(--sr-surface);
+            border: 1px solid var(--sr-border);
+            border-radius: var(--sr-radius);
+            padding: 20px 22px 16px;
+            margin-bottom: 20px;
+        }
+        .sr-card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 2px;
+        }
+        .sr-card-head h2 { font-family: var(--sr-font-display); font-weight: 700; font-size: 1.02rem; margin: 0; }
+        .sr-card-sub { font-size: 0.8rem; color: var(--sr-ink-muted); }
+        .sr-legend { display: flex; gap: 16px; }
+        .sr-legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--sr-ink-2); }
+        .sr-legend-swatch { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
+
+        .sr-chart-wrap { position: relative; margin-top: 8px; }
+        .sr-chart-wrap svg { width: 100%; height: auto; display: block; overflow: visible; }
+        .sr-chart-wrap svg text { font-family: var(--sr-font-mono); fill: var(--sr-ink-muted); }
+        .sr-bar-hit { fill: transparent; cursor: pointer; }
+
+        .sr-tooltip {
+            position: absolute;
+            pointer-events: none;
+            background: var(--sr-tooltip-bg);
+            color: var(--sr-tooltip-fg);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 0.78rem;
+            box-shadow: var(--sr-shadow);
+            opacity: 0;
+            transform: translate(-50%, -100%);
+            transition: opacity 0.08s ease;
+            z-index: 5;
+            white-space: nowrap;
+        }
+        .sr-tooltip.show { opacity: 1; }
+        .sr-tooltip .sr-tt-title { font-family: var(--sr-font-mono); font-weight: 600; margin-bottom: 6px; color: var(--sr-tooltip-fg); }
+        .sr-tooltip .sr-tt-row { display: flex; align-items: center; gap: 7px; padding: 1px 0; }
+        .sr-tooltip .sr-tt-key { width: 12px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+        .sr-tooltip .sr-tt-name { color: var(--sr-tooltip-muted); }
+        .sr-tooltip .sr-tt-val { font-family: var(--sr-font-mono); font-weight: 600; margin-left: auto; padding-left: 14px; }
+        .sr-tooltip .sr-tt-total { border-top: 1px solid rgba(128,128,128,0.3); margin-top: 5px; padding-top: 5px; font-weight: 700; }
+
+        .sr-secondary-row { display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; margin-bottom: 20px; }
+        .sr-split-bar { display: flex; height: 26px; border-radius: 6px; overflow: hidden; gap: 2px; background: var(--sr-surface-2); }
+        .sr-split-seg { height: 100%; transition: width 0.2s ease; }
+        .sr-split-labels { display: flex; justify-content: space-between; margin-top: 12px; }
+        .sr-split-label { display: flex; flex-direction: column; gap: 2px; }
+        .sr-split-label .sr-k { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--sr-ink-2); }
+        .sr-split-label .sr-v { font-family: var(--sr-font-mono); font-weight: 600; font-size: 0.98rem; }
+        .sr-best-row { display: flex; align-items: baseline; justify-content: space-between; }
+        .sr-best-value { font-family: var(--sr-font-display); font-weight: 800; font-size: 1.5rem; }
+        .sr-best-name { font-family: var(--sr-font-mono); color: var(--sr-ink-2); font-size: 0.86rem; }
+
+        .sr-table-wrap { overflow-x: auto; }
+        table.sr-ledger { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 560px; }
+        table.sr-ledger thead th {
+            text-align: right;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--sr-ink-muted);
+            font-weight: 600;
+            padding: 0 10px 10px;
+            border-bottom: 1px solid var(--sr-border-strong);
+            white-space: nowrap;
+        }
+        table.sr-ledger thead th:first-child { text-align: left; }
+        table.sr-ledger tbody td {
+            padding: 9px 10px;
+            border-bottom: 1px solid var(--sr-border);
+            font-family: var(--sr-font-mono);
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            color: var(--sr-ink);
+            white-space: nowrap;
+        }
+        table.sr-ledger tbody td:first-child {
+            font-family: var(--sr-font-body);
+            font-weight: 500;
+            color: var(--sr-ink);
+            text-align: left;
+        }
+        table.sr-ledger tbody tr:hover td { background: var(--sr-surface-2); }
+        table.sr-ledger tfoot td {
+            padding: 12px 10px;
+            border-top: 2px solid var(--sr-ink);
+            font-weight: 700;
+            font-family: var(--sr-font-mono);
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        table.sr-ledger tfoot td:first-child { font-family: var(--sr-font-body); }
+        .sr-delta-cell { display: inline-flex; align-items: center; gap: 3px; font-size: 0.8rem; }
+        .sr-delta-cell.up { color: var(--sr-good); }
+        .sr-delta-cell.down { color: var(--sr-critical); }
+        .sr-delta-cell.flat { color: var(--sr-ink-muted); }
+
+        .sr-foot-note { text-align: center; color: var(--sr-ink-muted); font-size: 0.76rem; margin-top: 8px; }
+
+        @media (max-width: 880px) {
+            .sr-secondary-row { grid-template-columns: 1fr; }
+        }
+
+        @media print {
+            .sidebar, .sr-filters, .no-print { display: none !important; }
+            .main-content { padding: 0; }
+            .sr-card, .sr-stat-tile { border: 1px solid #ccc; box-shadow: none; break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="text-center my-4">Sales Report</h1>
+</div>
+
+<div class="content-wrapper">
+    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+
+    <main class="main-content">
+        <div th:replace="~{fragments/nav :: back}"></div>
+
+        <div class="sales-report">
+            <div class="sr-page-head">
+                <p>Revenue from paid PC/parts orders and completed repair jobs, drawn from Orders and Repair History.</p>
+                <button class="btn btn-outline-secondary btn-sm no-print" id="printBtn">
+                    <i class="fas fa-print"></i> Print report
+                </button>
+            </div>
+
+            <div class="sr-filters no-print">
+                <div class="sr-filter-group">
+                    <span class="sr-filter-label">Year</span>
+                    <select class="sr-filter-select" id="yearSelect"></select>
+                </div>
+                <div class="sr-filter-group">
+                    <span class="sr-filter-label">View</span>
+                    <div class="sr-segmented" id="granularitySeg">
+                        <button type="button" data-g="yearly" class="active">Yearly</button>
+                        <button type="button" data-g="monthly">Monthly</button>
+                    </div>
+                </div>
+                <div class="sr-filter-group">
+                    <span class="sr-filter-label">Month</span>
+                    <select class="sr-filter-select" id="monthSelect" disabled></select>
+                </div>
+                <div class="sr-filter-group">
+                    <span class="sr-filter-label">Source</span>
+                    <div class="sr-segmented" id="sourceSeg">
+                        <button type="button" data-s="all" class="active">All sales</button>
+                        <button type="button" data-s="orders"><span class="sr-seg-dot" style="background:var(--sr-accent)"></span>Orders</button>
+                        <button type="button" data-s="repairs"><span class="sr-seg-dot" style="background:var(--sr-repairs)"></span>Repairs</button>
+                    </div>
+                </div>
+                <div class="sr-filters-spacer"></div>
+                <span class="sr-as-of" id="asOf"></span>
+            </div>
+
+            <div class="sr-stats" id="statsRow"></div>
+
+            <div class="sr-card">
+                <div class="sr-card-head">
+                    <div>
+                        <h2 id="chartTitle">Revenue by month</h2>
+                        <div class="sr-card-sub" id="chartSub">Php, grouped by source</div>
+                    </div>
+                    <div class="sr-legend" id="chartLegend"></div>
+                </div>
+                <div class="sr-chart-wrap" id="chartWrap">
+                    <div class="sr-tooltip" id="tooltip"></div>
+                </div>
+            </div>
+
+            <div class="sr-secondary-row">
+                <div class="sr-card" style="margin-bottom:0;">
+                    <div class="sr-card-head"><h2>Revenue split</h2></div>
+                    <div class="sr-split-bar" id="splitBar"></div>
+                    <div class="sr-split-labels" id="splitLabels"></div>
+                </div>
+                <div class="sr-card" style="margin-bottom:0;">
+                    <div class="sr-card-head"><h2 id="bestTitle">Best month</h2></div>
+                    <div class="sr-best-row">
+                        <span class="sr-best-value" id="bestValue">Php 0</span>
+                        <span class="sr-best-name" id="bestName">&mdash;</span>
+                    </div>
+                    <div class="sr-stat-caption" id="bestCaption" style="margin-top:8px;"></div>
+                </div>
+            </div>
+
+            <div class="sr-card" style="margin-bottom:8px;">
+                <div class="sr-card-head">
+                    <h2 id="tableTitle">Sales ledger</h2>
+                    <div class="sr-card-sub" id="tableSub"></div>
+                </div>
+                <div class="sr-table-wrap">
+                    <table class="sr-ledger" id="ledgerTable">
+                        <thead><tr id="ledgerHead"></tr></thead>
+                        <tbody id="ledgerBody"></tbody>
+                        <tfoot><tr id="ledgerFoot"></tr></tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <footer class="sr-foot-note no-print">Orders revenue counts once marked Paid; repairs revenue counts once a job is Completed or Released.</footer>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+<script th:utext="'var SALES_DATA = ' + ${salesDataJson} + ';'"></script>
+<script>
+(function () {
+    'use strict';
+
+    var DATA = SALES_DATA.monthly;
+    var DAILY = SALES_DATA.daily;
+    var YEARS = SALES_DATA.years;
+    var CURRENT_YEAR = SALES_DATA.currentYear;
+    var CURRENT_MONTH_IDX = SALES_DATA.currentMonth;
+    var MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+    // How many months to offer for a given year - driven by how many month rows the server
+    // actually generated for it (DATA[y].length), not just "up to the current month". A future-
+    // dated transaction (e.g. a repair record dated ahead of today) makes the server extend that
+    // year's row count past the current month, and the picker needs to follow so that month stays
+    // selectable instead of silently unreachable.
+    function monthsInYear(y) {
+        if (DATA[y] && DATA[y].length) return DATA[y].length;
+        return y === CURRENT_YEAR ? CURRENT_MONTH_IDX + 1 : 12;
+    }
+
+    // ---------- formatting ----------
+    function peso(n) { return 'Php ' + Math.round(n).toLocaleString('en-PH'); }
+    function compact(n) {
+        var v = Math.round(n);
+        if (Math.abs(v) >= 1000000) return (v / 1000000).toFixed(v % 1000000 === 0 ? 0 : 1) + 'M';
+        if (Math.abs(v) >= 1000) return Math.round(v / 1000) + 'K';
+        return String(v);
+    }
+    function pct(n) { return (n > 0 ? '+' : '') + n.toFixed(1) + '%'; }
+    function niceCeil(v) {
+        if (v <= 0) return 100;
+        var exp = Math.floor(Math.log10(v));
+        var base = Math.pow(10, exp);
+        var f = v / base;
+        var niceF = f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10;
+        return niceF * base;
+    }
+
+    // ---------- state ----------
+    var state = { year: CURRENT_YEAR, granularity: 'yearly', month: CURRENT_MONTH_IDX, source: 'all' };
+
+    function seriesValue(row, source) {
+        if (source === 'orders') return row.ordersRev;
+        if (source === 'repairs') return row.repairsRev;
+        return row.ordersRev + row.repairsRev;
+    }
+
+    function sum(rows, key) { return rows.reduce(function (a, r) { return a + r[key]; }, 0); }
+
+    // ---------- DOM refs ----------
+    var yearSelect = document.getElementById('yearSelect');
+    var monthSelect = document.getElementById('monthSelect');
+    var granularitySeg = document.getElementById('granularitySeg');
+    var sourceSeg = document.getElementById('sourceSeg');
+    var statsRow = document.getElementById('statsRow');
+    var chartWrap = document.getElementById('chartWrap');
+    var chartLegend = document.getElementById('chartLegend');
+    var chartTitle = document.getElementById('chartTitle');
+    var chartSub = document.getElementById('chartSub');
+    var splitBar = document.getElementById('splitBar');
+    var splitLabels = document.getElementById('splitLabels');
+    var bestTitle = document.getElementById('bestTitle');
+    var bestValue = document.getElementById('bestValue');
+    var bestName = document.getElementById('bestName');
+    var bestCaption = document.getElementById('bestCaption');
+    var tableTitle = document.getElementById('tableTitle');
+    var tableSub = document.getElementById('tableSub');
+    var ledgerHead = document.getElementById('ledgerHead');
+    var ledgerBody = document.getElementById('ledgerBody');
+    var ledgerFoot = document.getElementById('ledgerFoot');
+    var asOf = document.getElementById('asOf');
+
+    YEARS.forEach(function (y) {
+        var opt = document.createElement('option');
+        opt.value = y; opt.textContent = y;
+        if (y === state.year) opt.selected = true;
+        yearSelect.appendChild(opt);
+    });
+
+    function rebuildMonthSelect() {
+        monthSelect.innerHTML = '';
+        var n = monthsInYear(state.year);
+        for (var m = 0; m < n; m++) {
+            var opt = document.createElement('option');
+            opt.value = m; opt.textContent = MONTHS_FULL[m];
+            if (m === state.month) opt.selected = true;
+            monthSelect.appendChild(opt);
+        }
+        if (state.month >= n) state.month = n - 1;
+        monthSelect.disabled = state.granularity !== 'monthly';
+    }
+    rebuildMonthSelect();
+    asOf.textContent = SALES_DATA.asOfLabel;
+
+    yearSelect.addEventListener('change', function () { state.year = Number(yearSelect.value); rebuildMonthSelect(); render(); });
+    monthSelect.addEventListener('change', function () { state.month = Number(monthSelect.value); render(); });
+
+    granularitySeg.querySelectorAll('button').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            granularitySeg.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            state.granularity = btn.getAttribute('data-g');
+            monthSelect.disabled = state.granularity !== 'monthly';
+            render();
+        });
+    });
+    sourceSeg.querySelectorAll('button').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            sourceSeg.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            state.source = btn.getAttribute('data-s');
+            render();
+        });
+    });
+    document.getElementById('printBtn').addEventListener('click', function () { window.print(); });
+
+    // ---------- chart ----------
+    var categoriesFull = null;
+
+    function buildChart(categories, series) {
+        var width = 1000, height = 300;
+        var margin = { top: 20, right: 12, bottom: 26, left: 50 };
+        var innerW = width - margin.left - margin.right;
+        var innerH = height - margin.top - margin.bottom;
+
+        var maxVal = 0;
+        categories.forEach(function (c, i) {
+            series.forEach(function (s) { if (s.values[i] > maxVal) maxVal = s.values[i]; });
+        });
+        var niceMax = niceCeil(maxVal || 1);
+        var tickCount = 4;
+        var ticks = [];
+        for (var t = 0; t <= tickCount; t++) ticks.push(niceMax * t / tickCount);
+
+        function yOf(v) { return margin.top + innerH - (v / niceMax) * innerH; }
+
+        var n = categories.length;
+        var band = n > 0 ? innerW / n : innerW;
+        var barW = Math.max(4, Math.min(22, (band * 0.62) / Math.max(series.length, 1)));
+        var groupW = barW * series.length + (series.length - 1) * 2;
+
+        var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="' + chartTitle.textContent + '">';
+
+        ticks.forEach(function (v) {
+            var y = yOf(v);
+            svg += '<line x1="' + margin.left + '" x2="' + (width - margin.right) + '" y1="' + y + '" y2="' + y + '" stroke="var(--sr-grid)" stroke-width="1"/>';
+            svg += '<text x="' + (margin.left - 10) + '" y="' + (y + 3) + '" font-size="10.5" text-anchor="end">' + compact(v) + '</text>';
+        });
+        svg += '<line x1="' + margin.left + '" x2="' + (width - margin.right) + '" y1="' + yOf(0) + '" y2="' + yOf(0) + '" stroke="var(--sr-border-strong)" stroke-width="1"/>';
+
+        function roundedTopPath(x, y, w, h, r) {
+            r = Math.min(r, w / 2, Math.max(h, 0));
+            if (h <= 0) return '';
+            return 'M' + x + ',' + (y + r) +
+                ' Q' + x + ',' + y + ' ' + (x + r) + ',' + y +
+                ' H' + (x + w - r) +
+                ' Q' + (x + w) + ',' + y + ' ' + (x + w) + ',' + (y + r) +
+                ' V' + (y + h) + ' H' + x + ' Z';
+        }
+
+        categories.forEach(function (cat, i) {
+            var groupX = margin.left + band * i + (band - groupW) / 2;
+            series.forEach(function (s, si) {
+                var v = s.values[i];
+                var bx = groupX + si * (barW + 2);
+                var by = yOf(v);
+                var bh = yOf(0) - by;
+                svg += '<path d="' + roundedTopPath(bx, by, barW, bh, 4) + '" fill="' + s.color + '"/>';
+                var isLast = (i === n - 1);
+                if (isLast && bh > 16) {
+                    svg += '<text x="' + (bx + barW / 2) + '" y="' + (by - 6) + '" font-size="10.5" text-anchor="middle" font-weight="600" fill="var(--sr-ink-2)">' + compact(v) + '</text>';
+                }
+            });
+            svg += '<text x="' + (margin.left + band * i + band / 2) + '" y="' + (height - 6) + '" font-size="10.5" text-anchor="middle">' + cat + '</text>';
+            svg += '<rect class="sr-bar-hit" tabindex="0" data-idx="' + i + '" x="' + (margin.left + band * i) + '" y="' + margin.top + '" width="' + band + '" height="' + innerH + '"/>';
+        });
+
+        svg += '</svg>';
+        chartWrap.innerHTML = svg + '<div class="sr-tooltip" id="tooltip"></div>';
+
+        var svgEl = chartWrap.querySelector('svg');
+        var tip = chartWrap.querySelector('#tooltip');
+        if (!svgEl) return;
+
+        function showTip(idx, clientX, clientY) {
+            var wrapRect = chartWrap.getBoundingClientRect();
+            var html = '<div class="sr-tt-title">' + (categoriesFull ? categoriesFull[idx] : categories[idx]) + '</div>';
+            var total = 0;
+            series.forEach(function (s) {
+                total += s.values[idx];
+                html += '<div class="sr-tt-row"><span class="sr-tt-key" style="background:' + s.color + '"></span><span class="sr-tt-name">' + s.name + '</span><span class="sr-tt-val">' + peso(s.values[idx]) + '</span></div>';
+            });
+            if (series.length > 1) {
+                html += '<div class="sr-tt-row sr-tt-total"><span class="sr-tt-name">Total</span><span class="sr-tt-val">' + peso(total) + '</span></div>';
+            }
+            tip.innerHTML = html;
+            tip.classList.add('show');
+            var x = clientX - wrapRect.left;
+            var y = clientY - wrapRect.top;
+            tip.style.left = x + 'px';
+            tip.style.top = Math.max(0, y - 14) + 'px';
+        }
+        function hideTip() { tip.classList.remove('show'); }
+
+        svgEl.querySelectorAll('.sr-bar-hit').forEach(function (hit) {
+            hit.addEventListener('pointermove', function (e) { showTip(Number(hit.getAttribute('data-idx')), e.clientX, e.clientY); });
+            hit.addEventListener('pointerleave', hideTip);
+            hit.addEventListener('focus', function () {
+                var box = hit.getBoundingClientRect();
+                showTip(Number(hit.getAttribute('data-idx')), box.left + box.width / 2, box.top);
+            });
+            hit.addEventListener('blur', hideTip);
+        });
+    }
+
+    // ---------- render ----------
+    function render() {
+        var rows, priorRows, priorLabel, isYearly = state.granularity === 'yearly';
+        if (isYearly) {
+            rows = DATA[state.year] || [];
+            priorRows = DATA[state.year - 1] ? DATA[state.year - 1].slice(0, rows.length) : null;
+            priorLabel = (state.year - 1) + ' (same months)';
+        } else {
+            rows = (DAILY[state.year] && DAILY[state.year][state.month]) || [];
+            var prevMonthIdx = state.month - 1, prevYear = state.year;
+            if (prevMonthIdx < 0) { prevMonthIdx = 11; prevYear = state.year - 1; }
+            priorRows = (DATA[prevYear] && DATA[prevYear][prevMonthIdx]) ? [DATA[prevYear][prevMonthIdx]] : null;
+            priorLabel = MONTHS_FULL[prevMonthIdx] + ' ' + prevYear;
+        }
+
+        var src = state.source;
+        var curTotal = rows.reduce(function (a, r) { return a + seriesValue(r, src); }, 0);
+        var priorTotal = priorRows ? (isYearly
+            ? priorRows.reduce(function (a, r) { return a + seriesValue(r, src); }, 0)
+            : seriesValue(priorRows[0], src))
+            : null;
+        var deltaPct = (priorTotal && priorTotal > 0) ? ((curTotal - priorTotal) / priorTotal * 100) : null;
+
+        var ordersTotal = sum(rows, 'ordersRev');
+        var repairsTotal = sum(rows, 'repairsRev');
+        var txCount = (src !== 'repairs' ? sum(rows, 'ordersCount') : 0) + (src !== 'orders' ? sum(rows, 'repairsCount') : 0);
+        var avgTicket = txCount > 0 ? curTotal / txCount : 0;
+
+        // ---- stat tiles ----
+        var tiles = [];
+        tiles.push({ label: 'Total sales', value: peso(curTotal), delta: deltaPct, caption: 'vs ' + priorLabel });
+        if (src !== 'repairs') tiles.push({ label: 'Orders revenue', dot: 'var(--sr-accent)', value: peso(ordersTotal), caption: pctShare(ordersTotal, ordersTotal + repairsTotal) + ' of revenue' });
+        if (src !== 'orders') tiles.push({ label: 'Repairs revenue', dot: 'var(--sr-repairs)', value: peso(repairsTotal), caption: pctShare(repairsTotal, ordersTotal + repairsTotal) + ' of revenue' });
+        tiles.push({ label: 'Transactions', value: txCount.toLocaleString('en-PH'), caption: 'avg ticket ' + peso(avgTicket) });
+
+        statsRow.innerHTML = tiles.map(function (t) {
+            var deltaHtml = '';
+            if (t.delta !== null && t.delta !== undefined) {
+                var cls = t.delta > 0.5 ? 'up' : (t.delta < -0.5 ? 'down' : 'flat');
+                var arrow = cls === 'up' ? '&#8599;' : (cls === 'down' ? '&#8600;' : '&#8594;');
+                deltaHtml = '<span class="sr-chip ' + cls + '">' + arrow + ' ' + pct(t.delta) + '</span>';
+            }
+            return '<div class="sr-stat-tile">' +
+                '<span class="sr-stat-label">' + (t.dot ? '<span class="sr-seg-dot" style="background:' + t.dot + '"></span>' : '') + t.label + '</span>' +
+                '<span class="sr-stat-value">' + t.value + '</span>' +
+                '<span class="sr-stat-foot">' + deltaHtml + '<span class="sr-stat-caption">' + t.caption + '</span></span>' +
+                '</div>';
+        }).join('');
+
+        // ---- chart ----
+        categoriesFull = rows.map(function (r) { return r.fullLabel; });
+        var categories = rows.map(function (r) { return r.label; });
+        var series = [];
+        if (src !== 'repairs') series.push({ name: 'Orders', color: 'var(--sr-accent)', values: rows.map(function (r) { return r.ordersRev; }) });
+        if (src !== 'orders') series.push({ name: 'Repairs', color: 'var(--sr-repairs)', values: rows.map(function (r) { return r.repairsRev; }) });
+
+        chartTitle.textContent = isYearly ? ('Revenue by month — ' + state.year) : ('Daily revenue — ' + MONTHS_FULL[state.month] + ' ' + state.year);
+        chartSub.textContent = 'Php, ' + (series.length > 1 ? 'grouped by source' : (series[0] ? series[0].name + ' only' : 'no data'));
+        chartLegend.innerHTML = series.length > 1 ? series.map(function (s) {
+            return '<span class="sr-legend-item"><span class="sr-legend-swatch" style="background:' + s.color + '"></span>' + s.name + '</span>';
+        }).join('') : '';
+
+        buildChart(categories, series);
+
+        // ---- revenue split ----
+        var combinedTotal = ordersTotal + repairsTotal;
+        var oShare = combinedTotal > 0 ? ordersTotal / combinedTotal * 100 : 0;
+        var rShare = combinedTotal > 0 ? repairsTotal / combinedTotal * 100 : 0;
+        splitBar.innerHTML =
+            (src !== 'repairs' ? '<div class="sr-split-seg" style="width:' + Math.max(oShare, oShare > 0 ? 1 : 0) + '%;background:var(--sr-accent)"></div>' : '') +
+            (src !== 'orders' ? '<div class="sr-split-seg" style="width:' + Math.max(rShare, rShare > 0 ? 1 : 0) + '%;background:var(--sr-repairs)"></div>' : '');
+        splitLabels.innerHTML =
+            (src !== 'repairs' ? '<div class="sr-split-label"><span class="sr-k"><span class="sr-seg-dot" style="background:var(--sr-accent)"></span>Orders</span><span class="sr-v">' + oShare.toFixed(0) + '%</span></div>' : '') +
+            (src !== 'orders' ? '<div class="sr-split-label" style="text-align:right;align-items:flex-end;"><span class="sr-k">Repairs<span class="sr-seg-dot" style="background:var(--sr-repairs)"></span></span><span class="sr-v">' + rShare.toFixed(0) + '%</span></div>' : '');
+
+        // ---- best period ----
+        bestTitle.textContent = isYearly ? 'Best month' : 'Best day';
+        if (rows.length === 0) {
+            bestValue.textContent = peso(0);
+            bestName.textContent = '—';
+            bestCaption.textContent = 'No data for this period yet';
+        } else {
+            var bestIdx = 0, bestVal = -1;
+            rows.forEach(function (r, i) { var v = seriesValue(r, src); if (v > bestVal) { bestVal = v; bestIdx = i; } });
+            bestValue.textContent = peso(bestVal);
+            bestName.textContent = rows[bestIdx].fullLabel;
+            bestCaption.textContent = pctShare(bestVal, curTotal) + ' of this period’s total revenue';
+        }
+
+        // ---- ledger table ----
+        var isMonthlyView = !isYearly;
+        tableTitle.textContent = isYearly ? ('Sales ledger — ' + state.year) : ('Sales ledger — ' + MONTHS_FULL[state.month] + ' ' + state.year);
+        tableSub.textContent = src === 'all' ? 'All sources' : (src === 'orders' ? 'Orders only' : 'Repairs only');
+
+        var headCells = ['<th>' + (isMonthlyView ? 'Date' : 'Month') + '</th>'];
+        if (src !== 'repairs') headCells.push('<th>Orders</th>');
+        if (src !== 'orders') headCells.push('<th>Repairs</th>');
+        headCells.push('<th>Total</th>', '<th>Transactions</th>', '<th>vs prior</th>');
+        ledgerHead.innerHTML = headCells.join('');
+
+        var bodyRows = rows.map(function (r, i) {
+            var total = seriesValue(r, src);
+            var prevTotal = i > 0 ? seriesValue(rows[i - 1], src) : null;
+            var d = (prevTotal && prevTotal > 0) ? ((total - prevTotal) / prevTotal * 100) : null;
+            var deltaHtml = '—';
+            if (d !== null) {
+                var cls = d > 0.5 ? 'up' : (d < -0.5 ? 'down' : 'flat');
+                var arrow = cls === 'up' ? '&#8599;' : (cls === 'down' ? '&#8600;' : '&#8594;');
+                deltaHtml = '<span class="sr-delta-cell ' + cls + '">' + arrow + ' ' + pct(d) + '</span>';
+            }
+            var cells = ['<td>' + r.label + '</td>'];
+            if (src !== 'repairs') cells.push('<td>' + peso(r.ordersRev) + '</td>');
+            if (src !== 'orders') cells.push('<td>' + peso(r.repairsRev) + '</td>');
+            var tx = (src !== 'repairs' ? r.ordersCount : 0) + (src !== 'orders' ? r.repairsCount : 0);
+            cells.push('<td>' + peso(total) + '</td>', '<td>' + tx + '</td>', '<td>' + deltaHtml + '</td>');
+            return '<tr>' + cells.join('') + '</tr>';
+        });
+        ledgerBody.innerHTML = bodyRows.join('') || ('<tr><td colspan="' + headCells.length + '" class="text-center text-muted" style="text-align:center;">No transactions in this period</td></tr>');
+
+        var footCells = ['<td>' + (isYearly ? 'Year total' : 'Month total') + '</td>'];
+        if (src !== 'repairs') footCells.push('<td>' + peso(ordersTotal) + '</td>');
+        if (src !== 'orders') footCells.push('<td>' + peso(repairsTotal) + '</td>');
+        footCells.push('<td>' + peso(curTotal) + '</td>', '<td>' + txCount + '</td>', '<td>—</td>');
+        ledgerFoot.innerHTML = footCells.join('');
+    }
+
+    function pctShare(part, whole) { return whole > 0 ? Math.round(part / whole * 100) + '%' : '0%'; }
+
+    render();
+})();
+</script>
+</body>
+</html>
