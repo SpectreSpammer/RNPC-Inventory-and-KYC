@@ -1,0 +1,110 @@
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+.content-wrapper {
+    display: flex;
+    flex: 1;
+}
+
+.sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    background-color: #f8f9fa;
+    padding: 20px;
+}
+
+.main-content {
+    flex: 1;
+    min-width: 0;
+    padding: 20px;
+}
+
+.sidebar .dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+.dropdown-menu {
+    margin-top: 0;
+}
+
+/* Opt-in hover-to-open dropdowns outside the sidebar (e.g. the /computer toolbar).
+   Paired with data-bs-display="static" on the toggle button so Bootstrap never lets
+   Popper reposition the menu on click - hover and click then land on the exact same
+   CSS-driven position instead of the menu visibly jumping between the two. */
+.hover-dropdown > .dropdown-menu {
+    left: auto;
+    right: 0;
+}
+
+.hover-dropdown:hover > .dropdown-menu {
+    display: block;
+}
+
+/* Shared Log In / Sign Up modal (see fragments/auth :: authModal) */
+.btn-google {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #cfc9ba;
+    color: #1b211f;
+    font-weight: 600;
+    font-size: 0.9em;
+    border-radius: 9px;
+    padding: 11px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    text-decoration: none;
+}
+.btn-google:hover {
+    box-shadow: 0 2px 10px -4px rgba(27, 33, 31, 0.18);
+    color: #1b211f;
+}
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: #8b958f;
+    font-size: 0.7em;
+    letter-spacing: 0.04em;
+}
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #e3dfd5;
+}
+#authModal .nav-tabs .nav-link {
+    color: #69756f;
+}
+#authModal .nav-tabs .nav-link.active {
+    color: #1c7a73;
+    font-weight: 600;
+    border-color: #dee2e6 #dee2e6 #fff;
+}
+#authModal .btn-primary {
+    background-color: #1c7a73;
+    border-color: #1c7a73;
+}
+#authModal .btn-primary:hover {
+    background-color: #16615b;
+    border-color: #16615b;
+}
+#authModal .alert {
+    font-size: 0.88em;
+    padding: 10px 14px;
+}
+
+/* Shrinks the top margin under every page's header (Bootstrap's default my-4 is symmetric
+   1.5rem top and bottom) - applies everywhere this stylesheet is linked, since nearly every
+   controller-rendered page uses the same "<h1 class="text-center my-4">" header pattern. */
+.my-4 {
+    margin-top: 0.5rem !important;
+    margin-bottom: 1.5rem !important;
+}

@@ -5,7 +5,13 @@
 <nav class="sidebar" th:fragment="sidebar">
     <div class="flex-column">
         <ul class="nav flex-column">
-            <li class="nav-item dropdown">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item" th:style="${navIsAdmin} ? '' : 'display:none;'">
+                <a class="nav-link" href="/sales">Sales Report</a>
+            </li>
+            <li class="nav-item dropdown" id="navParts" th:style="${navIsAdmin} ? '' : 'display:none;'">
                 <a class="nav-link dropdown-toggle" href="#" id="partsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     Parts
                 </a>
@@ -19,14 +25,35 @@
             <li class="nav-item">
                 <a class="nav-link" href="/build">Build a PC</a>
             </li>
-            <li class="nav-item dropdown">
+            <li class="nav-item dropdown" id="navTickets">
+                <a class="nav-link dropdown-toggle" href="#" id="ticketDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Ticket
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="ticketDropdown">
+                    <li th:style="${navIsAdmin} ? '' : 'display:none;'"><a class="dropdown-item" href="/appointment/calendar">Calendar</a></li>
+                    <li th:style="${navIsAdmin} ? '' : 'display:none;'"><a class="dropdown-item" href="/ticket/create">New Ticket</a></li>
+                    <li th:style="${navIsAdmin} ? '' : 'display:none;'"><a class="dropdown-item" href="/ticket/view">View Ticket</a></li>
+                    <li><a class="dropdown-item" href="/appointment/create">Schedule an Appointment</a></li>
+                    <li><a class="dropdown-item" href="/appointment">View Appointments</a></li>
+                </ul>
+            </li>
+            <li class="nav-item dropdown" id="navKyc">
                 <a class="nav-link dropdown-toggle" href="#" id="kycDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     KYC
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="kycDropdown">
-                    <li><a class="dropdown-item" href="/client">All Clients</a></li>
+                    <li th:style="${navIsAdmin} ? '' : 'display:none;'"><a class="dropdown-item" href="/client">All Clients</a></li>
+                    <li th:style="${navAuthenticated} ? '' : 'display:none;'"><a class="dropdown-item" href="/profile/edit">Edit Profile</a></li>
+                    <li><a class="dropdown-item" href="/order">Orders</a></li>
                     <li><a class="dropdown-item" href="/repair">Repair History</a></li>
+                    <li th:style="${navAuthenticated} ? '' : 'display:none;'"><a class="dropdown-item" href="/logout">Logout</a></li>
                 </ul>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/notification">
+                    Notification
+                    <span id="notifBadge" class="badge bg-danger rounded-pill" style="display:none;"></span>
+                </a>
             </li>
         </ul>
     </div>
@@ -49,6 +76,25 @@
                 this.querySelector('.dropdown-menu').style.display = 'none';
             });
         });
+
+        // Role-based menu visibility (Parts, New/View Ticket, Calendar, All Clients, Edit
+        // Profile, Logout) is now rendered server-side by Thymeleaf (see GlobalNavAttributes) so
+        // it's correct in the very first HTML - no fetch, no flash of a shorter menu while a
+        // client-side check resolves. This is menu visibility only, not real route protection -
+        // every page here is still reachable directly by URL.
+        // Only the unread-notification badge still needs a live fetch, since that count changes
+        // between page loads independently of role.
+        fetch('/api/auth/status')
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                var notifBadge = document.getElementById('notifBadge');
+                if (notifBadge) {
+                    var count = data.unreadNotifications || 0;
+                    notifBadge.textContent = count;
+                    notifBadge.style.display = count > 0 ? '' : 'none';
+                }
+            })
+            .catch(function () { /* leave the badge hidden */ });
     });
 </script>
 

@@ -35,18 +35,153 @@
         .dropdown-menu {
             margin-top: 0;
         }
+
+        .my-4 {
+            margin-top: .5rem !important;
+            margin-bottom: 1.5rem !important;
+        }
+
+        #welcomeMessage {
+            font-size: 1.5rem;
+        }
+        .auth-bar .btn {
+            font-size: 1.1rem;
+            padding: 10px 20px;
+        }
+        .btn-google {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #cfc9ba;
+            color: #1b211f;
+            font-weight: 600;
+            font-size: 0.9em;
+            border-radius: 9px;
+            padding: 11px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-google:hover { box-shadow: 0 2px 10px -4px rgba(27,33,31,0.18); color: #1b211f; }
+        .auth-divider {
+            display: flex; align-items: center; gap: 12px; margin: 20px 0;
+            color: #8b958f; font-size: 0.7em; letter-spacing: 0.04em;
+        }
+        .auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: #e3dfd5; }
+        #authModal .nav-tabs .nav-link { color: #69756f; }
+        #authModal .nav-tabs .nav-link.active { color: #1c7a73; font-weight: 600; border-color: #dee2e6 #dee2e6 #fff; }
+        #authModal .btn-primary { background-color: #1c7a73; border-color: #1c7a73; }
+        #authModal .btn-primary:hover { background-color: #16615b; border-color: #16615b; }
+        #authModal .alert { font-size: 0.88em; padding: 10px 14px; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container position-relative">
         <h1 class="text-center my-4">Welcome to PC and Cellphone Repair Shop</h1>
+    </div>
+
+    <!-- Sign-in / sign-up modal -->
+    <div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pb-4 pt-0">
+                    <ul class="nav nav-tabs mb-3" id="authTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane" type="button" role="tab">Log In</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup-pane" type="button" role="tab">Sign Up</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- LOG IN -->
+                        <div class="tab-pane fade show active" id="login-pane" role="tabpanel">
+                            <div id="loginFeedback"></div>
+
+                            <a class="btn-google" href="/oauth2/authorization/google">
+                                <svg width="18" height="18" viewBox="0 0 48 48">
+                                    <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+                                    <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4c-7.4 0-13.8 4.2-17 10.3z"/>
+                                    <path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.8 14-5l-6.5-5.4C29.4 35.1 26.8 36 24 36c-5.3 0-9.7-3.4-11.3-8l-6.5 5c3.2 6.2 9.6 11 17.8 11z"/>
+                                    <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.6l6.5 5.4C40.9 36.9 44 31.1 44 24c0-1.3-.1-2.7-.4-3.5z"/>
+                                </svg>
+                                Continue with Google
+                            </a>
+
+                            <div class="auth-divider">OR CONTINUE WITH USERNAME</div>
+
+                            <form action="/login" method="post">
+                                <div class="mb-3">
+                                    <label for="modalLoginUsername" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="modalLoginUsername" name="username" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="modalLoginPassword" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="modalLoginPassword" name="password" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Log In</button>
+                            </form>
+                        </div>
+
+                        <!-- SIGN UP -->
+                        <div class="tab-pane fade" id="signup-pane" role="tabpanel">
+                            <div id="signupFeedback"></div>
+
+                            <a class="btn-google" href="/oauth2/authorization/google">
+                                <svg width="18" height="18" viewBox="0 0 48 48">
+                                    <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+                                    <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4c-7.4 0-13.8 4.2-17 10.3z"/>
+                                    <path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.8 14-5l-6.5-5.4C29.4 35.1 26.8 36 24 36c-5.3 0-9.7-3.4-11.3-8l-6.5 5c3.2 6.2 9.6 11 17.8 11z"/>
+                                    <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.6l6.5 5.4C40.9 36.9 44 31.1 44 24c0-1.3-.1-2.7-.4-3.5z"/>
+                                </svg>
+                                Sign up with Google
+                            </a>
+
+                            <div class="auth-divider">OR FILL IN YOUR DETAILS</div>
+
+                            <form action="/signup" method="post">
+                                <div class="mb-3">
+                                    <label for="modalSignupUsername" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="modalSignupUsername" name="username" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="modalSignupEmail" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="modalSignupEmail" name="email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="modalSignupPassword" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="modalSignupPassword" name="password" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="modalSignupConfirm" class="form-label">Confirm password</label>
+                                    <input type="password" class="form-control" id="modalSignupConfirm" name="confirmPassword" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Create Account</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="content-wrapper">
         <nav class="sidebar">
             <div class="flex-column">
                 <ul class="nav flex-column">
-                    <li class="nav-item dropdown">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item admin-only" style="display:none;">
+                        <a class="nav-link" href="/sales">Sales Report</a>
+                    </li>
+                    <li class="nav-item dropdown" id="navParts" style="display:none;">
                         <a class="nav-link dropdown-toggle" href="#" id="partsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Parts
                         </a>
@@ -60,14 +195,35 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/build">Build a PC</a>
                     </li>
-                    <li class="nav-item dropdown">
+                    <li class="nav-item dropdown" id="navTickets">
+                        <a class="nav-link dropdown-toggle" href="#" id="ticketDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Tickets
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="ticketDropdown">
+                            <li class="admin-only" style="display:none;"><a class="dropdown-item" href="/appointment/calendar">Calendar</a></li>
+                            <li class="admin-only" style="display:none;"><a class="dropdown-item" href="/ticket/create">New Ticket</a></li>
+                            <li class="admin-only" style="display:none;"><a class="dropdown-item" href="/ticket/view">View Ticket</a></li>
+                            <li><a class="dropdown-item" href="/appointment/create">Schedule an Appointment</a></li>
+                            <li><a class="dropdown-item" href="/appointment">View Appointments</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown" id="navKyc">
                         <a class="nav-link dropdown-toggle" href="#" id="kycDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             KYC
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="kycDropdown">
-                            <li><a class="dropdown-item" href="/client">All Clients</a></li>
+                            <li class="admin-only" style="display:none;"><a class="dropdown-item" href="/client">All Clients</a></li>
+                            <li id="navEditProfile" style="display:none;"><a class="dropdown-item" href="/profile/edit">Edit Profile</a></li>
+                            <li><a class="dropdown-item" href="/order">Orders</a></li>
                             <li><a class="dropdown-item" href="/repair">Repair History</a></li>
+                            <li id="navLogout" style="display:none;"><a class="dropdown-item" href="/logout">Logout</a></li>
                         </ul>
+                    </li>
+                    <li class="nav-item" id="navNotification">
+                        <a class="nav-link" href="/notification">
+                            Notification
+                            <span id="notifBadge" class="badge bg-danger rounded-pill" style="display:none;"></span>
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -75,7 +231,8 @@
 
         <main class="main-content">
             <!-- Your main content goes here -->
-            <p>Welcome to our repair shop. Please use the navigation menu on the left to explore our services.</p>
+            <p id="welcomeMessage">Welcome to our repair shop. Please use the navigation menu on the left to explore our services.</p>
+            <div class="auth-bar" id="authBar"></div>
         </main>
     </div>
 
@@ -93,6 +250,112 @@
                     dropdownMenu.style.display = 'none';
                 });
             });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var params = new URLSearchParams(window.location.search);
+            var authModalEl = document.getElementById('authModal');
+            var authModal = new bootstrap.Modal(authModalEl);
+            var loginFeedback = document.getElementById('loginFeedback');
+            var signupFeedback = document.getElementById('signupFeedback');
+
+            function alertHtml(kind, message) {
+                return '<div class="alert alert-' + kind + '">' + message + '</div>';
+            }
+
+            var hasFeedback = false;
+            if (params.has('signupError')) {
+                signupFeedback.innerHTML = alertHtml('danger', params.get('signupError'));
+                new bootstrap.Tab(document.getElementById('signup-tab')).show();
+                hasFeedback = true;
+            }
+            if (params.has('error')) {
+                loginFeedback.innerHTML = alertHtml('danger', 'Invalid username or password.');
+                hasFeedback = true;
+            }
+            if (params.has('registered')) {
+                loginFeedback.innerHTML = alertHtml('success', 'Account created! Log in below.');
+                hasFeedback = true;
+            }
+            if (hasFeedback) {
+                authModal.show();
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            fetch('/api/auth/status')
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    var authBar = document.getElementById('authBar');
+                    var welcomeMessage = document.getElementById('welcomeMessage');
+                    var isAdmin = !!data.authenticated && data.role === 'ADMIN';
+
+                    if (data.authenticated) {
+                        authBar.innerHTML = '';
+                        // Built with DOM nodes (not innerHTML) so a display name containing HTML
+                        // can't inject markup - the <br> is a real element, not a string literal.
+                        welcomeMessage.textContent = '';
+                        welcomeMessage.appendChild(document.createTextNode('Hi ' + data.displayName + ','));
+                        welcomeMessage.appendChild(document.createElement('br'));
+                        welcomeMessage.appendChild(document.createTextNode('Welcome to our repair shop. Please use the navigation menu on the left to explore our services.'));
+
+                        // Resume a build that was interrupted by "you need to sign in first" on
+                        // /build (see buildPc.html's Order Now handler) - now that login/sign-up
+                        // succeeded, send them straight into order review instead of stopping here.
+                        var pendingOrderJson = sessionStorage.getItem('pendingOrder');
+                        if (pendingOrderJson) {
+                            sessionStorage.removeItem('pendingOrder');
+                            var pendingOrder = JSON.parse(pendingOrderJson);
+                            var resumeForm = document.createElement('form');
+                            resumeForm.method = 'post';
+                            resumeForm.action = '/order/review';
+                            Object.keys(pendingOrder).forEach(function (paramName) {
+                                var input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = paramName;
+                                input.value = pendingOrder[paramName];
+                                resumeForm.appendChild(input);
+                            });
+                            document.body.appendChild(resumeForm);
+                            resumeForm.submit();
+                            return;
+                        }
+                    } else {
+                        authBar.innerHTML = '<button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#authModal">Log In / Sign Up</button>';
+                        if (!hasFeedback) {
+                            authModal.show();
+                        }
+                    }
+
+                    // Parts and the ticketing tools (New/View Ticket) are admin-only; Build a PC,
+                    // KYC, and Scheduling an appointment stay open to everyone. Menu visibility
+                    // only - every page is still reachable directly by URL.
+                    var navParts = document.getElementById('navParts');
+                    if (navParts) navParts.style.display = isAdmin ? '' : 'none';
+                    document.querySelectorAll('.admin-only').forEach(function (el) {
+                        el.style.display = isAdmin ? '' : 'none';
+                    });
+                    var navEditProfile = document.getElementById('navEditProfile');
+                    if (navEditProfile) navEditProfile.style.display = data.authenticated ? '' : 'none';
+                    var navLogout = document.getElementById('navLogout');
+                    if (navLogout) navLogout.style.display = data.authenticated ? '' : 'none';
+
+                    // KYC and Notification are only meaningful once signed in (they're tied to
+                    // this account's own orders/repairs/notifications) - hide both entirely on
+                    // the landing page for a logged-out visitor.
+                    var navKyc = document.getElementById('navKyc');
+                    if (navKyc) navKyc.style.display = data.authenticated ? '' : 'none';
+                    var navNotification = document.getElementById('navNotification');
+                    if (navNotification) navNotification.style.display = data.authenticated ? '' : 'none';
+
+                    var notifBadge = document.getElementById('notifBadge');
+                    if (notifBadge) {
+                        var count = data.unreadNotifications || 0;
+                        notifBadge.textContent = count;
+                        notifBadge.style.display = count > 0 ? '' : 'none';
+                    }
+                })
+                .catch(function () { /* if the status check fails, just leave the modal closed */ });
         });
     </script>
 </body>
