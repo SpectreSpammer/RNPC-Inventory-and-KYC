@@ -17,6 +17,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
 
     /**
+     * Find user by email (used for Google sign-in lookups)
+     * @param email the email to search for
+     * @return Optional containing the user if found
+     */
+    Optional<User> findByEmail(String email);
+
+    /**
      * Find user by username and password
      * @param username the username
      * @param password the password
@@ -30,4 +37,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return true if username exists
      */
     boolean existsByUsername(String username);
+
+    /**
+     * Check if email exists (used to keep sign-up emails unique)
+     * @param email the email to check
+     * @return true if email exists
+     */
+    boolean existsByEmail(String email);
 }

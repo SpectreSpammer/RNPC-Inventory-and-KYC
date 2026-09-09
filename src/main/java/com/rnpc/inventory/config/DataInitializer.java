@@ -54,6 +54,10 @@ public class DataInitializer implements CommandLineRunner {
         System.out.println("Admin: admin / 12345");
         System.out.println("Customer: nand159 / 12345");
 
+        // Pre-registered as ADMIN so signing in with this Google account reuses that role
+        // instead of defaulting a first-time sign-in to CUSTOMER.
+        userService.ensureAdminEmail("rnpcandcellphonerepairshop@gmail.com");
+
         // Seed the Build-a-PC component catalogs (one table per category)
         cpuPartsService.seedReferenceCatalogIfEmpty();
         gpuPartsService.seedReferenceCatalogIfEmpty();

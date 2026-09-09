@@ -5,165 +5,146 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+            background: #f5f3ee;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 24px;
         }
 
         .login-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            background: #ffffff;
+            border: 1px solid #e3dfd5;
+            border-radius: 16px;
+            padding: 36px 32px;
+            box-shadow: 0 2px 4px rgba(27,33,31,0.08), 0 16px 40px -16px rgba(27,33,31,0.24);
             width: 100%;
             max-width: 400px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .login-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .login-header h1 {
-            color: #333;
-            font-size: 2.2em;
-            margin-bottom: 10px;
-            font-weight: 300;
-        }
-
-        .login-header p {
-            color: #666;
-            font-size: 0.9em;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-            position: relative;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
-            font-size: 0.9em;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 15px 20px;
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.8);
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .login-btn:active {
-            transform: translateY(0);
-        }
+        .login-header { text-align: center; margin-bottom: 26px; }
+        .login-header h1 { color: #1b211f; font-size: 1.4em; font-weight: 700; margin-bottom: 6px; }
+        .login-header p { color: #69756f; font-size: 0.86em; }
 
         .error-message {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-            color: white;
-            padding: 12px 20px;
+            background: #f8e7e2;
+            color: #a13a24;
+            padding: 12px 16px;
             border-radius: 10px;
             margin-bottom: 20px;
             text-align: center;
-            font-size: 0.9em;
-            animation: shake 0.5s ease-in-out;
+            font-size: 0.88em;
         }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+        .success-message {
+            background: #e5f3ea;
+            color: #276b47;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 0.88em;
         }
+
+        .btn-google {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #cfc9ba;
+            color: #1b211f;
+            font-weight: 600;
+            font-size: 0.9em;
+            border-radius: 9px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: box-shadow 0.15s ease;
+        }
+        .btn-google:hover { box-shadow: 0 2px 10px -4px rgba(27,33,31,0.18); }
+
+        .divider {
+            display: flex; align-items: center; gap: 12px; margin: 22px 0;
+            color: #8b958f; font-size: 0.72em; letter-spacing: 0.04em;
+        }
+        .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: #e3dfd5; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; color: #69756f; font-weight: 500; font-size: 0.85em; }
+        .form-group input {
+            width: 100%; padding: 11px 14px; border: 1px solid #cfc9ba; border-radius: 8px;
+            font-size: 0.95em; background: #ffffff; color: #1b211f;
+        }
+        .form-group input:focus { outline: none; border-color: #1c7a73; box-shadow: 0 0 0 3px rgba(28,122,115,0.12); }
+
+        .login-btn {
+            width: 100%; padding: 12px; background: #1c7a73; color: #ffffff; border: none;
+            border-radius: 9px; font-size: 1em; font-weight: 600; cursor: pointer; margin-top: 6px;
+        }
+        .login-btn:hover { opacity: 0.92; }
+
+        .auth-switch { text-align: center; margin-top: 18px; font-size: 0.85em; color: #69756f; }
+        .auth-switch a { color: #1c7a73; font-weight: 600; text-decoration: none; }
+        .auth-switch a:hover { text-decoration: underline; }
 
         .user-type-hint {
-            background: rgba(102, 126, 234, 0.1);
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin-top: 20px;
+            background: #faf9f6;
+            border-left: 3px solid #1c7a73;
+            padding: 14px 16px;
+            margin-top: 22px;
             border-radius: 8px;
-            font-size: 0.85em;
-            color: #555;
+            font-size: 0.82em;
+            color: #69756f;
         }
-
-        .user-type-hint h4 {
-            margin-bottom: 8px;
-            color: #667eea;
-        }
-
-        .user-type-hint ul {
-            margin-left: 15px;
-        }
+        .user-type-hint h4 { margin-bottom: 6px; color: #1c7a73; font-size: 0.95em; }
+        .user-type-hint ul { margin-left: 16px; }
     </style>
 </head>
 <body>
 <div class="login-container">
     <div class="login-header">
-        <h1>Welcome Back</h1>
-        <p>Please sign in to your account</p>
+        <h1>Welcome to PC and Cellphone Repair Shop</h1>
+        <p>Sign in to manage inventory, repairs, and orders.</p>
     </div>
 
     <div th:if="${error}" class="error-message">
         <span th:text="${error}">Invalid credentials</span>
     </div>
+    <div th:if="${registered}" class="success-message">
+        Account created! Log in below.
+    </div>
+
+    <a class="btn-google" th:href="@{/oauth2/authorization/google}">
+        <svg width="18" height="18" viewBox="0 0 48 48">
+            <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+            <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4c-7.4 0-13.8 4.2-17 10.3z"/>
+            <path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.8 14-5l-6.5-5.4C29.4 35.1 26.8 36 24 36c-5.3 0-9.7-3.4-11.3-8l-6.5 5c3.2 6.2 9.6 11 17.8 11z"/>
+            <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.6l6.5 5.4C40.9 36.9 44 31.1 44 24c0-1.3-.1-2.7-.4-3.5z"/>
+        </svg>
+        Continue with Google
+    </a>
+
+    <div class="divider">OR CONTINUE WITH USERNAME</div>
 
     <form th:action="@{/login}" method="post">
         <div class="form-group">
             <label for="username">Username</label>
-            <input type="text" id="username" name="username" required
-                   placeholder="Enter your username" th:value="${username}">
+            <input type="text" id="username" name="username" required placeholder="Enter your username">
         </div>
 
         <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" name="password" required
-                   placeholder="Enter your password">
+            <input type="password" id="password" name="password" required placeholder="Enter your password">
         </div>
 
-        <button type="submit" class="login-btn">Sign In</button>
+        <button type="submit" class="login-btn">Log In</button>
     </form>
 
     <div class="user-type-hint">
