@@ -1,0 +1,311 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>PC and Cellphone Repair Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+<div class="container">
+        <h1 class="text-center my-4">Scheduled Appointments</h1>
+</div>
+
+<div class="content-wrapper">
+    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+
+    <main class="main-content">
+    <div class="d-flex align-items-center gap-2">
+        <div th:replace="~{fragments/nav :: back}"></div>
+        <div class="dropdown hover-dropdown mb-3">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="apptFilterBtn" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" data-bs-auto-close="outside">
+                Filter
+            </button>
+            <div class="dropdown-menu p-3" style="min-width: 220px;" aria-labelledby="apptFilterBtn">
+                <div class="fw-bold small text-uppercase text-muted mb-2">Device</div>
+                <div class="form-check">
+                    <input class="form-check-input appt-filter-device" type="checkbox" value="Desktop" id="apptFilterDesktop">
+                    <label class="form-check-label" for="apptFilterDesktop">Desktop</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input appt-filter-device" type="checkbox" value="Laptop" id="apptFilterLaptop">
+                    <label class="form-check-label" for="apptFilterLaptop">Laptop</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input appt-filter-device" type="checkbox" value="Cellphone" id="apptFilterCellphone">
+                    <label class="form-check-label" for="apptFilterCellphone">Cellphone</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table class="table" id="appointmentsTable">
+        <thead>
+        <tr>
+            <th>Client</th>
+            <th>Device</th>
+            <th id="apptDateSortHeader" style="cursor:pointer; user-select:none;">
+                Preferred Date/Time <i class="fas fa-sort" id="apptDateSortIcon"></i>
+            </th>
+            <th>Issue</th>
+            <th>Status</th>
+            <th th:if="${isAdmin}">Refund Status</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="appointment : ${appointments}">
+            <td>
+                <div th:text="${appointment.client.fullName}"></div>
+                <div class="text-muted small" th:text="${appointment.client.contactNumber}"></div>
+            </td>
+            <td th:text="${appointment.deviceType}"></td>
+            <td th:attr="data-sort-value=${#temporals.format(appointment.preferredDate, 'yyyy-MM-dd')} + 'T' + ${#temporals.format(appointment.preferredTime, 'HH:mm')}">
+                <span th:text="${#temporals.format(appointment.preferredDate, 'MMM dd, yyyy')}"></span>
+                <span th:text="${#temporals.format(appointment.preferredTime, 'hh:mm a')}"></span>
+            </td>
+            <td th:text="${appointment.issueDescription}"></td>
+            <td>
+                <span class="badge"
+                      th:classappend="${appointment.status.name() == 'CONFIRMED'} ? 'bg-success' : (${appointment.status.name() == 'CANCELLED'} ? 'bg-danger' : 'bg-warning text-dark')"
+                      th:text="${appointment.status}"></span>
+            </td>
+            <td th:if="${isAdmin}">
+                <span class="badge"
+                      th:if="${appointment.refundStatus.name() != 'NOT_APPLICABLE'}"
+                      th:classappend="${appointment.refundStatus.name() == 'REFUNDED'} ? 'bg-success' : (${appointment.refundStatus.name() == 'NOT_REFUNDABLE'} ? 'bg-danger' : 'bg-warning text-dark')"
+                      th:text="${appointment.refundStatus}"></span>
+                <span th:if="${appointment.refundStatus.name() == 'NOT_APPLICABLE'}">-</span>
+            </td>
+            <td style="white-space:nowrap">
+                <button type="button" class="btn btn-outline-secondary btn-sm view-appointment-btn"
+                        th:attr="data-appointment-id=${appointment.appointmentId}">View</button>
+                <form th:if="${isAdmin and appointment.status.name() == 'PENDING'}" th:action="@{/appointment/confirm/{id}(id=${appointment.appointmentId})}" method="post" style="display:inline;">
+                    <input type="hidden" name="_method" value="put"/>
+                    <button type="submit" class="btn btn-success btn-sm">Confirm</button>
+                </form>
+                <form th:if="${isAdmin and appointment.status.name() != 'CANCELLED'}" th:action="@{/appointment/cancel/{id}(id=${appointment.appointmentId})}" method="post" style="display:inline;">
+                    <input type="hidden" name="_method" value="put"/>
+                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Cancel this appointment?')">Cancel</button>
+                </form>
+                <button type="button" class="btn btn-outline-primary btn-sm"
+                        th:if="${isAdmin and appointment.status.name() != 'CANCELLED'}"
+                        data-bs-toggle="modal" th:attr="data-bs-target='#rescheduleModal' + ${appointment.appointmentId}">Reschedule</button>
+                <!-- Customer self-cancel: a still-PENDING appointment (admin hasn't accepted it yet)
+                     just uses a plain confirm; once CONFIRMED, cancelling forfeits any reservation
+                     payment, so that path opens the warning modal below instead. -->
+                <form th:if="${!isAdmin and appointment.status.name() == 'PENDING' and appointment.cancellableByCustomer}" th:action="@{/appointment/cancel/{id}(id=${appointment.appointmentId})}" method="post" style="display:inline;">
+                    <input type="hidden" name="_method" value="put"/>
+                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Cancel this appointment?')">Cancel</button>
+                </form>
+                <button type="button" class="btn btn-outline-danger btn-sm"
+                        th:if="${!isAdmin and appointment.status.name() == 'CONFIRMED' and appointment.cancellableByCustomer}"
+                        data-bs-toggle="modal" th:attr="data-bs-target='#cancelConfirmedModal' + ${appointment.appointmentId}">Cancel</button>
+                <button type="button" class="btn btn-outline-primary btn-sm"
+                        th:if="${!isAdmin and appointment.status.name() != 'CANCELLED' and appointment.cancellableByCustomer}"
+                        data-bs-toggle="modal" th:attr="data-bs-target='#rescheduleModal' + ${appointment.appointmentId}">Reschedule</button>
+                <span th:if="${!isAdmin and appointment.status.name() != 'CANCELLED' and !appointment.cancellableByCustomer}"
+                      class="text-muted small">Cannot cancel (within 12h)</span>
+                <button type="button" class="btn btn-success btn-sm"
+                        th:if="${isAdmin and appointment.refundStatus.name() == 'PENDING'}"
+                        data-bs-toggle="modal" th:attr="data-bs-target='#markApptRefundedModal' + ${appointment.appointmentId}">Mark Refunded</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <th:block th:each="appointment : ${appointments}">
+        <div th:if="${isAdmin and appointment.refundStatus.name() == 'PENDING'}"
+             class="modal fade" th:id="'markApptRefundedModal' + ${appointment.appointmentId}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirm Mark as Refunded</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Mark the reservation payment for
+                        <strong th:text="${appointment.client.fullName}"></strong>'s appointment on
+                        <strong th:text="${#temporals.format(appointment.preferredDate, 'MMM dd, yyyy')} + ' ' + ${#temporals.format(appointment.preferredTime, 'hh:mm a')}"></strong>
+                        as <strong>REFUNDED</strong>? Only confirm this once the money has actually been sent back to the customer.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form th:action="@{/appointment/markRefunded/{id}(id=${appointment.appointmentId})}" method="post">
+                            <input type="hidden" name="_method" value="put"/>
+                            <button type="submit" class="btn btn-success">Yes, Mark as Refunded</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${!isAdmin and appointment.status.name() == 'CONFIRMED' and appointment.cancellableByCustomer}"
+             class="modal fade" th:id="'cancelConfirmedModal' + ${appointment.appointmentId}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Cancel Appointment</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        This appointment is already confirmed - since the schedule has been accepted, cancelling it
+                        will NOT be refundable. Continue?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">No</button>
+                        <form th:action="@{/appointment/cancel/{id}(id=${appointment.appointmentId})}" method="post">
+                            <input type="hidden" name="_method" value="put"/>
+                            <button type="submit" class="btn btn-outline-danger">Yes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${appointment.status.name() != 'CANCELLED' and (isAdmin or appointment.cancellableByCustomer)}"
+             class="modal fade" th:id="'rescheduleModal' + ${appointment.appointmentId}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <form th:action="@{/appointment/reschedule/{id}(id=${appointment.appointmentId})}" method="post">
+                        <input type="hidden" name="_method" value="put"/>
+                        <div class="modal-header">
+                            <h5 class="modal-title">Reschedule Appointment</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-muted small">
+                                Picking a new date/time will send this appointment back to the shop for
+                                re-confirmation. Any reservation payment already made carries over as is.
+                            </p>
+                            <div class="mb-3">
+                                <label class="form-label">New Preferred Date</label>
+                                <input type="date" name="preferredDate" class="form-control"
+                                       th:value="${#temporals.format(appointment.preferredDate, 'yyyy-MM-dd')}" required/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">New Preferred Time</label>
+                                <input type="time" name="preferredTime" class="form-control"
+                                       th:value="${#temporals.format(appointment.preferredTime, 'HH:mm')}" required/>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Submit Reschedule Request</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </th:block>
+    </main>
+</div>
+
+<!-- The "View" button fetches the same markup /appointment/{id} renders and drops it in here,
+     instead of navigating away from this list - reuses the exact same fragment as the full page
+     (see AppointmentController.showAppointmentModal), so payment/receipt/refund info shows here too. -->
+<div class="modal fade" id="apptDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Appointment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="apptDetailModalBody">
+                <div class="text-center text-muted py-4">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="requestReceiptSentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                Request receipt message has been sent
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
+<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const apptRows = Array.from(document.querySelectorAll('#appointmentsTable tbody tr'));
+        const deviceCheckboxes = document.querySelectorAll('.appt-filter-device');
+
+        function applyApptDeviceFilter() {
+            const checked = Array.from(deviceCheckboxes).filter(function (cb) { return cb.checked; })
+                    .map(function (cb) { return cb.value; });
+            apptRows.forEach(function (row) {
+                const deviceCell = row.cells[1];
+                const device = deviceCell ? deviceCell.textContent.trim() : '';
+                row.style.display = (checked.length === 0 || checked.indexOf(device) > -1) ? '' : 'none';
+            });
+        }
+
+        deviceCheckboxes.forEach(function (cb) {
+            cb.addEventListener('change', applyApptDeviceFilter);
+        });
+
+        const appointmentsTableBody = document.querySelector('#appointmentsTable tbody');
+        const apptDateSortHeader = document.getElementById('apptDateSortHeader');
+        const apptDateSortIcon = document.getElementById('apptDateSortIcon');
+        let apptDateSortDir = null;
+
+        if (appointmentsTableBody && apptDateSortHeader) {
+            apptDateSortHeader.addEventListener('click', function () {
+                apptDateSortDir = apptDateSortDir === 'asc' ? 'desc' : 'asc';
+                const sorted = apptRows.slice().sort(function (a, b) {
+                    const av = a.cells[2] ? a.cells[2].getAttribute('data-sort-value') || '' : '';
+                    const bv = b.cells[2] ? b.cells[2].getAttribute('data-sort-value') || '' : '';
+                    return apptDateSortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+                });
+                sorted.forEach(function (row) { appointmentsTableBody.appendChild(row); });
+                apptDateSortIcon.className = 'fas ' + (apptDateSortDir === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+            });
+        }
+
+        const apptDetailModalEl = document.getElementById('apptDetailModal');
+        const apptDetailModalBody = document.getElementById('apptDetailModalBody');
+        const apptDetailModal = new bootstrap.Modal(apptDetailModalEl);
+
+        document.querySelectorAll('.view-appointment-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                apptDetailModalBody.innerHTML = '<div class="text-center text-muted py-4">Loading...</div>';
+                apptDetailModal.show();
+                fetch('/appointment/' + btn.getAttribute('data-appointment-id') + '/modal')
+                    .then(function (res) { return res.text(); })
+                    .then(function (html) { apptDetailModalBody.innerHTML = html; })
+                    .catch(function () {
+                        apptDetailModalBody.innerHTML = '<div class="text-danger text-center py-4">Failed to load appointment details.</div>';
+                    });
+            });
+        });
+
+        const requestReceiptSentModal = new bootstrap.Modal(document.getElementById('requestReceiptSentModal'));
+        // Delegated: the button lives inside the appointment detail modal body, whose content is
+        // replaced by fetched HTML every time View is clicked (see above).
+        apptDetailModalBody.addEventListener('click', function (e) {
+            const btn = e.target.closest('.request-receipt-btn');
+            if (!btn) return;
+            fetch(btn.getAttribute('data-request-receipt-url'), { method: 'PUT' })
+                .then(function (res) {
+                    if (res.ok) {
+                        requestReceiptSentModal.show();
+                    }
+                });
+        });
+    });
+</script>
+</body>
+</html>

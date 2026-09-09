@@ -1,0 +1,251 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>PC and Cellphone Repair Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+</head>
+<body>
+<div class="container">
+        <h1 class="text-center my-4">Appointment Requested</h1>
+</div>
+
+<div class="content-wrapper">
+    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+
+    <main class="main-content">
+    <div>
+        <a href="/appointment" class="btn btn-outline-secondary btn-sm mb-3">View Appointment</a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card" th:fragment="appointmentCard">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="mb-0" th:text="${appointment.client.fullName}"></h5>
+                            <div class="text-muted small" th:text="${appointment.client.contactNumber}"></div>
+                            <div class="text-muted small" th:text="${appointment.client.email}"></div>
+                        </div>
+                        <span class="badge"
+                              th:classappend="${appointment.status.name() == 'CONFIRMED'} ? 'bg-success' : (${appointment.status.name() == 'CANCELLED'} ? 'bg-danger' : 'bg-warning text-dark')"
+                              th:text="${appointment.status}"></span>
+                    </div>
+
+                    <table class="table table-sm">
+                        <tbody>
+                        <tr>
+                            <th>Device</th>
+                            <td th:text="${appointment.deviceType}"></td>
+                        </tr>
+                        <tr th:if="${appointment.itemDescription != null and !#strings.isEmpty(appointment.itemDescription)}">
+                            <th>Item Description</th>
+                            <td th:text="${appointment.itemDescription}"></td>
+                        </tr>
+                        <tr th:if="${appointment.history != null and !#strings.isEmpty(appointment.history)}">
+                            <th>History</th>
+                            <td th:text="${appointment.history}"></td>
+                        </tr>
+                        <tr>
+                            <th>Preferred Date</th>
+                            <td th:text="${#temporals.format(appointment.preferredDate, 'MMM dd, yyyy')}"></td>
+                        </tr>
+                        <tr>
+                            <th>Preferred Time</th>
+                            <td th:text="${#temporals.format(appointment.preferredTime, 'hh:mm a')}"></td>
+                        </tr>
+                        <tr>
+                            <th>Issue</th>
+                            <td th:text="${appointment.issueDescription}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <div th:if="${appointment.status.name() == 'PENDING'}" class="alert alert-secondary">
+                        The shop will contact you to confirm this walk-in slot.
+                    </div>
+
+                    <div th:if="${appointment.paymentMethod != null}" class="text-center border rounded p-3 mb-3">
+                        <div class="fw-bold mb-2">Reservation Payment</div>
+                        <div>Paid via: <strong th:text="${#strings.capitalize(#strings.toLowerCase(appointment.paymentMethod.name()))}"></strong></div>
+                        <div>Reference Number: <strong th:text="${appointment.referenceNumber}"></strong></div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm mt-2"
+                                th:if="${!navIsAdmin and appointment.status.name() == 'PENDING' and currentUsername != null and appointment.client.user != null and appointment.client.user.username == currentUsername}"
+                                data-bs-toggle="modal" data-bs-target="#uploadApptReceiptModal">Upload Receipt</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm mt-2 request-receipt-btn"
+                                th:if="${navIsAdmin and appointment.status.name() == 'PENDING'}"
+                                th:attr="data-request-receipt-url=@{/appointment/requestReceipt/{id}(id=${appointment.appointmentId})}">Request Receipt</button>
+                    </div>
+
+                    <div th:if="${!navIsAdmin and appointment.status.name() == 'PENDING' and appointment.paymentMethod != null and currentUsername != null and appointment.client.user != null and appointment.client.user.username == currentUsername}"
+                         class="modal fade" id="uploadApptReceiptModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <form th:action="@{/appointment/uploadReceipt/{id}(id=${appointment.appointmentId})}" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="_method" value="put"/>
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Upload Receipt</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <label for="apptReceiptFile" class="form-label">Receipt image for this appointment</label>
+                                        <input type="file" name="receiptFile" id="apptReceiptFile" class="form-control" accept="image/*" required>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Upload</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${appointment.receiptFileName}" class="text-center border rounded p-3 mb-3">
+                        <div class="fw-bold mb-2">Uploaded Receipt</div>
+                        <img th:src="@{/images/{f}(f=${appointment.receiptFileName})}" alt="Uploaded receipt"
+                             class="img-fluid" style="max-width:280px; max-height:150px; object-fit:contain;"/>
+                    </div>
+
+                    <div th:if="${appointment.verifiedByEmployeeId != null}" class="text-center border rounded p-3 mb-3">
+                        <div class="fw-bold mb-2">Payment Confirmed</div>
+                        <div class="text-muted small">
+                            Payment validated by <strong th:text="${appointment.verifiedByEmployeeId}"></strong>
+                            on <strong th:text="${#dates.format(appointment.verifiedAt, 'yyyy-MM-dd HH:mm')}"></strong>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3 mb-3" th:if="${navIsAdmin and appointment.status.name() != 'CANCELLED'}">
+                        <form th:if="${appointment.status.name() == 'PENDING'}"
+                              th:action="@{/appointment/confirm/{id}(id=${appointment.appointmentId})}" method="post">
+                            <input type="hidden" name="_method" value="put"/>
+                            <button type="submit" class="btn btn-success btn-sm">Confirm Appointment</button>
+                        </form>
+                        <form th:action="@{/appointment/cancel/{id}(id=${appointment.appointmentId})}" method="post">
+                            <input type="hidden" name="_method" value="put"/>
+                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Cancel this appointment?')">Cancel Appointment</button>
+                        </form>
+                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                data-bs-toggle="modal" data-bs-target="#rescheduleApptModal">Reschedule</button>
+                    </div>
+
+                    <div th:if="${navIsAdmin and appointment.status.name() != 'CANCELLED'}"
+                         class="modal fade" id="rescheduleApptModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <form th:action="@{/appointment/reschedule/{id}(id=${appointment.appointmentId})}" method="post">
+                                    <input type="hidden" name="_method" value="put"/>
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Reschedule Appointment</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p class="text-muted small">
+                                            Picking a new date/time will send this appointment back to PENDING for
+                                            confirmation. Any reservation payment already made carries over as is.
+                                        </p>
+                                        <div class="mb-3">
+                                            <label class="form-label">New Preferred Date</label>
+                                            <input type="date" name="preferredDate" class="form-control"
+                                                   th:value="${#temporals.format(appointment.preferredDate, 'yyyy-MM-dd')}" required/>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">New Preferred Time</label>
+                                            <input type="time" name="preferredTime" class="form-control"
+                                                   th:value="${#temporals.format(appointment.preferredTime, 'HH:mm')}" required/>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Submit Reschedule</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${appointment.refundStatus.name() != 'NOT_APPLICABLE'}" class="text-center border rounded p-3 mb-3">
+                        <div class="fw-bold mb-2">Refund</div>
+                        <span class="badge"
+                              th:classappend="${appointment.refundStatus.name() == 'REFUNDED'} ? 'bg-success' : (${appointment.refundStatus.name() == 'NOT_REFUNDABLE'} ? 'bg-danger' : 'bg-warning text-dark')"
+                              th:text="${appointment.refundStatus}"></span>
+                        <div class="text-muted small mt-2" th:if="${appointment.refundStatus.name() == 'NOT_REFUNDABLE'}">
+                            The reservation payment is not refundable - either the schedule was already confirmed
+                            before cancellation, or it was cancelled within 5 hours of the scheduled time.
+                        </div>
+                        <div class="text-muted small mt-2" th:if="${appointment.refundStatus.name() == 'REFUNDED'}">
+                            Refunded by <span th:text="${appointment.refundedByEmployeeId}"></span>
+                            on <span th:text="${#dates.format(appointment.refundedAt, 'yyyy-MM-dd HH:mm')}"></span>
+                        </div>
+                        <button th:if="${navIsAdmin and appointment.refundStatus.name() == 'PENDING'}" type="button"
+                                class="btn btn-success btn-sm mt-2"
+                                data-bs-toggle="modal" data-bs-target="#markApptRefundedModal">Mark Refunded</button>
+                    </div>
+
+                    <div th:if="${navIsAdmin and appointment.refundStatus.name() == 'PENDING'}"
+                         class="modal fade" id="markApptRefundedModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirm Mark as Refunded</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Mark the reservation payment for this appointment as <strong>REFUNDED</strong>?
+                                    Only confirm this once the money has actually been sent back to the customer.
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form th:action="@{/appointment/markRefunded/{id}(id=${appointment.appointmentId})}" method="post">
+                                        <input type="hidden" name="_method" value="put"/>
+                                        <button type="submit" class="btn btn-success">Yes, Mark as Refunded</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="requestReceiptSentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-4">
+                    Request receipt message has been sent
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
+<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const requestReceiptSentModalEl = document.getElementById('requestReceiptSentModal');
+        if (!requestReceiptSentModalEl) return;
+        const requestReceiptSentModal = new bootstrap.Modal(requestReceiptSentModalEl);
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.request-receipt-btn');
+            if (!btn) return;
+            fetch(btn.getAttribute('data-request-receipt-url'), { method: 'PUT' })
+                .then(function (res) {
+                    if (res.ok) {
+                        requestReceiptSentModal.show();
+                    }
+                });
+        });
+    });
+</script>
+</body>
+</html>
