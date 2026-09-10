@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Converted from the approved mockup (static/gpt-preview.html) - same class names, same markup
+  structure, same CSS values (all via theme.css variables). Two mockup deviations, both forced by
+  "invent nothing" / real routes only:
+
+  1. In the mockup, Build a PC / Orders / Repairs are all accordions with 2 children each, but
+     this app only has ONE real route behind Orders and Repairs (no separate "Order History" from
+     the live order list, no second Repairs view distinct from /repair) - so those two are flat
+     nav-items here, pointing at their one real route. Build a PC now has a real second route (My
+     Builds, /build/my-builds - see SavedBuildController) so it's an accordion exactly like
+     Appointments, with "Build a PC" (/build) and "My Builds" (/build/my-builds) as its two
+     children.
+  2. Every mockup style="background:var(--x)" / style="width:X%" inline style is now a CSS class
+     or (for the two genuinely dynamic bars, in progress-card.html/the dashboard template) an
+     inline SVG width attribute - not a style attribute - per the no-inline-styles rule.
+
+  Assets fragment (Bootstrap 5, Feather, Inter, theme.css) - include once per page:
+    <head><th:block th:replace="~{fragments/layout-app :: assets}"></th:block></head>
+  and, at the end of <body>:
+    <th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+-->
+<th:block th:fragment="assets">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" th:href="@{/css/theme.css}"/>
+</th:block>
+
+<th:block th:fragment="scripts">
+    <!-- bundle (not plain bootstrap.min.js) - includes Popper, required for dropdowns/tooltips to
+         position themselves. Loaded here, before app-script below, so anything relying on
+         window.bootstrap (dropdowns' data-api auto-init, or explicit bootstrap.Modal/.Dropdown
+         calls in a page's own script) has it available - see chat. -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</th:block>
+
+<!--
+  Params: active (String - see key list below), currentUsername (String, nullable),
+          currentRole (String, nullable), unreadNotifications (Integer, nullable)
+
+  Active-page keys:
+    Customer: dashboard, build, my-builds, orders, book-appointment, view-appointments,
+              repairs, notifications, profile
+    Staff:    dashboard, sales, laptop-parts, cellphone-parts, pc-parts, build, calendar,
+              new-ticket, view-ticket, view-appointments, orders, edit-profile,
+              repair-history, customers
+
+  Menu items render by role via ${navIsAdmin} - GlobalNavAttributes.java:22-27 (checks
+  authority.equals("ROLE_ADMIN"), GlobalNavAttributes.java:26), same global attribute every page
+  already gets via @ControllerAdvice - GlobalNavAttributes.java:13. Role names (ADMIN/CUSTOMER)
+  are exactly User.java:143-145 - nothing invented. There's no thymeleaf-extras-springsecurity6
+  dependency in this project (checked pom.xml, no match), so sec:authorize isn't available; this
+  is the real mechanism. Anonymous visitors (routes are permitAll, SecurityConfig.java:49) fall
+  into the customer branch, same as guest checkout/booking already works today.
+
+  Only the customer branch is wired to a real page this round (see DashboardController.java) -
+  the staff branch exists for structural completeness/future reuse but isn't exercised yet;
+  admins still get today's existing experience (see DashboardController's forward for isAdmin).
+
+  Usage:
+    <div th:replace="~{fragments/layout-app :: sidebar(active='dashboard', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+-->
+<nav th:fragment="sidebar(active, currentUsername, currentRole)" class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-mark">RN</div>
+        <div class="brand-text">
+            <span class="brand-title">RNPC</span>
+            <span class="brand-tagline">PC &amp; Cellphone Repair Shop</span>
+        </div>
+    </div>
+
+    <div class="sidebar-nav">
+
+        <!-- ================= CUSTOMER MENU ================= -->
+        <th:block th:unless="${navIsAdmin}">
+            <a href="/" class="nav-item" th:classappend="${active == 'dashboard'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="home"></i></span>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <!-- Accordion structure copied exactly from the Appointments accordion below
+                 (layout-app.html:97-108 as it stood before this change) - same nav-toggle/
+                 collapse-panel/accordion-body markup, same aria-expanded-driven auto-expand,
+                 just re-keyed to 'build'/'my-builds'. -->
+            <button class="nav-toggle" type="button" data-toggle="build"
+                    th:attr="aria-expanded=${active == 'build' or active == 'my-builds'}">
+                <span class="nav-icon-chip"><i data-feather="cpu"></i></span>
+                <span class="nav-label">Build a PC</span>
+                <i data-feather="chevron-down" class="nav-caret"></i>
+            </button>
+            <div class="collapse-panel" data-panel="build" th:classappend="${active == 'build' or active == 'my-builds'} ? 'show'">
+                <div class="accordion-body">
+                    <a href="/build" th:classappend="${active == 'build'} ? 'active'">Build a PC</a>
+                    <a href="/build/my-builds" th:classappend="${active == 'my-builds'} ? 'active'">My Builds</a>
+                </div>
+            </div>
+
+            <a href="/order" class="nav-item" th:classappend="${active == 'orders'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="shopping-cart"></i></span>
+                <span class="nav-label">Orders</span>
+            </a>
+
+            <button class="nav-toggle" type="button" data-toggle="appt"
+                    th:attr="aria-expanded=${active == 'book-appointment' or active == 'view-appointments'}">
+                <span class="nav-icon-chip"><i data-feather="calendar"></i></span>
+                <span class="nav-label">Appointments</span>
+                <i data-feather="chevron-down" class="nav-caret"></i>
+            </button>
+            <div class="collapse-panel" data-panel="appt" th:classappend="${active == 'book-appointment' or active == 'view-appointments'} ? 'show'">
+                <div class="accordion-body">
+                    <a href="/appointment/create" th:classappend="${active == 'book-appointment'} ? 'active'">Book Appointment</a>
+                    <a href="/appointment" th:classappend="${active == 'view-appointments'} ? 'active'">View Appointments</a>
+                </div>
+            </div>
+
+            <a href="/repair" class="nav-item" th:classappend="${active == 'repairs'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="tool"></i></span>
+                <span class="nav-label">Repairs</span>
+            </a>
+            <a href="/notification" class="nav-item" th:classappend="${active == 'notifications'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="bell"></i></span>
+                <span class="nav-label">Notifications</span>
+                <span th:if="${unreadNotifications != null and unreadNotifications > 0}" class="nav-badge">
+                    <span class="nav-badge-text" th:text="${unreadNotifications}"></span>
+                </span>
+            </a>
+            <a href="/profile/edit" class="nav-item" th:classappend="${active == 'profile'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="user"></i></span>
+                <span class="nav-label">My Profile</span>
+            </a>
+        </th:block>
+
+        <!-- ================= STAFF / ADMIN MENU (structural only - not exercised this round) ================= -->
+        <th:block th:if="${navIsAdmin}">
+            <a href="/" class="nav-item" th:classappend="${active == 'dashboard'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="home"></i></span>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="/sales" class="nav-item" th:classappend="${active == 'sales'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="bar-chart-2"></i></span>
+                <span class="nav-label">Sales Report</span>
+            </a>
+
+            <button class="nav-toggle" type="button" data-toggle="parts"
+                    th:attr="aria-expanded=${active == 'laptop-parts' or active == 'cellphone-parts' or active == 'pc-parts'}">
+                <span class="nav-icon-chip"><i data-feather="package"></i></span>
+                <span class="nav-label">Parts</span>
+                <i data-feather="chevron-down" class="nav-caret"></i>
+            </button>
+            <div class="collapse-panel" data-panel="parts" th:classappend="${active == 'laptop-parts' or active == 'cellphone-parts' or active == 'pc-parts'} ? 'show'">
+                <div class="accordion-body">
+                    <a href="/laptop" th:classappend="${active == 'laptop-parts'} ? 'active'">Laptop Parts</a>
+                    <a href="/cellphone" th:classappend="${active == 'cellphone-parts'} ? 'active'">Cellphone Parts</a>
+                    <a href="/computer" th:classappend="${active == 'pc-parts'} ? 'active'">PC Parts</a>
+                </div>
+            </div>
+
+            <a href="/build" class="nav-item" th:classappend="${active == 'build'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="cpu"></i></span>
+                <span class="nav-label">Build a PC</span>
+            </a>
+
+            <button class="nav-toggle" type="button" data-toggle="ticket"
+                    th:attr="aria-expanded=${active == 'calendar' or active == 'new-ticket' or active == 'view-ticket' or active == 'view-appointments'}">
+                <span class="nav-icon-chip"><i data-feather="file-text"></i></span>
+                <span class="nav-label">Ticket</span>
+                <i data-feather="chevron-down" class="nav-caret"></i>
+            </button>
+            <div class="collapse-panel" data-panel="ticket" th:classappend="${active == 'calendar' or active == 'new-ticket' or active == 'view-ticket' or active == 'view-appointments'} ? 'show'">
+                <div class="accordion-body">
+                    <a href="/appointment/calendar" th:classappend="${active == 'calendar'} ? 'active'">Calendar</a>
+                    <a href="/ticket/create" th:classappend="${active == 'new-ticket'} ? 'active'">New Ticket</a>
+                    <a href="/ticket/view" th:classappend="${active == 'view-ticket'} ? 'active'">View Ticket</a>
+                    <a href="/appointment" th:classappend="${active == 'view-appointments'} ? 'active'">View Appointments</a>
+                </div>
+            </div>
+
+            <button class="nav-toggle" type="button" data-toggle="kyc"
+                    th:attr="aria-expanded=${active == 'orders' or active == 'edit-profile'}">
+                <span class="nav-icon-chip"><i data-feather="shield"></i></span>
+                <span class="nav-label">KYC</span>
+                <i data-feather="chevron-down" class="nav-caret"></i>
+            </button>
+            <div class="collapse-panel" data-panel="kyc" th:classappend="${active == 'orders' or active == 'edit-profile'} ? 'show'">
+                <div class="accordion-body">
+                    <a href="/order" th:classappend="${active == 'orders'} ? 'active'">Orders</a>
+                    <a href="/profile/edit" th:classappend="${active == 'edit-profile'} ? 'active'">Edit Profile</a>
+                </div>
+            </div>
+
+            <a href="/repair" class="nav-item" th:classappend="${active == 'repair-history'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="tool"></i></span>
+                <span class="nav-label">Repair History</span>
+            </a>
+            <a href="/client" class="nav-item" th:classappend="${active == 'customers'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="users"></i></span>
+                <span class="nav-label">Customers</span>
+            </a>
+        </th:block>
+    </div>
+
+    <div class="sidebar-deco" aria-hidden="true"></div>
+
+    <div class="status-block">
+        <span class="status-dot"></span>
+        <span class="status-text">
+            <span class="status-shop">RNPC Repair Shop</span>
+            <span class="status-online">&#9679; Online</span>
+        </span>
+    </div>
+</nav>
+
+<!--
+  Params: currentUsername (String), currentRole (String, nullable - shown under the name in the
+          topbar user menu, e.g. "User"/"Admin"), unreadNotifications (Integer, nullable),
+          recentNotifications (List<Notification>, nullable - the last few for this account, most
+          recent first; see NotificationService.getForUser/getForAdmin. Pass null or an empty list
+          for no dropdown content beyond the empty-state/View All)
+
+  Logout: NOT a new endpoint - "Logout" below is a plain GET link to /logout, which already works
+  because SecurityConfig.java:70-72 sets logoutUrl("/logout") with no custom logoutRequestMatcher,
+  and CSRF is disabled app-wide (SecurityConfig.java:48) - Spring Security's default logout matcher
+  is GET on that URL, so this link was already correctly wired before this change.
+-->
+<header th:fragment="topbar(currentUsername, currentRole, unreadNotifications, recentNotifications)" class="topbar">
+    <button class="hamburger" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
+        <i data-feather="menu"></i>
+    </button>
+
+    <div class="search-box">
+        <i data-feather="search"></i>
+        <input type="search" placeholder="Search orders, customers, or services..."/>
+    </div>
+
+    <div class="topbar-spacer"></div>
+
+    <div class="dropdown">
+        <button class="bell" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i data-feather="bell"></i>
+            <span th:if="${unreadNotifications != null and unreadNotifications > 0}"
+                  th:text="${unreadNotifications > 99} ? '99+' : ${unreadNotifications}" class="bell-count"></span>
+        </button>
+        <div class="dropdown-menu dropdown-menu-end notif-dropdown">
+            <div class="notif-dropdown-header">
+                <span>Notifications</span>
+                <button type="button" class="notif-mark-all-read" id="markAllReadBtn">Mark all as read</button>
+            </div>
+            <div class="notif-dropdown-items">
+                <div th:if="${recentNotifications == null or #lists.isEmpty(recentNotifications)}" class="notif-dropdown-empty">
+                    No notifications yet.
+                </div>
+                <th:block th:if="${recentNotifications != null}">
+                    <a th:each="notif : ${recentNotifications}" href="/notification" class="notif-dropdown-item">
+                        <span class="notif-dot" th:unless="${notif.read}"></span>
+                        <span class="notif-dropdown-text">
+                            <span class="notif-dropdown-message" th:text="${notif.message}"></span>
+                            <span class="notif-dropdown-time"
+                                  th:text="${T(com.rnpc.inventory.service.NotificationService).relativeTime(notif.createdAt)}"></span>
+                        </span>
+                    </a>
+                </th:block>
+            </div>
+            <a href="/notification" class="notif-dropdown-viewall">View All</a>
+        </div>
+    </div>
+
+    <div class="dropdown" th:if="${currentUsername != null and !#strings.isEmpty(currentUsername)}">
+        <button class="user-menu" type="button" data-bs-toggle="dropdown">
+            <span class="user-avatar" th:text="${#strings.substring(currentUsername,0,1)}"></span>
+            <span class="user-text">
+                <span class="user-name" th:text="${currentUsername}"></span>
+                <span class="user-role" th:text="${currentRole != null} ? ${currentRole} : 'User'"></span>
+            </span>
+            <i data-feather="chevron-down"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="/profile/edit">Edit Profile</a></li>
+            <li><a class="dropdown-item" href="/logout">Logout</a></li>
+        </ul>
+    </div>
+</header>
+
+<style th:fragment="app-styles">
+    body{ margin:0; font-family:var(--font-sans); background:var(--bg-page); color:var(--text); display:flex; }
+    a{ color:inherit; }
+    button{ font-family:inherit; }
+
+    .sidebar{
+        width:264px; flex-shrink:0; background:linear-gradient(180deg,var(--sidebar-bg) 0%, var(--sidebar-bg-2) 100%);
+        color:var(--sidebar-text); display:flex; flex-direction:column; height:100vh; position:sticky; top:0;
+        overflow:hidden; transition:width .18s ease; position:relative;
+    }
+    .sidebar.icons-only{ width:76px; }
+    .sidebar.icons-only .brand-text, .sidebar.icons-only .nav-label,
+    .sidebar.icons-only .nav-caret, .sidebar.icons-only .accordion-body,
+    .sidebar.icons-only .status-text, .sidebar.icons-only .nav-badge-text{ display:none !important; }
+    .sidebar.icons-only .status-block{ justify-content:center; }
+    .sidebar.icons-only .nav-item, .sidebar.icons-only .nav-toggle{ justify-content:center; }
+
+    .sidebar-brand{ display:flex; align-items:center; gap:var(--space-3); padding:var(--space-5) var(--space-4) var(--space-4); }
+    .brand-mark{
+        width:44px; height:44px; border-radius:12px; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center;
+        flex-shrink:0; background:rgba(0,152,200,.08); color:#fff; font-weight:800; font-size:13px; letter-spacing:.02em;
+    }
+    .brand-text{ display:flex; flex-direction:column; line-height:1.25; }
+    .brand-title{ color:#fff; font-weight:800; font-size:15px; }
+    .brand-tagline{ color:var(--sidebar-text); font-size:11px; }
+
+    .sidebar-nav{ flex:1; overflow-y:auto; padding:var(--space-2) var(--space-3); }
+    .nav-item, .nav-toggle{
+        display:flex; align-items:center; gap:var(--space-3); width:100%; padding:10px var(--space-3); margin-bottom:2px;
+        border-radius:var(--radius-sm); color:var(--sidebar-text); text-decoration:none; font-size:14px; font-weight:500;
+        background:none; border:none; text-align:left; cursor:pointer;
+    }
+    .nav-item:hover, .nav-toggle:hover{ background:rgba(255,255,255,.06); color:#fff; }
+    .nav-item.active{ background:var(--accent); color:#fff; font-weight:700; box-shadow:var(--shadow-sm); }
+    .nav-icon-chip{
+        width:26px; height:26px; border-radius:7px; display:inline-flex; align-items:center; justify-content:center;
+        background:rgba(255,255,255,.08); flex-shrink:0;
+    }
+    .nav-item.active .nav-icon-chip{ background:rgba(255,255,255,.22); }
+    .nav-icon-chip svg, .nav-toggle .nav-icon-chip svg{ width:15px; height:15px; }
+    .nav-label{ flex:1; }
+    .nav-caret{ width:15px; height:15px; transition:transform .15s ease; flex-shrink:0; }
+    .nav-toggle[aria-expanded="true"] .nav-caret{ transform:rotate(180deg); }
+    .nav-badge{ background:var(--red); color:#fff; font-size:11px; font-weight:700; border-radius:999px; padding:1px 7px; flex-shrink:0; }
+
+    .accordion-body{ padding-left:calc(26px + var(--space-3) + var(--space-3)); display:flex; flex-direction:column; gap:2px; margin:2px 0 6px; }
+    .accordion-body a{ color:var(--sidebar-text); text-decoration:none; font-size:13.5px; padding:6px var(--space-2); border-radius:6px; opacity:.9; }
+    .accordion-body a:hover{ color:#fff; background:rgba(255,255,255,.05); }
+    .accordion-body a.active{ color:var(--accent); font-weight:600; opacity:1; }
+    .collapse-panel{ overflow:hidden; max-height:0; transition:max-height .2s ease; }
+    .collapse-panel.show{ max-height:220px; }
+
+    .status-block{
+        margin:var(--space-3); padding:var(--space-3); border-radius:var(--radius-sm); background:rgba(255,255,255,.05);
+        border:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:var(--space-2); flex-shrink:0;
+    }
+    .status-dot{ width:9px; height:9px; border-radius:50%; background:var(--green); flex-shrink:0; box-shadow:0 0 0 3px rgba(23,166,115,.18); }
+    .status-text{ display:flex; flex-direction:column; line-height:1.3; overflow:hidden; }
+    .status-shop{ color:#fff; font-size:12.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .status-online{ color:var(--green); font-size:11px; font-weight:600; }
+
+    .sidebar-deco{
+        position:absolute; left:0; right:0; bottom:64px; height:160px; pointer-events:none; opacity:.5;
+        background-image:
+            linear-gradient(rgba(0,152,200,.35) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,152,200,.35) 1px, transparent 1px);
+        background-size:18px 18px;
+        -webkit-mask-image:linear-gradient(to top, black, transparent);
+        mask-image:linear-gradient(to top, black, transparent);
+    }
+
+    .main{ flex:1; min-width:0; display:flex; flex-direction:column; height:100vh; overflow-y:auto; }
+
+    .topbar{
+        height:68px; flex-shrink:0; background:var(--bg-card); border-bottom:1px solid var(--border);
+        display:flex; align-items:center; gap:var(--space-4); padding:0 var(--space-5); position:sticky; top:0; z-index:5;
+    }
+    .hamburger{ background:none; border:none; color:var(--text); display:inline-flex; padding:6px; border-radius:8px; }
+    .hamburger:hover{ background:var(--bg-page); }
+    .hamburger svg{ width:20px; height:20px; }
+
+    .search-box{
+        display:flex; align-items:center; gap:var(--space-2); background:var(--bg-page); border:1px solid var(--border);
+        border-radius:999px; padding:9px var(--space-4); width:360px; max-width:40vw;
+    }
+    .search-box svg{ width:16px; height:16px; color:var(--text-muted); flex-shrink:0; }
+    .search-box input{ border:none; background:none; outline:none; font-size:13.5px; color:var(--text); width:100%; }
+
+    .topbar-spacer{ flex:1; }
+
+    .bell{ position:relative; display:inline-flex; padding:8px; border-radius:8px; color:var(--text); background:none; border:none; cursor:pointer; }
+    .bell:hover{ background:var(--bg-page); }
+    .bell svg{ width:20px; height:20px; }
+    .bell-count{ position:absolute; top:4px; right:4px; background:var(--red); color:#fff; border-radius:999px; font-size:10px; font-weight:700; padding:1px 5px; }
+
+    .notif-dropdown{ width:320px; padding:0; overflow:hidden; }
+    .notif-dropdown-header{
+        display:flex; align-items:center; justify-content:space-between; gap:var(--space-2);
+        padding:var(--space-3) var(--space-4); font-size:13px; font-weight:700; color:var(--text); border-bottom:1px solid var(--border);
+    }
+    .notif-mark-all-read{ background:none; border:none; padding:0; font-size:11.5px; font-weight:600; color:var(--accent); cursor:pointer; }
+    .notif-mark-all-read:hover{ color:var(--accent-hover); text-decoration:underline; }
+    /* ~6 notif-dropdown-item's worth (24px padding + a 1-2 line message + the time line) before it
+       scrolls - header above and "View All" below stay fixed. */
+    .notif-dropdown-items{ max-height:390px; overflow-y:auto; }
+    .notif-dropdown-empty{ padding:var(--space-4); font-size:12.5px; color:var(--text-muted); text-align:center; }
+    .notif-dropdown-item{
+        display:flex; align-items:flex-start; gap:var(--space-2); padding:var(--space-3) var(--space-4);
+        text-decoration:none; border-bottom:1px solid var(--border);
+    }
+    .notif-dropdown-item:last-of-type{ border-bottom:none; }
+    .notif-dropdown-item:hover{ background:var(--bg-page); }
+    .notif-dot{ width:7px; height:7px; border-radius:50%; background:var(--accent); flex-shrink:0; margin-top:5px; }
+    .notif-dropdown-text{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+    .notif-dropdown-message{ font-size:12.5px; color:var(--text); line-height:1.35; white-space:normal; }
+    .notif-dropdown-time{ font-size:11px; color:var(--text-muted); }
+    .notif-dropdown-viewall{
+        display:block; text-align:center; padding:var(--space-3); font-size:12.5px; font-weight:600;
+        color:var(--accent); text-decoration:none; border-top:1px solid var(--border);
+    }
+    .notif-dropdown-viewall:hover{ background:var(--bg-page); }
+
+    .user-menu{ display:flex; align-items:center; gap:var(--space-3); background:none; border:none; padding:6px 8px; border-radius:12px; }
+    .user-menu:hover{ background:var(--bg-page); }
+    .user-avatar{ width:44px; height:44px; border-radius:50%; background:var(--accent-subtle); color:var(--accent-hover); display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:17px; flex-shrink:0; }
+    .user-text{ display:flex; flex-direction:column; line-height:1.25; text-align:left; }
+    .user-name{ font-size:15px; font-weight:700; color:var(--text); }
+    .user-role{ font-size:12.5px; color:var(--text-muted); font-weight:600; }
+    .user-menu svg{ width:16px; height:16px; color:var(--text-muted); }
+
+    .content{ padding:var(--space-5); }
+</style>
+
+<!--
+  Same behavior as the mockup: accordion click toggles one panel at a time; hamburger toggles
+  icons-only and remembers it in localStorage (server-rendered multi-page app, not an SPA - a
+  full reload happens between pages, so localStorage, not in-memory JS state, is what "persists
+  across page loads" means here).
+-->
+<script th:fragment="app-script">
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.feather) { feather.replace(); }
+
+        document.querySelectorAll('.nav-toggle').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var key = btn.getAttribute('data-toggle');
+                var panel = document.querySelector('.collapse-panel[data-panel="' + key + '"]');
+                var isOpen = panel.classList.contains('show');
+
+                document.querySelectorAll('.collapse-panel').forEach(function (p) { p.classList.remove('show'); });
+                document.querySelectorAll('.nav-toggle').forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
+
+                if (!isOpen) {
+                    panel.classList.add('show');
+                    btn.setAttribute('aria-expanded', 'true');
+                }
+            });
+        });
+
+        var sidebar = document.getElementById('sidebar');
+        var toggle = document.getElementById('sidebarToggle');
+        if (sidebar && toggle) {
+            if (localStorage.getItem('rnSidebarIconsOnly') === 'true') {
+                sidebar.classList.add('icons-only');
+            }
+            toggle.addEventListener('click', function () {
+                var collapsed = sidebar.classList.toggle('icons-only');
+                localStorage.setItem('rnSidebarIconsOnly', collapsed ? 'true' : 'false');
+            });
+        }
+
+        // Reloads the current page (not a redirect to /notification) so the bell badge and each
+        // item's unread dot re-render from fresh data - see NotificationController.markAllRead.
+        var markAllReadBtn = document.getElementById('markAllReadBtn');
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener('click', function () {
+                fetch('/notification/mark-all-read', { method: 'POST' })
+                    .then(function (res) { if (res.ok) { location.reload(); } });
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

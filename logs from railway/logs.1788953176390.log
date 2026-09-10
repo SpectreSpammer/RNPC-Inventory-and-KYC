@@ -1,0 +1,753 @@
+2026-09-09T11:23:27.666375972Z [inf]  Starting Container
+2026-09-09T11:23:28.885814603Z [inf]  
+2026-09-09T11:23:28.885822732Z [inf]    .   ____          _            __ _ _
+2026-09-09T11:23:28.885829507Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T11:23:28.885836827Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T11:23:28.885844787Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T11:23:28.885850666Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T11:23:28.885856829Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T11:23:28.885864234Z [inf]  
+2026-09-09T11:23:28.885871446Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T11:23:28.885877056Z [inf]  
+2026-09-09T11:23:28.885883465Z [inf]  2026-09-09T11:23:28.820Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T11:23:28.885889804Z [inf]  2026-09-09T11:23:28.823Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T11:23:30.964724978Z [inf]  2026-09-09T11:23:30.923Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T11:23:31.089768463Z [inf]  2026-09-09T11:23:31.077Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 147 ms. Found 16 JPA repository interfaces.
+2026-09-09T11:23:32.898516951Z [inf]  2026-09-09T11:23:32.873Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T11:23:32.951828367Z [inf]  2026-09-09T11:23:32.950Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T11:23:32.951837728Z [inf]  2026-09-09T11:23:32.950Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T11:23:33.042206464Z [inf]  2026-09-09T11:23:33.024Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T11:23:33.042216487Z [inf]  2026-09-09T11:23:33.025Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4140 ms
+2026-09-09T11:23:33.920622501Z [inf]  2026-09-09T11:23:33.719Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T11:23:33.996871378Z [inf]  2026-09-09T11:23:33.964Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T11:23:34.077951167Z [inf]  2026-09-09T11:23:34.073Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T11:23:34.934709253Z [inf]  2026-09-09T11:23:34.861Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T11:23:34.970319521Z [inf]  2026-09-09T11:23:34.966Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T11:23:36.039084698Z [inf]  2026-09-09T11:23:35.862Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5dd747c1
+2026-09-09T11:23:36.039089913Z [inf]  2026-09-09T11:23:35.864Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-09T11:23:38.040332118Z [inf]  Hibernate: create table rnpc_clients (client_id bigint not null auto_increment, address TEXT, contact_number varchar(255), created_at datetime(6), email varchar(255), full_name varchar(255), image_file_name varchar(255), user_id bigint, primary key (client_id)) engine=InnoDB
+2026-09-09T11:23:38.040457706Z [inf]  2026-09-09T11:23:37.887Z  INFO 1 --- [inventory] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-09T11:23:38.040462583Z [inf]  Hibernate: create table rnpc_appointments (appointment_id bigint not null auto_increment, created_at datetime(6), device_type varchar(255) not null, history TEXT, issue_description TEXT not null, item_description TEXT, payment_method enum ('BPI','GCASH','MARIBANK','RCBC'), preferred_date date not null, preferred_time time(6) not null, receipt_file_name varchar(255), reference_number varchar(255), refund_status enum ('NOT_APPLICABLE','NOT_REFUNDABLE','PENDING','REFUNDED') not null, refunded_at datetime(6), refunded_by_employee_id varchar(255), status enum ('CANCELLED','CONFIRMED','PENDING') not null, verified_at datetime(6), verified_by_employee_id varchar(255), client_id bigint not null, primary key (appointment_id)) engine=InnoDB
+2026-09-09T11:23:38.040467219Z [inf]  Hibernate: create table rnpc_case_parts (case_id integer not null auto_increment, brand varchar(255), created_at datetime(6), image_file_name varchar(255), max_gpu_length_mm integer not null, model_name varchar(255), motherboard_support varchar(255), price float(53) not null, stocks integer not null, tower_class varchar(255), primary key (case_id)) engine=InnoDB
+2026-09-09T11:23:38.040472102Z [inf]  Hibernate: create table rnpc_cellphone_parts (cellphone_part_id bigint not null auto_increment, brand varchar(255), category varchar(255), created_at datetime(6), description TEXT, image_file_name varchar(255), part_name varchar(255), price float(53) not null, stocks integer not null, storage_size varchar(255), primary key (cellphone_part_id)) engine=InnoDB
+2026-09-09T11:23:38.043024032Z [inf]  Hibernate: create table rnpc_cooler_parts (cooler_id integer not null auto_increment, brand varchar(255), created_at datetime(6), image_file_name varchar(255), model_name varchar(255), notes TEXT, price float(53) not null, radiator_height varchar(255), rgb varchar(255), socket_support varchar(255), stocks integer not null, type varchar(255), primary key (cooler_id)) engine=InnoDB
+2026-09-09T11:23:38.066453232Z [inf]  Hibernate: create table rnpc_cpu_parts (cpu_id integer not null auto_increment, base_clock_ghz float(53) not null, boost_clock_ghz float(53) not null, brand varchar(255), cores integer not null, created_at datetime(6), generation varchar(255), image_file_name varchar(255), integrated_graphics varchar(255), launch_year integer not null, memory_support varchar(255), model_name varchar(255), price float(53) not null, socket varchar(255), stocks integer not null, thread integer not null, primary key (cpu_id)) engine=InnoDB
+2026-09-09T11:23:38.089842031Z [inf]  Hibernate: create table rnpc_gpu_parts (gpu_id integer not null auto_increment, architecture varchar(255), brand varchar(255), created_at datetime(6), image_file_name varchar(255), launch_year integer not null, memory_type varchar(255), model_name varchar(255), power_connector varchar(255), price float(53) not null, recommended_psuw integer not null, series varchar(255), stocks integer not null, typical_aib_partners varchar(255), vram varchar(255), primary key (gpu_id)) engine=InnoDB
+2026-09-09T11:23:38.102710330Z [inf]  Hibernate: create table rnpc_laptop_parts (laptop_part_id integer not null auto_increment, brand varchar(255), category varchar(255), created_at datetime(6), description TEXT, image_file_name varchar(255), part_name varchar(255), price float(53) not null, stocks integer not null, storage_size varchar(255), primary key (laptop_part_id)) engine=InnoDB
+2026-09-09T11:23:38.125291623Z [inf]  Hibernate: create table rnpc_motherboard_parts (motherboard_id integer not null auto_increment, brand varchar(255), chipset varchar(255), cpu_platform varchar(255), created_at datetime(6), form_factor varchar(255), image_file_name varchar(255), m2slots integer not null, max_ram varchar(255), memory_type varchar(255), model_name varchar(255), notable_features TEXT, pcie_version varchar(255), price float(53) not null, ram_slots integer not null, socket varchar(255), stocks integer not null, primary key (motherboard_id)) engine=InnoDB
+2026-09-09T11:23:38.139810998Z [inf]  Hibernate: create table rnpc_notifications (notification_id bigint not null auto_increment, audience enum ('ADMIN','CUSTOMER') not null, created_at datetime(6), entity_id bigint, entity_type enum ('APPOINTMENT','ORDER','REPAIR'), is_read bit not null, message varchar(500) not null, user_id bigint, primary key (notification_id)) engine=InnoDB
+2026-09-09T11:23:38.164703323Z [inf]  Hibernate: create table rnpc_order_items (order_item_id bigint not null auto_increment, brand varchar(255), category varchar(255), model_name varchar(255), price float(53) not null, order_id bigint not null, primary key (order_item_id)) engine=InnoDB
+2026-09-09T11:23:38.188859555Z [inf]  Hibernate: create table rnpc_orders (order_id bigint not null auto_increment, created_at datetime(6), order_number varchar(255) not null, payment_link_url varchar(1000), payment_method enum ('BPI','GCASH','MARIBANK','RCBC') not null, payment_session_id varchar(255), receipt_file_name varchar(255), reference_number varchar(255), refund_status enum ('NOT_APPLICABLE','PENDING','REFUNDED') not null, refunded_at datetime(6), refunded_by_employee_id varchar(255), status enum ('AWAITING_PAYMENT','CANCELLATION_REQUESTED','CANCELLED','PAID') not null, total_amount float(53) not null, verified_at datetime(6), verified_by_employee_id varchar(255), client_id bigint not null, primary key (order_id)) engine=InnoDB
+2026-09-09T11:23:38.201802511Z [inf]  Hibernate: create table rnpc_psu_parts (psu_id integer not null auto_increment, brand varchar(255), created_at datetime(6), form_factor varchar(255), image_file_name varchar(255), model_name varchar(255), modularity varchar(255), notes TEXT, plus_rating varchar(255), price float(53) not null, stocks integer not null, warranty_years integer not null, wattagew integer not null, primary key (psu_id)) engine=InnoDB
+2026-09-09T11:23:38.214848041Z [inf]  Hibernate: create table rnpc_ram_parts (ram_id integer not null auto_increment, brand varchar(255), cas_latency varchar(255), created_at datetime(6), image_file_name varchar(255), kit_capacity varchar(255), model_name varchar(255), module_config varchar(255), price float(53) not null, rgb varchar(255), speed_mts integer not null, stocks integer not null, type varchar(255), typical_use varchar(255), voltage float(53) not null, primary key (ram_id)) engine=InnoDB
+2026-09-09T11:23:38.228339352Z [inf]  Hibernate: create table rnpc_repair_records (repair_id bigint not null auto_increment, brand varchar(255), cost float(53) not null, created_at datetime(6), device_type varchar(255), fix TEXT, image_file_name varchar(255), issue_description TEXT, job_order_number varchar(255) not null, model_name varchar(255), recommendation TEXT, remarks TEXT, repair_date datetime(6), serial_number varchar(255), status enum ('CANCELLED','COMPLETED','IN_PROGRESS','PENDING','RELEASED') not null, technician varchar(255), warranty_end_date datetime(6), appointment_id bigint, client_id bigint not null, primary key (repair_id)) engine=InnoDB
+2026-09-09T11:23:38.251968497Z [inf]  Hibernate: create table rnpc_storage_parts (storage_id integer not null auto_increment, brand varchar(255), capacities varchar(255), category varchar(255), created_at datetime(6), dram_cache varchar(255), form_factor varchar(255), image_file_name varchar(255), interface_type varchar(255), model_name varchar(255), price float(53) not null, seq_read_mbs integer not null, seq_write_mbs integer not null, stocks integer not null, typical_use varchar(255), warranty varchar(255), primary key (storage_id)) engine=InnoDB
+2026-09-09T11:23:38.267890522Z [inf]  Hibernate: create table users (id bigint not null auto_increment, address TEXT, contact_number varchar(255), email varchar(255), full_name varchar(255), google_id varchar(255), password varchar(255), role enum ('ADMIN','CUSTOMER') not null, username varchar(255) not null, primary key (id)) engine=InnoDB
+2026-09-09T11:23:38.310706159Z [inf]  Hibernate: alter table users drop index UK6dotkott2kjsp8vw4d0m25fb7
+2026-09-09T11:23:38.316928569Z [inf]  Hibernate: alter table users add constraint UK6dotkott2kjsp8vw4d0m25fb7 unique (email)
+2026-09-09T11:23:38.329660477Z [inf]  Hibernate: alter table users drop index UKovh8xmu9ac27t18m56gri58i1
+2026-09-09T11:23:38.335986113Z [inf]  Hibernate: alter table users add constraint UKovh8xmu9ac27t18m56gri58i1 unique (google_id)
+2026-09-09T11:23:38.348175646Z [inf]  Hibernate: alter table users drop index UKr43af9ap4edm43mmtq01oddj6
+2026-09-09T11:23:38.348187486Z [inf]  Hibernate: alter table users add constraint UKr43af9ap4edm43mmtq01oddj6 unique (username)
+2026-09-09T11:23:38.366304348Z [inf]  Hibernate: alter table rnpc_appointments add constraint FK7m8w8pkgbtqfbaxr67poxjfq8 foreign key (client_id) references rnpc_clients (client_id)
+2026-09-09T11:23:38.420011472Z [inf]  Hibernate: alter table rnpc_clients add constraint FKa3wa8p22d6ec3gm3i9qby1cak foreign key (user_id) references users (id)
+2026-09-09T11:23:38.461392229Z [inf]  Hibernate: alter table rnpc_notifications add constraint FKkcvp6btjrifgs17dchjvefbgh foreign key (user_id) references users (id)
+2026-09-09T11:23:38.539181941Z [inf]  Hibernate: alter table rnpc_order_items add constraint FKhicpqubvio2akkopwqjmmhkxo foreign key (order_id) references rnpc_orders (order_id)
+2026-09-09T11:23:38.561941286Z [inf]  Hibernate: alter table rnpc_orders add constraint FKdn56ixljkfotl73sa2k4thup0 foreign key (client_id) references rnpc_clients (client_id)
+2026-09-09T11:23:38.610569927Z [inf]  Hibernate: alter table rnpc_repair_records add constraint FKi90ogfholek4com1qpg8bdrhk foreign key (appointment_id) references rnpc_appointments (appointment_id)
+2026-09-09T11:23:38.688412726Z [inf]  Hibernate: alter table rnpc_repair_records add constraint FKd663x4bq9crki1b51sx1fc17 foreign key (client_id) references rnpc_clients (client_id)
+2026-09-09T11:23:38.712225412Z [inf]  2026-09-09T11:23:38.710Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:23:41.068386230Z [inf]  2026-09-09T11:23:40.717Z  WARN 1 --- [inventory] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-09T11:23:41.068398217Z [inf]  2026-09-09T11:23:40.863Z  INFO 1 --- [inventory] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-09-09T11:23:41.068406775Z [inf]  2026-09-09T11:23:40.914Z  WARN 1 --- [inventory] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2026-09-09T11:23:41.326652345Z [inf]  2026-09-09T11:23:41.323Z  INFO 1 --- [inventory] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-09-09T11:23:42.176104426Z [inf]  2026-09-09T11:23:41.968Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T11:23:42.176114415Z [inf]  2026-09-09T11:23:41.981Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T11:23:42.176121705Z [inf]  
+2026-09-09T11:23:42.176126671Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T11:23:42.176176627Z [inf]  2026-09-09T11:23:41.918Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration': Unsatisfied dependency expressed through method 'setFilterChains' parameter 0: Error creating bean with name 'securityFilterChain' defined in class path resource [com/rnpc/inventory/config/SecurityConfig.class]: Failed to instantiate [org.springframework.security.web.SecurityFilterChain]: Factory method 'securityFilterChain' threw exception with message: No qualifying bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' available
+2026-09-09T11:23:42.176182026Z [inf]  2026-09-09T11:23:41.921Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:23:42.176187955Z [inf]  2026-09-09T11:23:41.923Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-09-09T11:23:42.176193034Z [inf]  2026-09-09T11:23:41.966Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-09-09T11:23:42.177611650Z [inf]  
+2026-09-09T11:23:42.177640620Z [inf]  ***************************
+2026-09-09T11:23:42.177651965Z [inf]  APPLICATION FAILED TO START
+2026-09-09T11:23:42.177659789Z [inf]  ***************************
+2026-09-09T11:23:42.177667074Z [inf]  
+2026-09-09T11:23:42.177674169Z [inf]  Description:
+2026-09-09T11:23:42.177681701Z [inf]  
+2026-09-09T11:23:42.177689390Z [inf]  Parameter 0 of method setFilterChains in org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration required a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' that could not be found.
+2026-09-09T11:23:42.177697621Z [inf]  
+2026-09-09T11:23:42.177700855Z [inf]  2026-09-09T11:23:42.065Z ERROR 1 --- [inventory] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2026-09-09T11:23:42.177707707Z [inf]  
+2026-09-09T11:23:42.177710515Z [inf]  
+2026-09-09T11:23:42.177717760Z [inf]  Action:
+2026-09-09T11:23:42.177722358Z [inf]  
+2026-09-09T11:23:42.177727233Z [inf]  Consider defining a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' in your configuration.
+2026-09-09T11:23:44.468923855Z [inf]  
+2026-09-09T11:23:44.468925078Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T11:23:44.468932456Z [inf]    .   ____          _            __ _ _
+2026-09-09T11:23:44.468934024Z [inf]  
+2026-09-09T11:23:44.468938260Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T11:23:44.468944862Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T11:23:44.468958836Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T11:23:44.468964940Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T11:23:44.468970841Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T11:23:44.468976937Z [inf]  
+2026-09-09T11:23:44.680813817Z [inf]  2026-09-09T11:23:44.661Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T11:23:44.680818521Z [inf]  2026-09-09T11:23:44.664Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T11:23:46.700279731Z [inf]  2026-09-09T11:23:46.665Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T11:23:46.870532840Z [inf]  2026-09-09T11:23:46.858Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 185 ms. Found 16 JPA repository interfaces.
+2026-09-09T11:23:48.701858264Z [inf]  2026-09-09T11:23:48.654Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T11:23:48.701863294Z [inf]  2026-09-09T11:23:48.668Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T11:23:48.701868242Z [inf]  2026-09-09T11:23:48.668Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T11:23:48.746171947Z [inf]  2026-09-09T11:23:48.728Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T11:23:48.746180749Z [inf]  2026-09-09T11:23:48.729Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3975 ms
+2026-09-09T11:23:49.360425485Z [inf]  2026-09-09T11:23:49.357Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T11:23:49.643120236Z [inf]  2026-09-09T11:23:49.625Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T11:23:49.790532756Z [inf]  2026-09-09T11:23:49.748Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T11:23:50.876972840Z [inf]  2026-09-09T11:23:50.815Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T11:23:50.876978315Z [inf]  2026-09-09T11:23:50.865Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T11:23:51.646676104Z [inf]  2026-09-09T11:23:51.556Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@3b9c9b8b
+2026-09-09T11:23:51.646681118Z [inf]  2026-09-09T11:23:51.558Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-09T11:23:53.608205747Z [inf]  2026-09-09T11:23:53.588Z  INFO 1 --- [inventory] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-09T11:23:53.652222273Z [inf]  Hibernate: alter table rnpc_appointments modify column history TEXT
+2026-09-09T11:23:53.658760690Z [inf]  Hibernate: alter table rnpc_appointments modify column issue_description TEXT not null
+2026-09-09T11:23:53.672531697Z [inf]  Hibernate: alter table rnpc_appointments modify column item_description TEXT
+2026-09-09T11:23:53.680969326Z [inf]  Hibernate: alter table rnpc_cellphone_parts modify column description TEXT
+2026-09-09T11:23:53.687511941Z [inf]  Hibernate: alter table rnpc_clients modify column address TEXT
+2026-09-09T11:23:53.701486995Z [inf]  Hibernate: alter table rnpc_cooler_parts modify column notes TEXT
+2026-09-09T11:23:53.708646173Z [inf]  Hibernate: alter table rnpc_laptop_parts modify column description TEXT
+2026-09-09T11:23:53.715321518Z [inf]  Hibernate: alter table rnpc_motherboard_parts modify column notable_features TEXT
+2026-09-09T11:23:53.721510758Z [inf]  Hibernate: alter table rnpc_psu_parts modify column notes TEXT
+2026-09-09T11:23:53.735201811Z [inf]  Hibernate: alter table rnpc_repair_records modify column fix TEXT
+2026-09-09T11:23:53.737169897Z [inf]  Hibernate: alter table rnpc_repair_records modify column issue_description TEXT
+2026-09-09T11:23:53.750587030Z [inf]  Hibernate: alter table rnpc_repair_records modify column recommendation TEXT
+2026-09-09T11:23:53.757048773Z [inf]  Hibernate: alter table rnpc_repair_records modify column remarks TEXT
+2026-09-09T11:23:53.782009785Z [inf]  Hibernate: alter table users modify column address TEXT
+2026-09-09T11:23:53.937168957Z [inf]  2026-09-09T11:23:53.878Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:23:55.468005605Z [inf]  2026-09-09T11:23:55.457Z  WARN 1 --- [inventory] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-09T11:23:55.688944219Z [inf]  2026-09-09T11:23:55.615Z  INFO 1 --- [inventory] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-09-09T11:23:55.688949759Z [inf]  2026-09-09T11:23:55.616Z  WARN 1 --- [inventory] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2026-09-09T11:23:55.862690065Z [inf]  2026-09-09T11:23:55.830Z  INFO 1 --- [inventory] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-09-09T11:23:56.724440798Z [inf]  2026-09-09T11:23:56.719Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration': Unsatisfied dependency expressed through method 'setFilterChains' parameter 0: Error creating bean with name 'securityFilterChain' defined in class path resource [com/rnpc/inventory/config/SecurityConfig.class]: Failed to instantiate [org.springframework.security.web.SecurityFilterChain]: Factory method 'securityFilterChain' threw exception with message: No qualifying bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' available
+2026-09-09T11:23:56.812589046Z [inf]  2026-09-09T11:23:56.748Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:23:56.812593477Z [inf]  2026-09-09T11:23:56.750Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-09-09T11:23:56.826333193Z [inf]  2026-09-09T11:23:56.820Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-09-09T11:23:56.826344414Z [inf]  2026-09-09T11:23:56.822Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T11:23:56.867863951Z [inf]  2026-09-09T11:23:56.854Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T11:23:56.867873508Z [inf]  
+2026-09-09T11:23:56.867880463Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T11:23:56.942090003Z [inf]  
+2026-09-09T11:23:56.942091139Z [inf]  2026-09-09T11:23:56.924Z ERROR 1 --- [inventory] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2026-09-09T11:23:56.942101316Z [inf]  Description:
+2026-09-09T11:23:56.942104219Z [inf]  
+2026-09-09T11:23:56.942108865Z [inf]  
+2026-09-09T11:23:56.942114996Z [inf]  ***************************
+2026-09-09T11:23:56.942116533Z [inf]  Parameter 0 of method setFilterChains in org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration required a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' that could not be found.
+2026-09-09T11:23:56.942123230Z [inf]  APPLICATION FAILED TO START
+2026-09-09T11:23:56.942123956Z [inf]  
+2026-09-09T11:23:56.942130810Z [inf]  ***************************
+2026-09-09T11:23:56.942132546Z [inf]  
+2026-09-09T11:23:56.942138145Z [inf]  Action:
+2026-09-09T11:23:56.942142897Z [inf]  
+2026-09-09T11:23:56.942147610Z [inf]  Consider defining a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' in your configuration.
+2026-09-09T11:23:56.942153217Z [inf]  
+2026-09-09T11:23:59.620733247Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T11:23:59.620743650Z [inf]  
+2026-09-09T11:23:59.620750103Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T11:23:59.620756212Z [inf]  
+2026-09-09T11:23:59.620800800Z [inf]  
+2026-09-09T11:23:59.620807038Z [inf]    .   ____          _            __ _ _
+2026-09-09T11:23:59.620812861Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T11:23:59.620819271Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T11:23:59.620824092Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T11:23:59.620834043Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T11:23:59.723603575Z [inf]  2026-09-09T11:23:59.706Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T11:23:59.723612768Z [inf]  2026-09-09T11:23:59.708Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T11:24:01.907743617Z [inf]  2026-09-09T11:24:01.905Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T11:24:02.103416682Z [inf]  2026-09-09T11:24:02.093Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 181 ms. Found 16 JPA repository interfaces.
+2026-09-09T11:24:03.896451716Z [inf]  2026-09-09T11:24:03.884Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T11:24:03.903499307Z [inf]  2026-09-09T11:24:03.899Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T11:24:03.903508579Z [inf]  2026-09-09T11:24:03.900Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T11:24:03.983264908Z [inf]  2026-09-09T11:24:03.980Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T11:24:03.983269069Z [inf]  2026-09-09T11:24:03.982Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4187 ms
+2026-09-09T11:24:04.751327725Z [inf]  2026-09-09T11:24:04.488Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T11:24:04.751336612Z [inf]  2026-09-09T11:24:04.693Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T11:24:04.832628233Z [inf]  2026-09-09T11:24:04.799Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T11:24:05.738705778Z [inf]  2026-09-09T11:24:05.504Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T11:24:05.738711027Z [inf]  2026-09-09T11:24:05.598Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T11:24:06.404943586Z [inf]  2026-09-09T11:24:06.384Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@636e4bf8
+2026-09-09T11:24:06.404953840Z [inf]  2026-09-09T11:24:06.386Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-09T11:24:08.784613929Z [inf]  Hibernate: alter table rnpc_motherboard_parts modify column notable_features TEXT
+2026-09-09T11:24:08.784617842Z [inf]  Hibernate: alter table rnpc_repair_records modify column remarks TEXT
+2026-09-09T11:24:08.784623735Z [inf]  Hibernate: alter table rnpc_psu_parts modify column notes TEXT
+2026-09-09T11:24:08.784630592Z [inf]  Hibernate: alter table users modify column address TEXT
+2026-09-09T11:24:08.784630822Z [inf]  Hibernate: alter table rnpc_repair_records modify column fix TEXT
+2026-09-09T11:24:08.784640170Z [inf]  Hibernate: alter table rnpc_repair_records modify column issue_description TEXT
+2026-09-09T11:24:08.784640227Z [inf]  2026-09-09T11:24:08.725Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:24:08.784647185Z [inf]  Hibernate: alter table rnpc_repair_records modify column recommendation TEXT
+2026-09-09T11:24:08.784725973Z [inf]  2026-09-09T11:24:08.428Z  INFO 1 --- [inventory] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-09T11:24:08.784740722Z [inf]  Hibernate: alter table rnpc_appointments modify column history TEXT
+2026-09-09T11:24:08.784747465Z [inf]  Hibernate: alter table rnpc_appointments modify column issue_description TEXT not null
+2026-09-09T11:24:08.784754681Z [inf]  Hibernate: alter table rnpc_appointments modify column item_description TEXT
+2026-09-09T11:24:08.784760587Z [inf]  Hibernate: alter table rnpc_cellphone_parts modify column description TEXT
+2026-09-09T11:24:08.784767127Z [inf]  Hibernate: alter table rnpc_clients modify column address TEXT
+2026-09-09T11:24:08.784774794Z [inf]  Hibernate: alter table rnpc_cooler_parts modify column notes TEXT
+2026-09-09T11:24:08.784781478Z [inf]  Hibernate: alter table rnpc_laptop_parts modify column description TEXT
+2026-09-09T11:24:10.798825899Z [inf]  2026-09-09T11:24:10.580Z  WARN 1 --- [inventory] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-09T11:24:10.798830850Z [inf]  2026-09-09T11:24:10.691Z  INFO 1 --- [inventory] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-09-09T11:24:10.798837086Z [inf]  2026-09-09T11:24:10.691Z  WARN 1 --- [inventory] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2026-09-09T11:24:11.009896342Z [inf]  2026-09-09T11:24:10.997Z  INFO 1 --- [inventory] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-09-09T11:24:11.810123705Z [inf]  2026-09-09T11:24:11.705Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration': Unsatisfied dependency expressed through method 'setFilterChains' parameter 0: Error creating bean with name 'securityFilterChain' defined in class path resource [com/rnpc/inventory/config/SecurityConfig.class]: Failed to instantiate [org.springframework.security.web.SecurityFilterChain]: Factory method 'securityFilterChain' threw exception with message: No qualifying bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' available
+2026-09-09T11:24:11.810128465Z [inf]  2026-09-09T11:24:11.708Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:24:11.810133049Z [inf]  2026-09-09T11:24:11.709Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-09-09T11:24:11.810137422Z [inf]  2026-09-09T11:24:11.795Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-09-09T11:24:11.810142478Z [inf]  2026-09-09T11:24:11.797Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T11:24:11.810149496Z [inf]  2026-09-09T11:24:11.808Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T11:24:11.810156912Z [inf]  
+2026-09-09T11:24:11.810162973Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T11:24:11.935295352Z [inf]  
+2026-09-09T11:24:11.935304519Z [inf]  ***************************
+2026-09-09T11:24:11.935306059Z [inf]  
+2026-09-09T11:24:11.935310597Z [inf]  APPLICATION FAILED TO START
+2026-09-09T11:24:11.935316027Z [inf]  ***************************
+2026-09-09T11:24:11.935320626Z [inf]  
+2026-09-09T11:24:11.935325410Z [inf]  Description:
+2026-09-09T11:24:11.935330322Z [inf]  
+2026-09-09T11:24:11.935334595Z [inf]  Parameter 0 of method setFilterChains in org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration required a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' that could not be found.
+2026-09-09T11:24:11.935338883Z [inf]  
+2026-09-09T11:24:11.935343458Z [inf]  
+2026-09-09T11:24:11.935347863Z [inf]  Action:
+2026-09-09T11:24:11.935352512Z [inf]  
+2026-09-09T11:24:11.935357177Z [inf]  Consider defining a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' in your configuration.
+2026-09-09T11:24:11.935400527Z [inf]  2026-09-09T11:24:11.900Z ERROR 1 --- [inventory] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2026-09-09T11:24:14.381853449Z [inf]  
+2026-09-09T11:24:14.381869124Z [inf]    .   ____          _            __ _ _
+2026-09-09T11:24:14.381877916Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T11:24:14.381885461Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T11:24:14.381893729Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T11:24:14.381902532Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T11:24:14.381909847Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T11:24:14.381918725Z [inf]  
+2026-09-09T11:24:14.381927808Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T11:24:14.381935990Z [inf]  
+2026-09-09T11:24:14.812964399Z [inf]  2026-09-09T11:24:14.573Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T11:24:14.812969780Z [inf]  2026-09-09T11:24:14.576Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T11:24:16.864678349Z [inf]  2026-09-09T11:24:16.696Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T11:24:16.887171846Z [inf]  2026-09-09T11:24:16.882Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 179 ms. Found 16 JPA repository interfaces.
+2026-09-09T11:24:18.519730405Z [inf]  2026-09-09T11:24:18.500Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T11:24:18.870283245Z [inf]  2026-09-09T11:24:18.581Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T11:24:18.870288138Z [inf]  2026-09-09T11:24:18.581Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T11:24:18.870293197Z [inf]  2026-09-09T11:24:18.611Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T11:24:18.870298405Z [inf]  2026-09-09T11:24:18.612Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3933 ms
+2026-09-09T11:24:19.186874090Z [inf]  2026-09-09T11:24:19.175Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T11:24:19.378576427Z [inf]  2026-09-09T11:24:19.363Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T11:24:19.403512824Z [inf]  2026-09-09T11:24:19.398Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T11:24:20.337415485Z [inf]  2026-09-09T11:24:20.279Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T11:24:20.393395648Z [inf]  2026-09-09T11:24:20.382Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T11:24:21.120657737Z [inf]  2026-09-09T11:24:21.118Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@6e794f53
+2026-09-09T11:24:21.122263548Z [inf]  2026-09-09T11:24:21.120Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-09T11:24:23.144337048Z [inf]  2026-09-09T11:24:23.121Z  INFO 1 --- [inventory] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-09T11:24:23.187665276Z [inf]  Hibernate: alter table rnpc_appointments modify column history TEXT
+2026-09-09T11:24:23.193630308Z [inf]  Hibernate: alter table rnpc_appointments modify column issue_description TEXT not null
+2026-09-09T11:24:23.206861089Z [inf]  Hibernate: alter table rnpc_appointments modify column item_description TEXT
+2026-09-09T11:24:23.213307029Z [inf]  Hibernate: alter table rnpc_cellphone_parts modify column description TEXT
+2026-09-09T11:24:23.219734948Z [inf]  Hibernate: alter table rnpc_clients modify column address TEXT
+2026-09-09T11:24:23.232658072Z [inf]  Hibernate: alter table rnpc_cooler_parts modify column notes TEXT
+2026-09-09T11:24:23.234190668Z [inf]  Hibernate: alter table rnpc_laptop_parts modify column description TEXT
+2026-09-09T11:24:23.240616883Z [inf]  Hibernate: alter table rnpc_motherboard_parts modify column notable_features TEXT
+2026-09-09T11:24:23.252500255Z [inf]  Hibernate: alter table rnpc_psu_parts modify column notes TEXT
+2026-09-09T11:24:23.258796047Z [inf]  Hibernate: alter table rnpc_repair_records modify column fix TEXT
+2026-09-09T11:24:23.265161444Z [inf]  Hibernate: alter table rnpc_repair_records modify column issue_description TEXT
+2026-09-09T11:24:23.278332494Z [inf]  Hibernate: alter table rnpc_repair_records modify column recommendation TEXT
+2026-09-09T11:24:23.291680218Z [inf]  Hibernate: alter table rnpc_repair_records modify column remarks TEXT
+2026-09-09T11:24:23.298469017Z [inf]  Hibernate: alter table users modify column address TEXT
+2026-09-09T11:24:23.385155990Z [inf]  2026-09-09T11:24:23.380Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:24:25.104525706Z [inf]  2026-09-09T11:24:25.079Z  WARN 1 --- [inventory] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-09T11:24:25.189682395Z [inf]  2026-09-09T11:24:25.181Z  INFO 1 --- [inventory] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-09-09T11:24:25.189689607Z [inf]  2026-09-09T11:24:25.182Z  WARN 1 --- [inventory] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2026-09-09T11:24:25.590271268Z [inf]  2026-09-09T11:24:25.577Z  INFO 1 --- [inventory] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-09-09T11:24:26.391001303Z [inf]  2026-09-09T11:24:26.388Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration': Unsatisfied dependency expressed through method 'setFilterChains' parameter 0: Error creating bean with name 'securityFilterChain' defined in class path resource [com/rnpc/inventory/config/SecurityConfig.class]: Failed to instantiate [org.springframework.security.web.SecurityFilterChain]: Factory method 'securityFilterChain' threw exception with message: No qualifying bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' available
+2026-09-09T11:24:26.392340336Z [inf]  2026-09-09T11:24:26.391Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:24:26.393842167Z [inf]  2026-09-09T11:24:26.392Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-09-09T11:24:26.623970718Z [inf]  2026-09-09T11:24:26.489Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-09-09T11:24:26.623975023Z [inf]  2026-09-09T11:24:26.572Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T11:24:26.623979339Z [inf]  2026-09-09T11:24:26.585Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T11:24:26.623983797Z [inf]  
+2026-09-09T11:24:26.623988877Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T11:24:26.958330860Z [inf]  2026-09-09T11:24:26.774Z ERROR 1 --- [inventory] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2026-09-09T11:24:26.958341794Z [inf]  
+2026-09-09T11:24:26.958347471Z [inf]  ***************************
+2026-09-09T11:24:26.958352832Z [inf]  APPLICATION FAILED TO START
+2026-09-09T11:24:26.958358383Z [inf]  ***************************
+2026-09-09T11:24:26.958364142Z [inf]  
+2026-09-09T11:24:26.958369151Z [inf]  Description:
+2026-09-09T11:24:26.958374664Z [inf]  
+2026-09-09T11:24:26.958379969Z [inf]  Parameter 0 of method setFilterChains in org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration required a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' that could not be found.
+2026-09-09T11:24:26.958387230Z [inf]  
+2026-09-09T11:24:26.958394487Z [inf]  
+2026-09-09T11:24:26.958402006Z [inf]  Action:
+2026-09-09T11:24:26.958409269Z [inf]  
+2026-09-09T11:24:26.958416889Z [inf]  Consider defining a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' in your configuration.
+2026-09-09T11:24:26.958423906Z [inf]  
+2026-09-09T11:24:29.264320010Z [inf]  
+2026-09-09T11:24:29.264331265Z [inf]    .   ____          _            __ _ _
+2026-09-09T11:24:29.264337902Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T11:24:29.264342484Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T11:24:29.264349540Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T11:24:29.264354985Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T11:24:29.264359900Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T11:24:29.264364782Z [inf]  
+2026-09-09T11:24:29.327141733Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T11:24:29.327147241Z [inf]  
+2026-09-09T11:24:29.470954948Z [inf]  2026-09-09T11:24:29.463Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T11:24:29.470965165Z [inf]  2026-09-09T11:24:29.465Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T11:24:31.535614695Z [inf]  2026-09-09T11:24:31.534Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T11:24:31.697046597Z [inf]  2026-09-09T11:24:31.696Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 120 ms. Found 16 JPA repository interfaces.
+2026-09-09T11:24:33.440015749Z [inf]  2026-09-09T11:24:33.436Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T11:24:33.455466819Z [inf]  2026-09-09T11:24:33.451Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T11:24:33.455475568Z [inf]  2026-09-09T11:24:33.452Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T11:24:33.550627147Z [inf]  2026-09-09T11:24:33.534Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T11:24:33.550633726Z [inf]  2026-09-09T11:24:33.535Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3992 ms
+2026-09-09T11:24:34.168028367Z [inf]  2026-09-09T11:24:33.998Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T11:24:34.168038284Z [inf]  2026-09-09T11:24:34.137Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T11:24:34.235437807Z [inf]  2026-09-09T11:24:34.232Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T11:24:35.211790748Z [inf]  2026-09-09T11:24:35.097Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T11:24:35.211798192Z [inf]  2026-09-09T11:24:35.139Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T11:24:35.805471078Z [inf]  2026-09-09T11:24:35.758Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@1ff463bb
+2026-09-09T11:24:35.805476361Z [inf]  2026-09-09T11:24:35.759Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-09T11:24:37.773260444Z [inf]  2026-09-09T11:24:37.768Z  INFO 1 --- [inventory] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-09T11:24:37.834310077Z [inf]  Hibernate: alter table rnpc_appointments modify column history TEXT
+2026-09-09T11:24:37.847872831Z [inf]  Hibernate: alter table rnpc_appointments modify column issue_description TEXT not null
+2026-09-09T11:24:37.861865372Z [inf]  Hibernate: alter table rnpc_appointments modify column item_description TEXT
+2026-09-09T11:24:37.875372618Z [inf]  Hibernate: alter table rnpc_cellphone_parts modify column description TEXT
+2026-09-09T11:24:37.875381687Z [inf]  Hibernate: alter table rnpc_clients modify column address TEXT
+2026-09-09T11:24:37.899804025Z [inf]  Hibernate: alter table rnpc_cooler_parts modify column notes TEXT
+2026-09-09T11:24:37.901557153Z [inf]  Hibernate: alter table rnpc_laptop_parts modify column description TEXT
+2026-09-09T11:24:37.916117930Z [inf]  Hibernate: alter table rnpc_motherboard_parts modify column notable_features TEXT
+2026-09-09T11:24:37.918118413Z [inf]  Hibernate: alter table rnpc_psu_parts modify column notes TEXT
+2026-09-09T11:24:38.230899354Z [inf]  Hibernate: alter table users modify column address TEXT
+2026-09-09T11:24:38.230912321Z [inf]  2026-09-09T11:24:38.058Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:24:38.231063486Z [inf]  Hibernate: alter table rnpc_repair_records modify column fix TEXT
+2026-09-09T11:24:38.231069452Z [inf]  Hibernate: alter table rnpc_repair_records modify column issue_description TEXT
+2026-09-09T11:24:38.231076755Z [inf]  Hibernate: alter table rnpc_repair_records modify column recommendation TEXT
+2026-09-09T11:24:38.231083603Z [inf]  Hibernate: alter table rnpc_repair_records modify column remarks TEXT
+2026-09-09T11:24:40.237948292Z [inf]  2026-09-09T11:24:40.001Z  WARN 1 --- [inventory] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-09T11:24:40.237954659Z [inf]  2026-09-09T11:24:40.196Z  INFO 1 --- [inventory] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-09-09T11:24:40.237962119Z [inf]  2026-09-09T11:24:40.197Z  WARN 1 --- [inventory] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2026-09-09T11:24:40.436747175Z [inf]  2026-09-09T11:24:40.433Z  INFO 1 --- [inventory] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-09-09T11:24:41.232919441Z [inf]  
+2026-09-09T11:24:41.232933194Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T11:24:41.233021529Z [inf]  2026-09-09T11:24:41.045Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration': Unsatisfied dependency expressed through method 'setFilterChains' parameter 0: Error creating bean with name 'securityFilterChain' defined in class path resource [com/rnpc/inventory/config/SecurityConfig.class]: Failed to instantiate [org.springframework.security.web.SecurityFilterChain]: Factory method 'securityFilterChain' threw exception with message: No qualifying bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' available
+2026-09-09T11:24:41.233026352Z [inf]  2026-09-09T11:24:41.097Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:24:41.233031664Z [inf]  2026-09-09T11:24:41.099Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-09-09T11:24:41.233036667Z [inf]  2026-09-09T11:24:41.140Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-09-09T11:24:41.233041467Z [inf]  2026-09-09T11:24:41.142Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T11:24:41.233048004Z [inf]  2026-09-09T11:24:41.153Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T11:24:41.237596342Z [inf]  2026-09-09T11:24:41.236Z ERROR 1 --- [inventory] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2026-09-09T11:24:41.237606902Z [inf]  
+2026-09-09T11:24:41.237611092Z [inf]  
+2026-09-09T11:24:41.237615579Z [inf]  ***************************
+2026-09-09T11:24:41.237621050Z [inf]  Consider defining a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' in your configuration.
+2026-09-09T11:24:41.237624907Z [inf]  APPLICATION FAILED TO START
+2026-09-09T11:24:41.237626179Z [inf]  Parameter 0 of method setFilterChains in org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration required a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' that could not be found.
+2026-09-09T11:24:41.237630006Z [inf]  
+2026-09-09T11:24:41.237633547Z [inf]  ***************************
+2026-09-09T11:24:41.237642009Z [inf]  
+2026-09-09T11:24:41.237642372Z [inf]  
+2026-09-09T11:24:41.237649709Z [inf]  Description:
+2026-09-09T11:24:41.237656604Z [inf]  
+2026-09-09T11:24:41.237658058Z [inf]  
+2026-09-09T11:24:41.237665838Z [inf]  Action:
+2026-09-09T11:24:43.747927755Z [inf]  
+2026-09-09T11:24:43.747941413Z [inf]    .   ____          _            __ _ _
+2026-09-09T11:24:43.747950561Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T11:24:43.747957635Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T11:24:43.747964441Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T11:24:43.747971475Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T11:24:43.747978444Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T11:24:43.747985657Z [inf]  
+2026-09-09T11:24:43.773303413Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T11:24:43.773312686Z [inf]  
+2026-09-09T11:24:44.272330747Z [inf]  2026-09-09T11:24:43.970Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T11:24:44.272339544Z [inf]  2026-09-09T11:24:43.974Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T11:24:46.265851860Z [inf]  2026-09-09T11:24:45.977Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T11:24:46.265855998Z [inf]  2026-09-09T11:24:46.140Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 156 ms. Found 16 JPA repository interfaces.
+2026-09-09T11:24:47.885549268Z [inf]  2026-09-09T11:24:47.839Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T11:24:47.885554152Z [inf]  2026-09-09T11:24:47.868Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T11:24:47.885558525Z [inf]  2026-09-09T11:24:47.868Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T11:24:47.929536926Z [inf]  2026-09-09T11:24:47.928Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T11:24:47.931133379Z [inf]  2026-09-09T11:24:47.929Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3860 ms
+2026-09-09T11:24:48.494848489Z [inf]  2026-09-09T11:24:48.475Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T11:24:48.677101489Z [inf]  2026-09-09T11:24:48.673Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T11:24:48.777493328Z [inf]  2026-09-09T11:24:48.774Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T11:24:49.494469416Z [inf]  2026-09-09T11:24:49.470Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T11:24:49.546109150Z [inf]  2026-09-09T11:24:49.537Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T11:24:50.486359664Z [inf]  2026-09-09T11:24:50.483Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@636e4bf8
+2026-09-09T11:24:50.486367505Z [inf]  2026-09-09T11:24:50.484Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-09T11:24:52.649252577Z [inf]  2026-09-09T11:24:52.632Z  INFO 1 --- [inventory] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-09T11:24:52.693112722Z [inf]  Hibernate: alter table rnpc_appointments modify column history TEXT
+2026-09-09T11:24:52.717592235Z [inf]  Hibernate: alter table rnpc_appointments modify column issue_description TEXT not null
+2026-09-09T11:24:52.717609830Z [inf]  Hibernate: alter table rnpc_appointments modify column item_description TEXT
+2026-09-09T11:24:52.730881270Z [inf]  Hibernate: alter table rnpc_cellphone_parts modify column description TEXT
+2026-09-09T11:24:52.744777273Z [inf]  Hibernate: alter table rnpc_clients modify column address TEXT
+2026-09-09T11:24:52.751283638Z [inf]  Hibernate: alter table rnpc_cooler_parts modify column notes TEXT
+2026-09-09T11:24:52.776172818Z [inf]  Hibernate: alter table rnpc_laptop_parts modify column description TEXT
+2026-09-09T11:24:52.800623068Z [inf]  Hibernate: alter table rnpc_motherboard_parts modify column notable_features TEXT
+2026-09-09T11:24:52.807385552Z [inf]  Hibernate: alter table rnpc_psu_parts modify column notes TEXT
+2026-09-09T11:24:52.813673103Z [inf]  Hibernate: alter table rnpc_repair_records modify column fix TEXT
+2026-09-09T11:24:52.827041295Z [inf]  Hibernate: alter table rnpc_repair_records modify column issue_description TEXT
+2026-09-09T11:24:52.833716384Z [inf]  Hibernate: alter table rnpc_repair_records modify column recommendation TEXT
+2026-09-09T11:24:52.840096069Z [inf]  Hibernate: alter table rnpc_repair_records modify column remarks TEXT
+2026-09-09T11:24:52.853019852Z [inf]  Hibernate: alter table users modify column address TEXT
+2026-09-09T11:24:52.996623018Z [inf]  2026-09-09T11:24:52.936Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:24:54.731917429Z [inf]  2026-09-09T11:24:54.724Z  WARN 1 --- [inventory] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-09T11:24:54.850433136Z [inf]  2026-09-09T11:24:54.833Z  INFO 1 --- [inventory] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-09-09T11:24:54.850440030Z [inf]  2026-09-09T11:24:54.833Z  WARN 1 --- [inventory] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2026-09-09T11:24:55.393958330Z [inf]  2026-09-09T11:24:55.128Z  INFO 1 --- [inventory] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-09-09T11:24:55.927599568Z [inf]  2026-09-09T11:24:55.926Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration': Unsatisfied dependency expressed through method 'setFilterChains' parameter 0: Error creating bean with name 'securityFilterChain' defined in class path resource [com/rnpc/inventory/config/SecurityConfig.class]: Failed to instantiate [org.springframework.security.web.SecurityFilterChain]: Factory method 'securityFilterChain' threw exception with message: No qualifying bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' available
+2026-09-09T11:24:55.933741088Z [inf]  2026-09-09T11:24:55.929Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:24:55.933746881Z [inf]  2026-09-09T11:24:55.931Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-09-09T11:24:56.026245321Z [inf]  2026-09-09T11:24:56.025Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-09-09T11:24:56.344980668Z [inf]  
+2026-09-09T11:24:56.344992122Z [inf]  Parameter 0 of method setFilterChains in org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration required a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' that could not be found.
+2026-09-09T11:24:56.344999618Z [inf]  
+2026-09-09T11:24:56.345005165Z [inf]  
+2026-09-09T11:24:56.345010623Z [inf]  Action:
+2026-09-09T11:24:56.345016831Z [inf]  
+2026-09-09T11:24:56.345021772Z [inf]  Consider defining a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' in your configuration.
+2026-09-09T11:24:56.345026494Z [inf]  
+2026-09-09T11:24:56.345059730Z [inf]  2026-09-09T11:24:56.066Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T11:24:56.345068625Z [inf]  2026-09-09T11:24:56.082Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T11:24:56.345074814Z [inf]  
+2026-09-09T11:24:56.345082132Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T11:24:56.345087924Z [inf]  2026-09-09T11:24:56.269Z ERROR 1 --- [inventory] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2026-09-09T11:24:56.345093621Z [inf]  
+2026-09-09T11:24:56.345099701Z [inf]  ***************************
+2026-09-09T11:24:56.345105559Z [inf]  APPLICATION FAILED TO START
+2026-09-09T11:24:56.345110903Z [inf]  ***************************
+2026-09-09T11:24:56.345117310Z [inf]  
+2026-09-09T11:24:56.345123778Z [inf]  Description:
+2026-09-09T11:24:58.875829996Z [inf]  
+2026-09-09T11:24:58.875837006Z [inf]    .   ____          _            __ _ _
+2026-09-09T11:24:58.875844393Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T11:24:58.875850811Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T11:24:58.875860427Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T11:24:58.875868058Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T11:24:58.875876162Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T11:24:58.875883673Z [inf]  
+2026-09-09T11:24:58.875890367Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T11:24:58.875896288Z [inf]  
+2026-09-09T11:24:59.021784664Z [inf]  2026-09-09T11:24:59.009Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T11:24:59.021789679Z [inf]  2026-09-09T11:24:59.011Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T11:25:00.974017882Z [inf]  2026-09-09T11:25:00.970Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T11:25:01.432699362Z [inf]  2026-09-09T11:25:01.119Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 141 ms. Found 16 JPA repository interfaces.
+2026-09-09T11:25:02.904042986Z [inf]  2026-09-09T11:25:02.899Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T11:25:02.917755742Z [inf]  2026-09-09T11:25:02.912Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T11:25:02.917766598Z [inf]  2026-09-09T11:25:02.913Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T11:25:02.977712313Z [inf]  2026-09-09T11:25:02.975Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T11:25:02.977721923Z [inf]  2026-09-09T11:25:02.976Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3874 ms
+2026-09-09T11:25:03.568694033Z [inf]  2026-09-09T11:25:03.510Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T11:25:03.709196592Z [inf]  2026-09-09T11:25:03.707Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T11:25:03.808932837Z [inf]  2026-09-09T11:25:03.802Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T11:25:04.874593937Z [inf]  2026-09-09T11:25:04.810Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T11:25:04.999133261Z [inf]  2026-09-09T11:25:04.994Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T11:25:05.749435450Z [inf]  2026-09-09T11:25:05.731Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@6e794f53
+2026-09-09T11:25:05.749442916Z [inf]  2026-09-09T11:25:05.733Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-09T11:25:07.711330169Z [inf]  2026-09-09T11:25:07.700Z  INFO 1 --- [inventory] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-09T11:25:07.791002500Z [inf]  Hibernate: alter table rnpc_appointments modify column history TEXT
+2026-09-09T11:25:07.791009904Z [inf]  Hibernate: alter table rnpc_appointments modify column issue_description TEXT not null
+2026-09-09T11:25:07.791016739Z [inf]  Hibernate: alter table rnpc_appointments modify column item_description TEXT
+2026-09-09T11:25:07.815606844Z [inf]  Hibernate: alter table rnpc_cellphone_parts modify column description TEXT
+2026-09-09T11:25:07.822490207Z [inf]  Hibernate: alter table rnpc_clients modify column address TEXT
+2026-09-09T11:25:07.836683031Z [inf]  Hibernate: alter table rnpc_cooler_parts modify column notes TEXT
+2026-09-09T11:25:07.849312626Z [inf]  Hibernate: alter table rnpc_laptop_parts modify column description TEXT
+2026-09-09T11:25:07.861776789Z [inf]  Hibernate: alter table rnpc_motherboard_parts modify column notable_features TEXT
+2026-09-09T11:25:07.868496883Z [inf]  Hibernate: alter table rnpc_psu_parts modify column notes TEXT
+2026-09-09T11:25:07.881899624Z [inf]  Hibernate: alter table rnpc_repair_records modify column fix TEXT
+2026-09-09T11:25:07.895477575Z [inf]  Hibernate: alter table rnpc_repair_records modify column issue_description TEXT
+2026-09-09T11:25:07.902015802Z [inf]  Hibernate: alter table rnpc_repair_records modify column recommendation TEXT
+2026-09-09T11:25:07.914563788Z [inf]  Hibernate: alter table rnpc_repair_records modify column remarks TEXT
+2026-09-09T11:25:07.925209732Z [inf]  Hibernate: alter table users modify column address TEXT
+2026-09-09T11:25:08.042561825Z [inf]  2026-09-09T11:25:08.025Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:25:09.629419925Z [inf]  2026-09-09T11:25:09.612Z  WARN 1 --- [inventory] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-09T11:25:09.766998607Z [inf]  2026-09-09T11:25:09.764Z  INFO 1 --- [inventory] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-09-09T11:25:09.767008408Z [inf]  2026-09-09T11:25:09.765Z  WARN 1 --- [inventory] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2026-09-09T11:25:09.872721602Z [inf]  2026-09-09T11:25:09.867Z  INFO 1 --- [inventory] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-09-09T11:25:10.598803597Z [inf]  2026-09-09T11:25:10.299Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration': Unsatisfied dependency expressed through method 'setFilterChains' parameter 0: Error creating bean with name 'securityFilterChain' defined in class path resource [com/rnpc/inventory/config/SecurityConfig.class]: Failed to instantiate [org.springframework.security.web.SecurityFilterChain]: Factory method 'securityFilterChain' threw exception with message: No qualifying bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' available
+2026-09-09T11:25:10.598810642Z [inf]  2026-09-09T11:25:10.302Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:25:10.598817202Z [inf]  2026-09-09T11:25:10.303Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-09-09T11:25:10.598824007Z [inf]  2026-09-09T11:25:10.324Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-09-09T11:25:10.598830548Z [inf]  2026-09-09T11:25:10.326Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T11:25:10.598837211Z [inf]  2026-09-09T11:25:10.374Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T11:25:10.598846707Z [inf]  
+2026-09-09T11:25:10.598854070Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T11:25:10.600131621Z [inf]  
+2026-09-09T11:25:10.600134119Z [inf]  2026-09-09T11:25:10.418Z ERROR 1 --- [inventory] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2026-09-09T11:25:10.600144939Z [inf]  
+2026-09-09T11:25:10.600152535Z [inf]  ***************************
+2026-09-09T11:25:10.600159858Z [inf]  APPLICATION FAILED TO START
+2026-09-09T11:25:10.600166347Z [inf]  ***************************
+2026-09-09T11:25:10.600173427Z [inf]  
+2026-09-09T11:25:10.600179797Z [inf]  Description:
+2026-09-09T11:25:10.600186365Z [inf]  
+2026-09-09T11:25:10.600192870Z [inf]  Parameter 0 of method setFilterChains in org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration required a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' that could not be found.
+2026-09-09T11:25:10.600199733Z [inf]  
+2026-09-09T11:25:10.600205849Z [inf]  
+2026-09-09T11:25:10.600212420Z [inf]  Action:
+2026-09-09T11:25:10.600218927Z [inf]  
+2026-09-09T11:25:10.600225461Z [inf]  Consider defining a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' in your configuration.
+2026-09-09T11:25:12.855146235Z [inf]  
+2026-09-09T11:25:12.855151222Z [inf]    .   ____          _            __ _ _
+2026-09-09T11:25:12.855158756Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T11:25:12.855163412Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T11:25:12.855168499Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T11:25:12.855173172Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T11:25:12.855179670Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T11:25:12.855183979Z [inf]  
+2026-09-09T11:25:12.855188643Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T11:25:12.855194322Z [inf]  
+2026-09-09T11:25:13.034129078Z [inf]  2026-09-09T11:25:12.989Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T11:25:13.036355941Z [inf]  2026-09-09T11:25:13.034Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T11:25:14.977217239Z [inf]  2026-09-09T11:25:14.972Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T11:25:15.172159600Z [inf]  2026-09-09T11:25:15.156Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 177 ms. Found 16 JPA repository interfaces.
+2026-09-09T11:25:16.886797430Z [inf]  2026-09-09T11:25:16.875Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T11:25:16.894033902Z [inf]  2026-09-09T11:25:16.888Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T11:25:16.894043579Z [inf]  2026-09-09T11:25:16.888Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T11:25:16.974553402Z [inf]  2026-09-09T11:25:16.966Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T11:25:16.974560536Z [inf]  2026-09-09T11:25:16.967Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3884 ms
+2026-09-09T11:25:17.472279475Z [inf]  2026-09-09T11:25:17.465Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T11:25:17.830853168Z [inf]  2026-09-09T11:25:17.665Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T11:25:17.857680658Z [inf]  2026-09-09T11:25:17.848Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T11:25:18.890443633Z [inf]  2026-09-09T11:25:18.755Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T11:25:18.890448533Z [inf]  2026-09-09T11:25:18.853Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T11:25:19.585367157Z [inf]  2026-09-09T11:25:19.581Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@3b33fff9
+2026-09-09T11:25:19.585373129Z [inf]  2026-09-09T11:25:19.582Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-09T11:25:21.893960859Z [inf]  Hibernate: alter table rnpc_repair_records modify column recommendation TEXT
+2026-09-09T11:25:21.893970698Z [inf]  Hibernate: alter table rnpc_repair_records modify column remarks TEXT
+2026-09-09T11:25:21.893980744Z [inf]  Hibernate: alter table users modify column address TEXT
+2026-09-09T11:25:21.894159663Z [inf]  2026-09-09T11:25:21.612Z  INFO 1 --- [inventory] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-09T11:25:21.894163721Z [inf]  Hibernate: alter table rnpc_appointments modify column history TEXT
+2026-09-09T11:25:21.894168216Z [inf]  Hibernate: alter table rnpc_appointments modify column issue_description TEXT not null
+2026-09-09T11:25:21.894173215Z [inf]  Hibernate: alter table rnpc_appointments modify column item_description TEXT
+2026-09-09T11:25:21.894177621Z [inf]  Hibernate: alter table rnpc_cellphone_parts modify column description TEXT
+2026-09-09T11:25:21.894182938Z [inf]  Hibernate: alter table rnpc_clients modify column address TEXT
+2026-09-09T11:25:21.894187274Z [inf]  Hibernate: alter table rnpc_cooler_parts modify column notes TEXT
+2026-09-09T11:25:21.894191927Z [inf]  Hibernate: alter table rnpc_laptop_parts modify column description TEXT
+2026-09-09T11:25:21.894196799Z [inf]  Hibernate: alter table rnpc_motherboard_parts modify column notable_features TEXT
+2026-09-09T11:25:21.894201283Z [inf]  Hibernate: alter table rnpc_psu_parts modify column notes TEXT
+2026-09-09T11:25:21.894205808Z [inf]  Hibernate: alter table rnpc_repair_records modify column fix TEXT
+2026-09-09T11:25:21.894210903Z [inf]  Hibernate: alter table rnpc_repair_records modify column issue_description TEXT
+2026-09-09T11:25:21.939973610Z [inf]  2026-09-09T11:25:21.935Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:25:23.909462673Z [inf]  2026-09-09T11:25:23.878Z  WARN 1 --- [inventory] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-09T11:25:23.979462759Z [inf]  2026-09-09T11:25:23.977Z  INFO 1 --- [inventory] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-09-09T11:25:23.979469210Z [inf]  2026-09-09T11:25:23.978Z  WARN 1 --- [inventory] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2026-09-09T11:25:24.127915469Z [inf]  2026-09-09T11:25:24.096Z  INFO 1 --- [inventory] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-09-09T11:25:24.447663207Z [inf]  2026-09-09T11:25:24.394Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration': Unsatisfied dependency expressed through method 'setFilterChains' parameter 0: Error creating bean with name 'securityFilterChain' defined in class path resource [com/rnpc/inventory/config/SecurityConfig.class]: Failed to instantiate [org.springframework.security.web.SecurityFilterChain]: Factory method 'securityFilterChain' threw exception with message: No qualifying bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' available
+2026-09-09T11:25:24.447667854Z [inf]  2026-09-09T11:25:24.397Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:25:24.447672693Z [inf]  2026-09-09T11:25:24.399Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-09-09T11:25:24.471682045Z [inf]  2026-09-09T11:25:24.466Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-09-09T11:25:24.471689753Z [inf]  2026-09-09T11:25:24.468Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T11:25:24.485131028Z [inf]  2026-09-09T11:25:24.478Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T11:25:24.485138161Z [inf]  
+2026-09-09T11:25:24.485142970Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T11:25:24.509355284Z [inf]  Consider defining a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' in your configuration.
+2026-09-09T11:25:24.509365368Z [inf]  
+2026-09-09T11:25:24.509394459Z [inf]  2026-09-09T11:25:24.502Z ERROR 1 --- [inventory] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2026-09-09T11:25:24.509400411Z [inf]  
+2026-09-09T11:25:24.509405776Z [inf]  ***************************
+2026-09-09T11:25:24.509411200Z [inf]  APPLICATION FAILED TO START
+2026-09-09T11:25:24.509417010Z [inf]  ***************************
+2026-09-09T11:25:24.509422298Z [inf]  
+2026-09-09T11:25:24.509428134Z [inf]  Description:
+2026-09-09T11:25:24.509433163Z [inf]  
+2026-09-09T11:25:24.509438651Z [inf]  Parameter 0 of method setFilterChains in org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration required a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' that could not be found.
+2026-09-09T11:25:24.509444075Z [inf]  
+2026-09-09T11:25:24.509449215Z [inf]  
+2026-09-09T11:25:24.509454335Z [inf]  Action:
+2026-09-09T11:25:24.509459724Z [inf]  
+2026-09-09T11:25:27.005022529Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T11:25:27.005032389Z [inf]  
+2026-09-09T11:25:27.005041444Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T11:25:27.005047541Z [inf]  
+2026-09-09T11:25:27.005064710Z [inf]    .   ____          _            __ _ _
+2026-09-09T11:25:27.005074769Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T11:25:27.005078833Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T11:25:27.005084959Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T11:25:27.005087675Z [inf]  
+2026-09-09T11:25:27.005091409Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T11:25:27.205299516Z [inf]  2026-09-09T11:25:27.196Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T11:25:27.205306534Z [inf]  2026-09-09T11:25:27.199Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T11:25:29.298185702Z [inf]  2026-09-09T11:25:29.268Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T11:25:29.420133111Z [inf]  2026-09-09T11:25:29.409Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 133 ms. Found 16 JPA repository interfaces.
+2026-09-09T11:25:31.086069901Z [inf]  2026-09-09T11:25:31.083Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T11:25:31.099524841Z [inf]  2026-09-09T11:25:31.098Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T11:25:31.099535585Z [inf]  2026-09-09T11:25:31.098Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T11:25:31.216786164Z [inf]  2026-09-09T11:25:31.199Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T11:25:31.216795718Z [inf]  2026-09-09T11:25:31.201Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3919 ms
+2026-09-09T11:25:32.040470921Z [inf]  2026-09-09T11:25:31.749Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T11:25:32.040477704Z [inf]  2026-09-09T11:25:31.984Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T11:25:32.116241568Z [inf]  2026-09-09T11:25:32.092Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T11:25:33.082272159Z [inf]  2026-09-09T11:25:32.889Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T11:25:33.082278404Z [inf]  2026-09-09T11:25:32.987Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T11:25:34.102779982Z [inf]  2026-09-09T11:25:33.788Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5af38a4a
+2026-09-09T11:25:34.102784315Z [inf]  2026-09-09T11:25:33.790Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-09T11:25:36.139836375Z [inf]  Hibernate: alter table rnpc_repair_records modify column issue_description TEXT
+2026-09-09T11:25:36.139850473Z [inf]  Hibernate: alter table rnpc_repair_records modify column recommendation TEXT
+2026-09-09T11:25:36.139859629Z [inf]  Hibernate: alter table rnpc_repair_records modify column remarks TEXT
+2026-09-09T11:25:36.139868377Z [inf]  Hibernate: alter table users modify column address TEXT
+2026-09-09T11:25:36.139872501Z [inf]  2026-09-09T11:25:35.787Z  INFO 1 --- [inventory] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-09T11:25:36.139879717Z [inf]  2026-09-09T11:25:36.089Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:25:36.139881717Z [inf]  Hibernate: alter table rnpc_appointments modify column history TEXT
+2026-09-09T11:25:36.139888863Z [inf]  Hibernate: alter table rnpc_appointments modify column issue_description TEXT not null
+2026-09-09T11:25:36.139894901Z [inf]  Hibernate: alter table rnpc_appointments modify column item_description TEXT
+2026-09-09T11:25:36.139902748Z [inf]  Hibernate: alter table rnpc_cellphone_parts modify column description TEXT
+2026-09-09T11:25:36.139908882Z [inf]  Hibernate: alter table rnpc_clients modify column address TEXT
+2026-09-09T11:25:36.139915449Z [inf]  Hibernate: alter table rnpc_cooler_parts modify column notes TEXT
+2026-09-09T11:25:36.139948102Z [inf]  Hibernate: alter table rnpc_laptop_parts modify column description TEXT
+2026-09-09T11:25:36.139954289Z [inf]  Hibernate: alter table rnpc_motherboard_parts modify column notable_features TEXT
+2026-09-09T11:25:36.139959019Z [inf]  Hibernate: alter table rnpc_psu_parts modify column notes TEXT
+2026-09-09T11:25:36.139963902Z [inf]  Hibernate: alter table rnpc_repair_records modify column fix TEXT
+2026-09-09T11:25:38.161834360Z [inf]  2026-09-09T11:25:37.880Z  WARN 1 --- [inventory] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-09T11:25:38.161841193Z [inf]  2026-09-09T11:25:38.049Z  INFO 1 --- [inventory] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-09-09T11:25:38.161847971Z [inf]  2026-09-09T11:25:38.050Z  WARN 1 --- [inventory] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2026-09-09T11:25:38.205179907Z [inf]  2026-09-09T11:25:38.187Z  INFO 1 --- [inventory] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-09-09T11:25:38.600623706Z [inf]  2026-09-09T11:25:38.584Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration': Unsatisfied dependency expressed through method 'setFilterChains' parameter 0: Error creating bean with name 'securityFilterChain' defined in class path resource [com/rnpc/inventory/config/SecurityConfig.class]: Failed to instantiate [org.springframework.security.web.SecurityFilterChain]: Factory method 'securityFilterChain' threw exception with message: No qualifying bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' available
+2026-09-09T11:25:38.600630495Z [inf]  2026-09-09T11:25:38.587Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:25:38.600637662Z [inf]  2026-09-09T11:25:38.589Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-09-09T11:25:38.678620105Z [inf]  2026-09-09T11:25:38.650Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-09-09T11:25:38.678629898Z [inf]  2026-09-09T11:25:38.652Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T11:25:38.692423667Z [inf]  2026-09-09T11:25:38.684Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T11:25:38.692438628Z [inf]  
+2026-09-09T11:25:38.692449337Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T11:25:39.136447728Z [inf]  
+2026-09-09T11:25:39.136464839Z [inf]  Action:
+2026-09-09T11:25:39.136475651Z [inf]  
+2026-09-09T11:25:39.136481774Z [inf]  Consider defining a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' in your configuration.
+2026-09-09T11:25:39.136487884Z [inf]  
+2026-09-09T11:25:39.136548907Z [inf]  2026-09-09T11:25:38.779Z ERROR 1 --- [inventory] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2026-09-09T11:25:39.136555564Z [inf]  
+2026-09-09T11:25:39.136562074Z [inf]  ***************************
+2026-09-09T11:25:39.136568345Z [inf]  APPLICATION FAILED TO START
+2026-09-09T11:25:39.136574848Z [inf]  ***************************
+2026-09-09T11:25:39.136580948Z [inf]  
+2026-09-09T11:25:39.136587486Z [inf]  Description:
+2026-09-09T11:25:39.136593600Z [inf]  
+2026-09-09T11:25:39.136598101Z [inf]  Parameter 0 of method setFilterChains in org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration required a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' that could not be found.
+2026-09-09T11:25:39.136602885Z [inf]  
+2026-09-09T11:25:41.232101543Z [inf]  
+2026-09-09T11:25:41.232108099Z [inf]    .   ____          _            __ _ _
+2026-09-09T11:25:41.232113172Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T11:25:41.232118062Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T11:25:41.232122976Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T11:25:41.232127680Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T11:25:41.232131593Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T11:25:41.232137048Z [inf]  
+2026-09-09T11:25:41.284938897Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T11:25:41.284952127Z [inf]  
+2026-09-09T11:25:41.498486772Z [inf]  2026-09-09T11:25:41.484Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T11:25:41.498491945Z [inf]  2026-09-09T11:25:41.487Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T11:25:43.532364604Z [inf]  2026-09-09T11:25:43.508Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T11:25:43.691366648Z [inf]  2026-09-09T11:25:43.679Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 164 ms. Found 16 JPA repository interfaces.
+2026-09-09T11:25:45.498295962Z [inf]  2026-09-09T11:25:45.294Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T11:25:45.498305378Z [inf]  2026-09-09T11:25:45.308Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T11:25:45.498313104Z [inf]  2026-09-09T11:25:45.308Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T11:25:45.498322380Z [inf]  2026-09-09T11:25:45.381Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T11:25:45.498330832Z [inf]  2026-09-09T11:25:45.382Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3833 ms
+2026-09-09T11:25:45.961497140Z [inf]  2026-09-09T11:25:45.878Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T11:25:45.993790536Z [inf]  2026-09-09T11:25:45.992Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T11:25:46.096057646Z [inf]  2026-09-09T11:25:46.093Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T11:25:46.991712082Z [inf]  2026-09-09T11:25:46.987Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T11:25:47.091472189Z [inf]  2026-09-09T11:25:47.086Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T11:25:47.997513480Z [inf]  2026-09-09T11:25:47.983Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@7aa3857b
+2026-09-09T11:25:47.997522272Z [inf]  2026-09-09T11:25:47.985Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-09T11:25:49.948986898Z [inf]  2026-09-09T11:25:49.947Z  INFO 1 --- [inventory] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-09T11:25:50.001386691Z [inf]  Hibernate: alter table rnpc_appointments modify column history TEXT
+2026-09-09T11:25:50.015519027Z [inf]  Hibernate: alter table rnpc_appointments modify column issue_description TEXT not null
+2026-09-09T11:25:50.037171425Z [inf]  Hibernate: alter table rnpc_appointments modify column item_description TEXT
+2026-09-09T11:25:50.044322882Z [inf]  Hibernate: alter table rnpc_cellphone_parts modify column description TEXT
+2026-09-09T11:25:50.051251387Z [inf]  Hibernate: alter table rnpc_clients modify column address TEXT
+2026-09-09T11:25:50.077608323Z [inf]  Hibernate: alter table rnpc_cooler_parts modify column notes TEXT
+2026-09-09T11:25:50.077614984Z [inf]  Hibernate: alter table rnpc_laptop_parts modify column description TEXT
+2026-09-09T11:25:50.101542003Z [inf]  Hibernate: alter table rnpc_motherboard_parts modify column notable_features TEXT
+2026-09-09T11:25:50.108320248Z [inf]  Hibernate: alter table rnpc_psu_parts modify column notes TEXT
+2026-09-09T11:25:50.115805059Z [inf]  Hibernate: alter table rnpc_repair_records modify column fix TEXT
+2026-09-09T11:25:50.123025943Z [inf]  Hibernate: alter table rnpc_repair_records modify column issue_description TEXT
+2026-09-09T11:25:50.131029324Z [inf]  Hibernate: alter table rnpc_repair_records modify column recommendation TEXT
+2026-09-09T11:25:50.145533925Z [inf]  Hibernate: alter table rnpc_repair_records modify column remarks TEXT
+2026-09-09T11:25:50.147157841Z [inf]  Hibernate: alter table users modify column address TEXT
+2026-09-09T11:25:50.536044798Z [inf]  2026-09-09T11:25:50.236Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:25:51.894418446Z [inf]  2026-09-09T11:25:51.886Z  WARN 1 --- [inventory] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-09T11:25:51.986859515Z [inf]  2026-09-09T11:25:51.985Z  INFO 1 --- [inventory] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-09-09T11:25:51.986865707Z [inf]  2026-09-09T11:25:51.986Z  WARN 1 --- [inventory] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2026-09-09T11:25:52.082075837Z [inf]  2026-09-09T11:25:52.079Z  INFO 1 --- [inventory] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-09-09T11:25:52.551048468Z [inf]  2026-09-09T11:25:52.422Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration': Unsatisfied dependency expressed through method 'setFilterChains' parameter 0: Error creating bean with name 'securityFilterChain' defined in class path resource [com/rnpc/inventory/config/SecurityConfig.class]: Failed to instantiate [org.springframework.security.web.SecurityFilterChain]: Factory method 'securityFilterChain' threw exception with message: No qualifying bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' available
+2026-09-09T11:25:52.551055718Z [inf]  2026-09-09T11:25:52.450Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:25:52.551063003Z [inf]  2026-09-09T11:25:52.452Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-09-09T11:25:52.551070183Z [inf]  2026-09-09T11:25:52.488Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-09-09T11:25:52.551077547Z [inf]  2026-09-09T11:25:52.490Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T11:25:52.551086882Z [inf]  2026-09-09T11:25:52.501Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T11:25:52.551094920Z [inf]  
+2026-09-09T11:25:52.551102822Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T11:25:52.552308620Z [inf]  2026-09-09T11:25:52.524Z ERROR 1 --- [inventory] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+2026-09-09T11:25:52.552315563Z [inf]  
+2026-09-09T11:25:52.552320421Z [inf]  ***************************
+2026-09-09T11:25:52.552324611Z [inf]  APPLICATION FAILED TO START
+2026-09-09T11:25:52.552329008Z [inf]  ***************************
+2026-09-09T11:25:52.552333325Z [inf]  
+2026-09-09T11:25:52.552338093Z [inf]  Description:
+2026-09-09T11:25:52.552344100Z [inf]  
+2026-09-09T11:25:52.552350109Z [inf]  Parameter 0 of method setFilterChains in org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration required a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' that could not be found.
+2026-09-09T11:25:52.552356772Z [inf]  
+2026-09-09T11:25:52.552363484Z [inf]  
+2026-09-09T11:25:52.552369719Z [inf]  Action:
+2026-09-09T11:25:52.552375909Z [inf]  
+2026-09-09T11:25:52.552381332Z [inf]  Consider defining a bean of type 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository' in your configuration.
+2026-09-09T11:25:52.552386918Z [inf]  
+2026-09-09T11:25:55.002541924Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T11:25:55.002551123Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T11:25:55.002558657Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T11:25:55.002565959Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T11:25:55.002572959Z [inf]  
+2026-09-09T11:25:55.002579798Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T11:25:55.002586134Z [inf]  
+2026-09-09T11:25:55.002614429Z [inf]  
+2026-09-09T11:25:55.002621376Z [inf]    .   ____          _            __ _ _
+2026-09-09T11:25:55.002627170Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T11:25:55.206908416Z [inf]  2026-09-09T11:25:55.188Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T11:25:55.206916038Z [inf]  2026-09-09T11:25:55.191Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T11:25:57.273076139Z [inf]  2026-09-09T11:25:57.223Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T11:25:57.756502746Z [inf]  2026-09-09T11:25:57.406Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 176 ms. Found 16 JPA repository interfaces.
+2026-09-09T11:25:59.201892046Z [inf]  2026-09-09T11:25:59.108Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T11:25:59.201899301Z [inf]  2026-09-09T11:25:59.193Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T11:25:59.201906404Z [inf]  2026-09-09T11:25:59.193Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T11:25:59.345350912Z [inf]  2026-09-09T11:25:59.283Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T11:25:59.345358081Z [inf]  2026-09-09T11:25:59.284Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4008 ms
+2026-09-09T11:25:59.875732226Z [inf]  2026-09-09T11:25:59.798Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T11:26:00.017200568Z [inf]  2026-09-09T11:26:00.009Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T11:26:00.134806898Z [inf]  2026-09-09T11:26:00.108Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T11:26:00.864236604Z [inf]  2026-09-09T11:26:00.784Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T11:26:00.864242370Z [inf]  2026-09-09T11:26:00.814Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T11:26:01.453008267Z [inf]  2026-09-09T11:26:01.424Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5af38a4a
+2026-09-09T11:26:01.453012631Z [inf]  2026-09-09T11:26:01.426Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-09T11:26:03.541150427Z [inf]  2026-09-09T11:26:03.512Z  INFO 1 --- [inventory] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-09T11:26:03.875247865Z [inf]  Hibernate: alter table rnpc_appointments modify column issue_description TEXT not null
+2026-09-09T11:26:03.875258491Z [inf]  Hibernate: alter table rnpc_appointments modify column item_description TEXT
+2026-09-09T11:26:03.875265174Z [inf]  Hibernate: alter table rnpc_cellphone_parts modify column description TEXT
+2026-09-09T11:26:03.875270860Z [inf]  Hibernate: alter table rnpc_clients modify column address TEXT
+2026-09-09T11:26:03.875276385Z [inf]  Hibernate: alter table rnpc_cooler_parts modify column notes TEXT
+2026-09-09T11:26:03.875310798Z [inf]  Hibernate: alter table rnpc_laptop_parts modify column description TEXT
+2026-09-09T11:26:03.875316254Z [inf]  Hibernate: alter table rnpc_motherboard_parts modify column notable_features TEXT
+2026-09-09T11:26:03.875321238Z [inf]  Hibernate: alter table rnpc_psu_parts modify column notes TEXT
+2026-09-09T11:26:03.875326868Z [inf]  Hibernate: alter table rnpc_repair_records modify column fix TEXT
+2026-09-09T11:26:03.875329074Z [inf]  Hibernate: alter table rnpc_appointments modify column history TEXT
+2026-09-09T11:26:03.875338369Z [inf]  Hibernate: alter table rnpc_repair_records modify column issue_description TEXT
+2026-09-09T11:26:03.875343100Z [inf]  Hibernate: alter table rnpc_repair_records modify column recommendation TEXT
+2026-09-09T11:26:03.875348026Z [inf]  Hibernate: alter table rnpc_repair_records modify column remarks TEXT
+2026-09-09T11:26:03.875352812Z [inf]  Hibernate: alter table users modify column address TEXT
+2026-09-09T11:26:03.896671357Z [inf]  2026-09-09T11:26:03.893Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T11:26:06.307003922Z [inf]  2026-09-09T11:26:06.305Z  WARN 1 --- [inventory] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-09T11:26:06.497299068Z [inf]  2026-09-09T11:26:06.493Z  INFO 1 --- [inventory] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-09-09T11:26:06.497304145Z [inf]  2026-09-09T11:26:06.494Z  WARN 1 --- [inventory] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2026-09-09T11:26:06.921136174Z [inf]  2026-09-09T11:26:06.790Z  INFO 1 --- [inventory] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]

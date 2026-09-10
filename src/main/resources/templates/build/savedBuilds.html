@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>My Builds - RNPC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/card :: card-styles}"></th:block>
+    <th:block th:replace="~{fragments/page-header :: page-header-styles}"></th:block>
+    <th:block th:replace="~{fragments/empty-state :: empty-state-styles}"></th:block>
+    <style>
+        /*
+          Card-grid layout borrowed (arrangement only - see chat) from gemini/save build.jpg:
+          image-left/specs-right body, primary action pair + secondary action below, footer with
+          date left / total right. Every color, radius and shadow below is a theme.css var already
+          used elsewhere in this app (card.html/table-card.html/part-search's own rules in
+          buildPc.html) - none of the reference's dark theme carried over.
+
+          No approved mockup covers this page's own layout (it didn't exist before this feature),
+          so card.html/empty-state.html's content/action params (cross-file ~{::#id} fragment
+          expressions) are NOT called from here for the same reason dashboard.html/the old version
+          of this page didn't: a same-template self-reference duplicates the source element and
+          makes the "active" copy inherit its own hidden attribute. Direct markup below reproduces
+          .card's classes instead.
+        */
+        .content{ padding:var(--space-5); }
+
+        .builds-toolbar{ margin-bottom:var(--space-4); }
+        .builds-search{
+            display:flex; align-items:center; gap:var(--space-2); background:var(--bg-card); border:1px solid var(--border);
+            border-radius:999px; padding:9px var(--space-4); max-width:360px;
+        }
+        .builds-search svg{ width:15px; height:15px; color:var(--text-muted); flex-shrink:0; }
+        .builds-search input{ border:none; background:none; outline:none; font-size:13px; color:var(--text); width:100%; }
+
+        .builds-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:var(--space-4); }
+        .build-card-name{ font-size:15px; font-weight:700; margin:0 0 var(--space-4); color:var(--text); }
+
+        .build-card-body{ display:flex; gap:var(--space-3); margin-bottom:var(--space-4); }
+        .build-card-img{
+            width:88px; height:88px; border-radius:var(--radius-sm); background:var(--bg-page);
+            display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;
+        }
+        .build-card-img img{ width:100%; height:100%; object-fit:cover; }
+        .build-card-img i{ width:26px; height:26px; color:var(--border); }
+
+        .build-card-specs{ flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:5px; }
+        .spec-row{ display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); font-size:12.5px; }
+        .spec-label{ color:var(--text-muted); font-weight:600; flex-shrink:0; }
+        .spec-value-group{ display:flex; align-items:center; gap:6px; min-width:0; }
+        .spec-value{ color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .spec-value.spec-empty{ color:var(--text-muted); font-style:italic; }
+        .spec-value-group .badge-pill{ flex-shrink:0; padding:1px 8px; font-size:10.5px; }
+
+        .build-card-actions-primary{ display:flex; gap:var(--space-2); }
+        .build-card-actions-primary .btn-accent-sm{ flex:1; justify-content:center; margin-top:0; }
+        .build-card-actions-secondary{ margin-top:var(--space-2); }
+        .build-card-actions-secondary .table-action{ width:100%; justify-content:center; }
+        .build-card-actions-secondary form{ margin:0; }
+
+        .build-card-footer{
+            display:flex; align-items:center; justify-content:space-between; gap:var(--space-2);
+            margin-top:var(--space-4); padding-top:var(--space-3); border-top:1px solid var(--border);
+        }
+        .build-card-date{ font-size:12px; color:var(--text-muted); }
+        .build-card-total{ font-size:13.5px; font-weight:800; color:var(--text); }
+
+        .badge-pill.badge-available{ background:var(--green-subtle); color:var(--green); }
+
+        .no-search-results{ display:none; text-align:center; padding:var(--space-6) var(--space-4); color:var(--text-muted); font-size:13.5px; font-weight:600; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/layout-app :: sidebar(active='my-builds', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+
+    <main class="content">
+        <div class="rn-page-header">
+            <div class="rn-page-header-text">
+                <h1 class="rn-page-header-title">My Builds</h1>
+                <p class="rn-page-header-subtitle">PC configurations you've saved from the builder for later.</p>
+            </div>
+            <div class="rn-page-header-actions">
+                <a href="/build" class="btn-accent-sm"><i data-feather="plus"></i>New Build</a>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(builds)}" class="card">
+            <div class="empty-state">
+                <i data-feather="bookmark" class="empty-state-icon"></i>
+                <p class="empty-state-message">No saved builds yet.</p>
+                <div class="empty-state-actions">
+                    <a href="/build" class="btn-accent-sm">Build a PC</a>
+                </div>
+            </div>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(builds)}">
+            <div class="builds-toolbar">
+                <div class="builds-search">
+                    <i data-feather="search"></i>
+                    <input type="search" id="buildSearchInput" placeholder="Search your builds by name..." aria-label="Search saved builds"/>
+                </div>
+            </div>
+
+            <div class="builds-grid" id="buildsGrid">
+                <div class="card build-card" th:each="build : ${builds}" th:attr="data-build-name=${#strings.toLowerCase(build.name)}">
+                    <h2 class="build-card-name" th:text="${build.name}"></h2>
+
+                    <div class="build-card-body">
+                        <div class="build-card-img">
+                            <img th:if="${caseImageByBuild.get(build.savedBuildId)}"
+                                 th:src="@{'/images/' + ${caseImageByBuild.get(build.savedBuildId)}}" alt=""/>
+                            <i th:unless="${caseImageByBuild.get(build.savedBuildId)}" data-feather="box"></i>
+                        </div>
+
+                        <div class="build-card-specs">
+                            <div class="spec-row" th:each="rowEntry : ${specRowsByBuild.get(build.savedBuildId)}">
+                                <span class="spec-label" th:text="${rowEntry.key}"></span>
+                                <span class="spec-value-group">
+                                    <span th:if="${rowEntry.value == null}" class="spec-value spec-empty">Not selected</span>
+                                    <th:block th:if="${rowEntry.value != null}">
+                                        <span class="spec-value" th:text="${rowEntry.value.brand} + ' ' + ${rowEntry.value.modelName}"></span>
+                                        <span th:unless="${rowEntry.value.available}" class="badge-pill badge-cancelled">Unavailable</span>
+                                    </th:block>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="build-card-actions-primary">
+                        <button type="button" class="btn-accent-sm load-build-btn" th:attr="data-build-id=${build.savedBuildId}">
+                            <i data-feather="upload"></i>Load in Picker
+                        </button>
+                        <button type="button" class="btn-accent-sm order-build-btn" th:attr="data-build-id=${build.savedBuildId}">
+                            <i data-feather="shopping-cart"></i>Order Build
+                        </button>
+                    </div>
+                    <div class="build-card-actions-secondary">
+                        <form th:action="@{'/build/my-builds/' + ${build.savedBuildId} + '/duplicate'}" method="post">
+                            <button type="submit" class="table-action"><i data-feather="copy"></i>Duplicate Build</button>
+                        </form>
+                    </div>
+
+                    <div class="build-card-footer">
+                        <span class="build-card-date" th:if="${build.createdAt != null}"
+                              th:text="'Saved ' + ${#dates.format(build.createdAt, 'MMM d, yyyy')}"></span>
+                        <span class="build-card-total" th:insert="~{fragments/money :: amount(amount=${build.totalPrice})}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="no-search-results" id="noSearchResults">No saved builds match that search.</div>
+        </div>
+    </main>
+</div>
+
+<!-- Order Build - resolves the same live-available selections as Load in Picker (via
+     /build/my-builds/{id}/load) then submits straight to the existing /order/review checkout
+     flow, skipping the picker entirely. No new backend/persistence for this - both endpoints
+     already exist. -->
+<form id="orderBuildForm" action="#" th:action="@{/order/review}" method="post" style="display:none;">
+    <input type="hidden" name="cpuId" id="orderBuildCpuId"/>
+    <input type="hidden" name="gpuId" id="orderBuildGpuId"/>
+    <input type="hidden" name="motherboardId" id="orderBuildMotherboardId"/>
+    <input type="hidden" name="ramId" id="orderBuildRamId"/>
+    <input type="hidden" name="storageSsdId" id="orderBuildStorageSsdId"/>
+    <input type="hidden" name="storageHddId" id="orderBuildStorageHddId"/>
+    <input type="hidden" name="psuId" id="orderBuildPsuId"/>
+    <input type="hidden" name="caseId" id="orderBuildCaseId"/>
+    <input type="hidden" name="coolerId" id="orderBuildCoolerId"/>
+</form>
+
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+
+<script th:inline="javascript">
+document.addEventListener('DOMContentLoaded', function () {
+    const orderBuildFieldByCategory = {
+        CPU: 'orderBuildCpuId',
+        GPU: 'orderBuildGpuId',
+        MOTHERBOARD: 'orderBuildMotherboardId',
+        RAM: 'orderBuildRamId',
+        STORAGE_SSD: 'orderBuildStorageSsdId',
+        STORAGE_HDD: 'orderBuildStorageHddId',
+        PSU: 'orderBuildPsuId',
+        CASE: 'orderBuildCaseId',
+        COOLER: 'orderBuildCoolerId'
+    };
+
+    document.querySelectorAll('.load-build-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            window.location.href = '/build?loadBuildId=' + btn.getAttribute('data-build-id');
+        });
+    });
+
+    document.querySelectorAll('.order-build-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const buildId = btn.getAttribute('data-build-id');
+            fetch('/build/my-builds/' + buildId + '/load')
+                .then(function (res) { return res.ok ? res.json() : Promise.reject(); })
+                .then(function (result) {
+                    const selections = result.selections || {};
+                    if (Object.keys(selections).length === 0) {
+                        alert('None of this build\'s parts are currently available to order.');
+                        return;
+                    }
+                    Object.keys(orderBuildFieldByCategory).forEach(function (category) {
+                        document.getElementById(orderBuildFieldByCategory[category]).value = selections[category] || '';
+                    });
+                    if (result.unavailableLabels && result.unavailableLabels.length > 0) {
+                        alert('Some items from this build are no longer available and will be left out of the order:\n'
+                            + result.unavailableLabels.join('\n'));
+                    }
+                    document.getElementById('orderBuildForm').submit();
+                })
+                .catch(function () {
+                    alert('Could not start an order from that saved build.');
+                });
+        });
+    });
+
+    const searchInput = document.getElementById('buildSearchInput');
+    const cards = Array.from(document.querySelectorAll('.build-card'));
+    const noResults = document.getElementById('noSearchResults');
+    searchInput.addEventListener('input', function () {
+        const term = this.value.trim().toLowerCase();
+        let visibleCount = 0;
+        cards.forEach(function (card) {
+            const matches = card.getAttribute('data-build-name').indexOf(term) > -1;
+            card.hidden = !matches;
+            if (matches) visibleCount++;
+        });
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    });
+});
+</script>
+
+</body>
+</html>

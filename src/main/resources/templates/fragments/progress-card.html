@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Matches the mockup's PC Build Progress card: .card-head with a pct-badge on the right instead
+  of an action link, then .progress-track/.progress-fill, then an optional content slot below
+  (the mockup's build-row: photo/order-badge/specs/link).
+
+  A dynamic percentage can't be a static CSS class, and the mockup's own progress-fill sets it
+  via inline style="width:X%" - not allowed here. SVG width is a presentation attribute, not a
+  style, so this gets the same dynamic bar with zero style="" attributes: viewBox is a fixed
+  0-100 scale, so width="${percent}" IS the percentage.
+
+  Params: title (String), icon (Feather icon name), iconColor (see card.html), percent (Integer 0-100),
+          content (fragment expression, nullable)
+  Usage:
+    <div th:replace="~{fragments/progress-card :: progress(title='PC Build Progress', icon='monitor', iconColor='blue', percent=40, content=~{::#buildDetails})}"></div>
+    <div id="buildDetails" hidden> ... build-row markup ... </div>
+-->
+<div th:fragment="progress(title, icon, iconColor, percent, content)" class="card">
+    <div class="card-head">
+        <div class="card-head-left">
+            <span class="card-icon" th:classappend="'card-icon-' + ${iconColor}">
+                <i th:attr="data-feather=${icon}"></i>
+            </span>
+            <h2 class="card-title" th:text="${title}"></h2>
+        </div>
+        <span class="pct-badge" th:text="${percent} + '%'"></span>
+    </div>
+
+    <svg class="progress-track" viewBox="0 0 100 8" preserveAspectRatio="none"
+         role="progressbar" th:attr="aria-valuenow=${percent}" aria-valuemin="0" aria-valuemax="100">
+        <rect class="progress-track-bg" width="100" height="8" rx="4"></rect>
+        <rect class="progress-fill" height="8" rx="4" th:attr="width=${percent}"></rect>
+    </svg>
+
+    <th:block th:if="${content != null}">
+        <div th:replace="${content}"></div>
+    </th:block>
+</div>
+
+<style th:fragment="progress-card-styles">
+    .progress-track{ display:block; width:100%; height:8px; margin-bottom:var(--space-4); }
+    .progress-track-bg{ fill:var(--border); }
+    .progress-fill{ fill:var(--accent); }
+
+    .build-row{ display:flex; gap:var(--space-4); }
+    .build-photo{
+        width:120px; height:96px; border-radius:var(--radius-sm); flex-shrink:0; background:var(--bg-page);
+        border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-muted);
+    }
+    .build-photo svg{ width:34px; height:34px; }
+    .build-info{ flex:1; min-width:0; }
+    .build-order{ font-weight:800; font-size:14.5px; margin:0 0 2px; display:flex; align-items:center; gap:var(--space-2); }
+    .build-name{ font-size:13px; color:var(--text-muted); margin:0 0 var(--space-2); }
+    .spec-list{ list-style:none; margin:0; padding:0; font-size:12.5px; }
+    .spec-list li{ display:flex; gap:6px; padding:2px 0; }
+    .spec-key{ color:var(--text-muted); min-width:118px; flex-shrink:0; }
+    .spec-val{ color:var(--text); font-weight:500; }
+    .build-link{ display:inline-block; margin-top:var(--space-2); font-size:12.5px; font-weight:600; color:var(--accent); text-decoration:none; }
+</style>
+
+</body>
+</html>

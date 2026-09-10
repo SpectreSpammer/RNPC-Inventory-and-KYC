@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Always renders "Php 1,234.00" - two decimals, thousands separator. Same
+  #numbers.formatDecimal pattern already used inline throughout the app (e.g.
+  orders/orderIndex.html, orders/orderCheckout.html), pulled into one fragment so every amount
+  is guaranteed identical formatting instead of being retyped per page.
+  Param: amount (any Number - double/float/BigDecimal all work with #numbers.formatDecimal)
+  Usage: <span th:replace="~{fragments/money :: amount(amount=${order.totalAmount})}"></span>
+-->
+<span th:fragment="amount(amount)" th:text="'Php ' + ${#numbers.formatDecimal(amount, 1, 'COMMA', 2, 'POINT')}"></span>
+
+</body>
+</html>

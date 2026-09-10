@@ -1,0 +1,1001 @@
+2026-09-09T09:39:03.657965228Z [inf]  Caused by: com.mysql.cj.exceptions.CJCommunicationsException: Communications link failure
+2026-09-09T09:39:03.657974728Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:149) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:03.657974852Z [inf]  
+2026-09-09T09:39:03.657983241Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:03.657983382Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createCommunicationsException(ExceptionFactory.java:165) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:03.657991459Z [inf]  	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62) ~[na:na]
+2026-09-09T09:39:03.657992731Z [inf]  	at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:88) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:03.657999685Z [inf]  	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502) ~[na:na]
+2026-09-09T09:39:03.658001609Z [inf]  	at com.mysql.cj.NativeSession.connect(NativeSession.java:120) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:03.658006782Z [inf]  	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486) ~[na:na]
+2026-09-09T09:39:03.658014293Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:61) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:03.658082344Z [inf]  	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:61) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.658088488Z [inf]  	... 40 common frames omitted
+2026-09-09T09:39:03.660040750Z [inf]  	... 53 common frames omitted
+2026-09-09T09:39:03.660049227Z [inf]  Caused by: java.net.ConnectException: Connection refused
+2026-09-09T09:39:03.660054663Z [inf]  	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[na:na]
+2026-09-09T09:39:03.660060030Z [inf]  	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682) ~[na:na]
+2026-09-09T09:39:03.660064596Z [inf]  	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:542) ~[na:na]
+2026-09-09T09:39:03.660069405Z [inf]  	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[na:na]
+2026-09-09T09:39:03.660073933Z [inf]  	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[na:na]
+2026-09-09T09:39:03.660078809Z [inf]  	at java.base/java.net.Socket.connect(Socket.java:751) ~[na:na]
+2026-09-09T09:39:03.660083691Z [inf]  	at com.mysql.cj.protocol.StandardSocketFactory.connect(StandardSocketFactory.java:153) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:03.660088894Z [inf]  	at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:62) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:03.660093738Z [inf]  	... 56 common frames omitted
+2026-09-09T09:39:03.660100232Z [inf]  
+2026-09-09T09:39:03.660105119Z [inf]  2026-09-09T09:39:03.189Z ERROR 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Failed to initialize JPA EntityManagerFactory: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:03.660177856Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.connectOneTryOnly(ConnectionImpl.java:935) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:03.660183688Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:805) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:03.662904682Z [inf]  2026-09-09T09:39:03.232Z ERROR 1 --- [inventory] [           main] o.s.boot.SpringApplication               : Application run failed
+2026-09-09T09:39:03.662905846Z [inf]  2026-09-09T09:39:03.208Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T09:39:03.662915975Z [inf]  
+2026-09-09T09:39:03.662917439Z [inf]  
+2026-09-09T09:39:03.662925148Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T09:39:03.662940645Z [inf]  org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:03.662957722Z [inf]  2026-09-09T09:39:03.190Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:03.662963725Z [inf]  2026-09-09T09:39:03.193Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T09:39:03.665343649Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.665354169Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.665361284Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:954) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.665369514Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.665375243Z [inf]  	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:03.665426929Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1806) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.665435701Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.665441609Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.665447819Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.665454777Z [inf]  	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.667578683Z [inf]  	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:755) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:03.667585511Z [inf]  	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:03.667591824Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:03.667598106Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1364) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:03.667603524Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1353) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:03.667608314Z [inf]  	at com.rnpc.inventory.InventoryApplication.main(InventoryApplication.java:11) ~[!/:0.0.1-SNAPSHOT]
+2026-09-09T09:39:03.667613003Z [inf]  	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+2026-09-09T09:39:03.667617567Z [inf]  	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+2026-09-09T09:39:03.667621957Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:03.667627185Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:03.667631682Z [inf]  	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:03.667639285Z [inf]  Caused by: org.hibernate.service.spi.ServiceException: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:03.669694601Z [inf]  	at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.669706758Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:276) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.669712157Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:189) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.669717601Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.669719377Z [inf]  	at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:171) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.669726206Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.669727809Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1431) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.669734353Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1502) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.669736398Z [inf]  	at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.669743249Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:221) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.670991642Z [inf]  	at org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.determineDialect(DialectFactoryImpl.java:191) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.671000482Z [inf]  	at org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.buildDialect(DialectFactoryImpl.java:87) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.671005972Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:366) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.671008411Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:390) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.671016441Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.671016522Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1853) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.671023794Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.671025700Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1802) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:03.671030753Z [inf]  	... 20 common frames omitted
+2026-09-09T09:39:03.671035210Z [inf]  Caused by: org.hibernate.HibernateException: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:03.672998696Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:78) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.673007714Z [inf]  	at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:130) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.673015313Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.673016544Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentWithDefaults(JdbcEnvironmentInitiator.java:153) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.673023539Z [inf]  	... 35 common frames omitted
+2026-09-09T09:39:03.673024114Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:364) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.673031684Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:124) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:03.673031811Z [inf]  
+2026-09-09T09:39:06.769179440Z [inf]  
+2026-09-09T09:39:06.769185696Z [inf]    .   ____          _            __ _ _
+2026-09-09T09:39:06.769222427Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T09:39:06.769231406Z [inf]  
+2026-09-09T09:39:06.769237696Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T09:39:06.769244263Z [inf]  2026-09-09T09:39:06.621Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T09:39:06.769249204Z [inf]  
+2026-09-09T09:39:06.769249609Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T09:39:06.769253144Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T09:39:06.769256239Z [inf]  2026-09-09T09:39:06.624Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T09:39:06.769262776Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T09:39:06.769267610Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T09:39:08.837172072Z [inf]  2026-09-09T09:39:08.833Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T09:39:09.042982998Z [inf]  2026-09-09T09:39:09.026Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 184 ms. Found 16 JPA repository interfaces.
+2026-09-09T09:39:10.813981122Z [inf]  2026-09-09T09:39:10.811Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T09:39:10.829512537Z [inf]  2026-09-09T09:39:10.827Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T09:39:10.829521249Z [inf]  2026-09-09T09:39:10.827Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T09:39:10.935176074Z [inf]  2026-09-09T09:39:10.925Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4213 ms
+2026-09-09T09:39:10.935238763Z [inf]  2026-09-09T09:39:10.923Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T09:39:11.623505228Z [inf]  2026-09-09T09:39:11.500Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T09:39:11.721224929Z [inf]  2026-09-09T09:39:11.707Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T09:39:11.901390799Z [inf]  2026-09-09T09:39:11.895Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T09:39:12.725204973Z [inf]  2026-09-09T09:39:12.716Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T09:39:12.899846003Z [inf]  2026-09-09T09:39:12.890Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T09:39:14.594316551Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.] [n/a]
+2026-09-09T09:39:14.594328737Z [inf]  	at org.hibernate.exception.internal.SQLStateConversionDelegate.convert(SQLStateConversionDelegate.java:100) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.594336203Z [inf]  	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.594343165Z [inf]  	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.594351215Z [inf]  	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:94) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.594352342Z [inf]  
+2026-09-09T09:39:14.594358464Z [inf]  	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:116) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.594367509Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:14.594375946Z [inf]  2026-09-09T09:39:14.303Z  WARN 1 --- [inventory] [           main] o.h.e.j.e.i.JdbcEnvironmentInitiator     : HHH000342: Could not obtain connection to query metadata
+2026-09-09T09:39:14.594383348Z [inf]  
+2026-09-09T09:39:14.594392025Z [inf]  org.hibernate.exception.JDBCConnectionException: unable to obtain isolated JDBC connection [Communications link failure
+2026-09-09T09:39:14.594399499Z [inf]  
+2026-09-09T09:39:14.594431511Z [inf]  2026-09-09T09:39:14.302Z  WARN 1 --- [inventory] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 0, SQLState: 08S01
+2026-09-09T09:39:14.594437996Z [inf]  2026-09-09T09:39:14.302Z ERROR 1 --- [inventory] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : Communications link failure
+2026-09-09T09:39:14.595655036Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:292) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.595661390Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:124) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.595667384Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:78) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.595673846Z [inf]  	at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:130) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.595680045Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.595687663Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.595693777Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.595699700Z [inf]  	at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.595705525Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:221) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.595711447Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:189) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.597764496Z [inf]  	at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:171) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.597771647Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1431) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.597778096Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1502) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.597784502Z [inf]  	at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.597791523Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:390) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.597796502Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.597803784Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.597809183Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:366) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.597813750Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1853) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.597818048Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1802) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.599754448Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.599777445Z [inf]  	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.599784834Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.599791599Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.599798502Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:954) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.599805129Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.599811393Z [inf]  	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:14.599818817Z [inf]  	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:755) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:14.599825213Z [inf]  	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:14.599850746Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.599854504Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.602078401Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:14.602083058Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1364) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:14.602087778Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1353) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:14.602092203Z [inf]  	at com.rnpc.inventory.InventoryApplication.main(InventoryApplication.java:11) ~[!/:0.0.1-SNAPSHOT]
+2026-09-09T09:39:14.602098981Z [inf]  	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+2026-09-09T09:39:14.602103727Z [inf]  	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+2026-09-09T09:39:14.602108695Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:14.602113662Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:14.602118172Z [inf]  	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:14.602122910Z [inf]  Caused by: com.mysql.cj.jdbc.exceptions.CommunicationsException: Communications link failure
+2026-09-09T09:39:14.602127329Z [inf]  
+2026-09-09T09:39:14.602132041Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:14.602137716Z [inf]  	at com.mysql.cj.jdbc.exceptions.SQLError.createCommunicationsException(SQLError.java:174) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.602142079Z [inf]  	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:64) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.603477379Z [inf]  	at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:111) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:14.603484999Z [inf]  	at com.mysql.cj.jdbc.NonRegisteringDriver.connect(NonRegisteringDriver.java:189) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.603487846Z [inf]  	at org.hibernate.engine.jdbc.connections.internal.DatasourceConnectionProviderImpl.getConnection(DatasourceConnectionProviderImpl.java:122) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.603495765Z [inf]  	at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:137) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:14.603496236Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator$ConnectionProviderJdbcConnectionAccess.obtainConnection(JdbcEnvironmentInitiator.java:439) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.603503406Z [inf]  	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:360) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:14.603514444Z [inf]  	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:202) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:14.603521700Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:461) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:14.603527249Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:550) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:14.603533060Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:815) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.603533998Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:98) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:14.603540961Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.<init>(ConnectionImpl.java:438) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.603557398Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.getInstance(ConnectionImpl.java:241) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.605246202Z [inf]  	at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:88) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.605252645Z [inf]  Caused by: com.mysql.cj.exceptions.CJCommunicationsException: Communications link failure
+2026-09-09T09:39:14.605257305Z [inf]  	at com.mysql.cj.NativeSession.connect(NativeSession.java:120) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.605262131Z [inf]  
+2026-09-09T09:39:14.605268703Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:14.605274313Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:61) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.605275250Z [inf]  	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62) ~[na:na]
+2026-09-09T09:39:14.605283110Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:104) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.605283530Z [inf]  	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502) ~[na:na]
+2026-09-09T09:39:14.605289994Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:149) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.605290339Z [inf]  	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486) ~[na:na]
+2026-09-09T09:39:14.605298942Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createCommunicationsException(ExceptionFactory.java:165) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.605341338Z [inf]  	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:61) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.605346405Z [inf]  	... 40 common frames omitted
+2026-09-09T09:39:14.607347846Z [inf]  2026-09-09T09:39:14.307Z ERROR 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Failed to initialize JPA EntityManagerFactory: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:14.607348766Z [inf]  	at java.base/java.net.Socket.connect(Socket.java:751) ~[na:na]
+2026-09-09T09:39:14.607358773Z [inf]  	at com.mysql.cj.protocol.StandardSocketFactory.connect(StandardSocketFactory.java:153) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.607365445Z [inf]  	at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:62) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.607371873Z [inf]  	... 56 common frames omitted
+2026-09-09T09:39:14.607379587Z [inf]  
+2026-09-09T09:39:14.607379903Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.connectOneTryOnly(ConnectionImpl.java:935) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.607386983Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:805) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:14.607393620Z [inf]  	... 53 common frames omitted
+2026-09-09T09:39:14.607400521Z [inf]  Caused by: java.net.ConnectException: Connection refused
+2026-09-09T09:39:14.607407369Z [inf]  	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[na:na]
+2026-09-09T09:39:14.607413085Z [inf]  	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682) ~[na:na]
+2026-09-09T09:39:14.607418727Z [inf]  	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:542) ~[na:na]
+2026-09-09T09:39:14.607425094Z [inf]  	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[na:na]
+2026-09-09T09:39:14.607430957Z [inf]  	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[na:na]
+2026-09-09T09:39:14.609476393Z [inf]  2026-09-09T09:39:14.308Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:14.609483148Z [inf]  2026-09-09T09:39:14.310Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T09:39:14.609489025Z [inf]  2026-09-09T09:39:14.321Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T09:39:14.609495530Z [inf]  
+2026-09-09T09:39:14.609500248Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T09:39:14.609506640Z [inf]  2026-09-09T09:39:14.343Z ERROR 1 --- [inventory] [           main] o.s.boot.SpringApplication               : Application run failed
+2026-09-09T09:39:14.609513027Z [inf]  
+2026-09-09T09:39:14.609518593Z [inf]  org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:14.611549762Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1806) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.611556191Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.611562437Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.611568410Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.611574679Z [inf]  	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.611581176Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.611587647Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.611593732Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:954) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.611601674Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.611607517Z [inf]  	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:14.613136410Z [inf]  	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:755) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:14.613144347Z [inf]  	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:14.613149892Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:14.613155488Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1364) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:14.613161102Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1353) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:14.613166849Z [inf]  	at com.rnpc.inventory.InventoryApplication.main(InventoryApplication.java:11) ~[!/:0.0.1-SNAPSHOT]
+2026-09-09T09:39:14.613172867Z [inf]  	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+2026-09-09T09:39:14.613178199Z [inf]  	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+2026-09-09T09:39:14.613184818Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:14.613190240Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:14.613196365Z [inf]  	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:14.613202518Z [inf]  Caused by: org.hibernate.service.spi.ServiceException: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:14.615145564Z [inf]  	at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.615159741Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:276) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.615165200Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.615170227Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.615174720Z [inf]  	at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.615179865Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:221) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.615184832Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:189) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.615192914Z [inf]  	at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:171) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.615197440Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1431) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.615201340Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1502) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.617029625Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:390) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.617036118Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.617040944Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.617045057Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:366) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.617049223Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1853) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.617053907Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1802) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:14.617058688Z [inf]  	... 20 common frames omitted
+2026-09-09T09:39:14.617062455Z [inf]  Caused by: org.hibernate.HibernateException: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:14.617067030Z [inf]  	at org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.determineDialect(DialectFactoryImpl.java:191) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.617071255Z [inf]  	at org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.buildDialect(DialectFactoryImpl.java:87) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.618776114Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentWithDefaults(JdbcEnvironmentInitiator.java:153) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.618781351Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:364) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.618785609Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:124) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.618789669Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:78) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.618794482Z [inf]  	at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:130) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.618798848Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:14.618806109Z [inf]  	... 35 common frames omitted
+2026-09-09T09:39:14.618810511Z [inf]  
+2026-09-09T09:39:17.601677698Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T09:39:17.601689636Z [inf]  
+2026-09-09T09:39:17.601695524Z [inf]  2026-09-09T09:39:17.504Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T09:39:17.601700283Z [inf]  2026-09-09T09:39:17.507Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T09:39:17.601730281Z [inf]  
+2026-09-09T09:39:17.601739561Z [inf]    .   ____          _            __ _ _
+2026-09-09T09:39:17.601746888Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T09:39:17.601756093Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T09:39:17.601773872Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T09:39:17.601775587Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T09:39:17.601782266Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T09:39:17.601785708Z [inf]  
+2026-09-09T09:39:19.664557926Z [inf]  2026-09-09T09:39:19.662Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T09:39:19.856802532Z [inf]  2026-09-09T09:39:19.855Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 186 ms. Found 16 JPA repository interfaces.
+2026-09-09T09:39:21.878671142Z [inf]  2026-09-09T09:39:21.867Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T09:39:21.912223796Z [inf]  2026-09-09T09:39:21.910Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T09:39:21.912232487Z [inf]  2026-09-09T09:39:21.910Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T09:39:22.007074718Z [inf]  2026-09-09T09:39:22.005Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T09:39:22.015359166Z [inf]  2026-09-09T09:39:22.007Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4403 ms
+2026-09-09T09:39:22.816500500Z [inf]  2026-09-09T09:39:22.799Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T09:39:23.003555913Z [inf]  2026-09-09T09:39:22.994Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T09:39:23.111468725Z [inf]  2026-09-09T09:39:23.105Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T09:39:23.809566237Z [inf]  2026-09-09T09:39:23.807Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T09:39:23.927879442Z [inf]  2026-09-09T09:39:23.866Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T09:39:25.162760984Z [inf]  	at org.hibernate.exception.internal.SQLStateConversionDelegate.convert(SQLStateConversionDelegate.java:100) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.162770925Z [inf]  	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.162776488Z [inf]  	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.162781307Z [inf]  	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:94) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.162785996Z [inf]  	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:116) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.162823223Z [inf]  2026-09-09T09:39:25.152Z  WARN 1 --- [inventory] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 0, SQLState: 08S01
+2026-09-09T09:39:25.162829609Z [inf]  2026-09-09T09:39:25.152Z ERROR 1 --- [inventory] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : Communications link failure
+2026-09-09T09:39:25.162835176Z [inf]  
+2026-09-09T09:39:25.162844971Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:25.162852423Z [inf]  2026-09-09T09:39:25.153Z  WARN 1 --- [inventory] [           main] o.h.e.j.e.i.JdbcEnvironmentInitiator     : HHH000342: Could not obtain connection to query metadata
+2026-09-09T09:39:25.162858114Z [inf]  
+2026-09-09T09:39:25.162863455Z [inf]  org.hibernate.exception.JDBCConnectionException: unable to obtain isolated JDBC connection [Communications link failure
+2026-09-09T09:39:25.162869118Z [inf]  
+2026-09-09T09:39:25.162874713Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.] [n/a]
+2026-09-09T09:39:25.163580720Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:292) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.163587222Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:124) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.163591242Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:78) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.163596245Z [inf]  	at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:130) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.163600210Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.163603857Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.163607533Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.163611463Z [inf]  	at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.163615315Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:221) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.163618806Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:189) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.164660202Z [inf]  	at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:171) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.164665465Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1431) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.164669846Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1502) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.164675526Z [inf]  	at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.164679394Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:390) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.164683196Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.164687086Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.164692284Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:366) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.164696430Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1853) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.164700200Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1802) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.165999158Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.166009624Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.166016240Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.166022354Z [inf]  	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.166027714Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.166033941Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.166040028Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:954) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.166046250Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.166052239Z [inf]  	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:25.166058398Z [inf]  	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:755) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:25.166064282Z [inf]  	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:25.167406190Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:25.167416055Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1364) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:25.167422333Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1353) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:25.167428126Z [inf]  	at com.rnpc.inventory.InventoryApplication.main(InventoryApplication.java:11) ~[!/:0.0.1-SNAPSHOT]
+2026-09-09T09:39:25.167433707Z [inf]  	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+2026-09-09T09:39:25.167441622Z [inf]  	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+2026-09-09T09:39:25.167447397Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:25.167452698Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:25.167458115Z [inf]  	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:25.167463635Z [inf]  Caused by: com.mysql.cj.jdbc.exceptions.CommunicationsException: Communications link failure
+2026-09-09T09:39:25.167469732Z [inf]  
+2026-09-09T09:39:25.167475394Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:25.167481003Z [inf]  	at com.mysql.cj.jdbc.exceptions.SQLError.createCommunicationsException(SQLError.java:174) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.167486648Z [inf]  	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:64) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.168644501Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:815) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.168659448Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.<init>(ConnectionImpl.java:438) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.168666211Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.getInstance(ConnectionImpl.java:241) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.168671915Z [inf]  	at com.mysql.cj.jdbc.NonRegisteringDriver.connect(NonRegisteringDriver.java:189) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.168677592Z [inf]  	at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:137) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:25.168683316Z [inf]  	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:360) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:25.168688705Z [inf]  	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:202) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:25.168696166Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:461) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:25.168701831Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:550) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:25.168707885Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:98) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:25.168714127Z [inf]  	at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:111) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:25.168719864Z [inf]  	at org.hibernate.engine.jdbc.connections.internal.DatasourceConnectionProviderImpl.getConnection(DatasourceConnectionProviderImpl.java:122) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.168725677Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator$ConnectionProviderJdbcConnectionAccess.obtainConnection(JdbcEnvironmentInitiator.java:439) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.169600460Z [inf]  	at com.mysql.cj.NativeSession.connect(NativeSession.java:120) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.169611067Z [inf]  	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502) ~[na:na]
+2026-09-09T09:39:25.169619646Z [inf]  	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486) ~[na:na]
+2026-09-09T09:39:25.169626682Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:61) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.169633374Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:104) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.169635148Z [inf]  	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:61) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.169640527Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:149) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.169646232Z [inf]  	... 40 common frames omitted
+2026-09-09T09:39:25.169650101Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createCommunicationsException(ExceptionFactory.java:165) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.169654397Z [inf]  Caused by: com.mysql.cj.exceptions.CJCommunicationsException: Communications link failure
+2026-09-09T09:39:25.169658200Z [inf]  	at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:88) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.169661752Z [inf]  
+2026-09-09T09:39:25.169667278Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:25.169672859Z [inf]  	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62) ~[na:na]
+2026-09-09T09:39:25.171026740Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.connectOneTryOnly(ConnectionImpl.java:935) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.171036670Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:805) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.171042707Z [inf]  	... 53 common frames omitted
+2026-09-09T09:39:25.171047762Z [inf]  Caused by: java.net.ConnectException: Connection refused
+2026-09-09T09:39:25.171052881Z [inf]  	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[na:na]
+2026-09-09T09:39:25.171058255Z [inf]  	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682) ~[na:na]
+2026-09-09T09:39:25.171063340Z [inf]  	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:542) ~[na:na]
+2026-09-09T09:39:25.171068141Z [inf]  	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[na:na]
+2026-09-09T09:39:25.171073206Z [inf]  	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[na:na]
+2026-09-09T09:39:25.171078591Z [inf]  	at java.base/java.net.Socket.connect(Socket.java:751) ~[na:na]
+2026-09-09T09:39:25.171083222Z [inf]  	at com.mysql.cj.protocol.StandardSocketFactory.connect(StandardSocketFactory.java:153) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.171088019Z [inf]  	at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:62) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:25.171093924Z [inf]  	... 56 common frames omitted
+2026-09-09T09:39:25.171101273Z [inf]  
+2026-09-09T09:39:25.171107544Z [inf]  2026-09-09T09:39:25.157Z ERROR 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Failed to initialize JPA EntityManagerFactory: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:25.171664494Z [inf]  2026-09-09T09:39:25.158Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:25.171671282Z [inf]  2026-09-09T09:39:25.160Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T09:39:25.177461636Z [inf]  2026-09-09T09:39:25.173Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T09:39:25.177472565Z [inf]  
+2026-09-09T09:39:25.177478623Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T09:39:25.200816270Z [inf]  2026-09-09T09:39:25.197Z ERROR 1 --- [inventory] [           main] o.s.boot.SpringApplication               : Application run failed
+2026-09-09T09:39:25.200825115Z [inf]  
+2026-09-09T09:39:25.200831476Z [inf]  org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:25.200836844Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1806) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.200842355Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.200847744Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.200853622Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.200860880Z [inf]  	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.200866123Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.200871922Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.201969698Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:954) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.201980987Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.201987539Z [inf]  	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:25.201992241Z [inf]  	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:755) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:25.201997374Z [inf]  	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:25.202002825Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:25.202006913Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:25.202007925Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1364) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:25.202013530Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1353) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:25.202019002Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:25.202020532Z [inf]  	at com.rnpc.inventory.InventoryApplication.main(InventoryApplication.java:11) ~[!/:0.0.1-SNAPSHOT]
+2026-09-09T09:39:25.202025557Z [inf]  	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+2026-09-09T09:39:25.202030073Z [inf]  	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+2026-09-09T09:39:25.203266997Z [inf]  	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:25.203277828Z [inf]  Caused by: org.hibernate.service.spi.ServiceException: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:25.203285897Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:276) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.203292197Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.203303052Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.203312405Z [inf]  	at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.203320224Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:221) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.203326095Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:189) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.203332297Z [inf]  	at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:171) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.203340688Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1431) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.205008080Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1502) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.205018916Z [inf]  	at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.205025954Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:390) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.205032386Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.205038189Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.205044139Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:366) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.205049517Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1853) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.205055016Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1802) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:25.205060644Z [inf]  	... 20 common frames omitted
+2026-09-09T09:39:25.205066847Z [inf]  Caused by: org.hibernate.HibernateException: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:25.208004216Z [inf]  	at org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.determineDialect(DialectFactoryImpl.java:191) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.208013485Z [inf]  	at org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.buildDialect(DialectFactoryImpl.java:87) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.208020298Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentWithDefaults(JdbcEnvironmentInitiator.java:153) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.208026407Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:364) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.208038542Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:124) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.208044858Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:78) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.208051136Z [inf]  	at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:130) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.208058918Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:25.208065034Z [inf]  	... 35 common frames omitted
+2026-09-09T09:39:25.208071829Z [inf]  
+2026-09-09T09:39:28.808032979Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T09:39:28.808039751Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T09:39:28.808061956Z [inf]  
+2026-09-09T09:39:28.808069520Z [inf]    .   ____          _            __ _ _
+2026-09-09T09:39:28.808076984Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T09:39:28.808081450Z [inf]  
+2026-09-09T09:39:28.808085961Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T09:39:28.808093804Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T09:39:28.808094263Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T09:39:28.808101294Z [inf]  
+2026-09-09T09:39:28.808118651Z [inf]  2026-09-09T09:39:28.585Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T09:39:28.808125061Z [inf]  2026-09-09T09:39:28.588Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T09:39:30.822662601Z [inf]  2026-09-09T09:39:30.821Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T09:39:31.002737166Z [inf]  2026-09-09T09:39:30.997Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 167 ms. Found 16 JPA repository interfaces.
+2026-09-09T09:39:32.907568983Z [inf]  2026-09-09T09:39:32.898Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T09:39:32.981045738Z [inf]  2026-09-09T09:39:32.977Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T09:39:32.981052888Z [inf]  2026-09-09T09:39:32.977Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T09:39:33.020194194Z [inf]  2026-09-09T09:39:33.009Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T09:39:33.020202631Z [inf]  2026-09-09T09:39:33.010Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4323 ms
+2026-09-09T09:39:33.718970052Z [inf]  2026-09-09T09:39:33.605Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T09:39:33.798899070Z [inf]  2026-09-09T09:39:33.795Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T09:39:33.904137499Z [inf]  2026-09-09T09:39:33.901Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T09:39:34.703770584Z [inf]  2026-09-09T09:39:34.593Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T09:39:34.703775824Z [inf]  2026-09-09T09:39:34.685Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T09:39:35.918605392Z [inf]  2026-09-09T09:39:35.907Z  WARN 1 --- [inventory] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 0, SQLState: 08S01
+2026-09-09T09:39:35.918614877Z [inf]  2026-09-09T09:39:35.907Z ERROR 1 --- [inventory] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : Communications link failure
+2026-09-09T09:39:35.918626551Z [inf]  
+2026-09-09T09:39:35.918632632Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:35.918639087Z [inf]  2026-09-09T09:39:35.908Z  WARN 1 --- [inventory] [           main] o.h.e.j.e.i.JdbcEnvironmentInitiator     : HHH000342: Could not obtain connection to query metadata
+2026-09-09T09:39:35.918645523Z [inf]  
+2026-09-09T09:39:35.918652578Z [inf]  org.hibernate.exception.JDBCConnectionException: unable to obtain isolated JDBC connection [Communications link failure
+2026-09-09T09:39:35.918658251Z [inf]  
+2026-09-09T09:39:35.918664096Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.] [n/a]
+2026-09-09T09:39:35.918670259Z [inf]  	at org.hibernate.exception.internal.SQLStateConversionDelegate.convert(SQLStateConversionDelegate.java:100) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.918675915Z [inf]  	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.918681994Z [inf]  	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.918687737Z [inf]  	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:94) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.918693221Z [inf]  	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:116) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.919957338Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:292) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.919967060Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:124) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.919973760Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:78) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.919979796Z [inf]  	at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:130) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.919985719Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.919991466Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.919999258Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.920004910Z [inf]  	at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.920010077Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:221) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.920015639Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:189) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.924135962Z [inf]  	at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:171) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.924146880Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1431) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.924152582Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1502) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.924158412Z [inf]  	at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.924162795Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:390) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.924167810Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.924172473Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.924176645Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:366) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.924181274Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1853) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.924186107Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1802) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.925540213Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.925547984Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.925552729Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.925557234Z [inf]  	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.925561692Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.925566105Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.925570350Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:954) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.925574435Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.925579270Z [inf]  	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:35.925583709Z [inf]  	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:755) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:35.925589637Z [inf]  	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:35.927650664Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:35.927658398Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1364) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:35.927664237Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1353) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:35.927668959Z [inf]  	at com.rnpc.inventory.InventoryApplication.main(InventoryApplication.java:11) ~[!/:0.0.1-SNAPSHOT]
+2026-09-09T09:39:35.927674486Z [inf]  	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+2026-09-09T09:39:35.927682487Z [inf]  	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+2026-09-09T09:39:35.927687204Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:35.927692769Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:35.927696964Z [inf]  	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:35.927701848Z [inf]  Caused by: com.mysql.cj.jdbc.exceptions.CommunicationsException: Communications link failure
+2026-09-09T09:39:35.927706634Z [inf]  
+2026-09-09T09:39:35.927710943Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:35.927715198Z [inf]  	at com.mysql.cj.jdbc.exceptions.SQLError.createCommunicationsException(SQLError.java:174) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.927719291Z [inf]  	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:64) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.929714497Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.<init>(ConnectionImpl.java:438) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.929715573Z [inf]  	at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:111) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:35.929721950Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.getInstance(ConnectionImpl.java:241) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.929724139Z [inf]  	at org.hibernate.engine.jdbc.connections.internal.DatasourceConnectionProviderImpl.getConnection(DatasourceConnectionProviderImpl.java:122) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.929727793Z [inf]  	at com.mysql.cj.jdbc.NonRegisteringDriver.connect(NonRegisteringDriver.java:189) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.929730042Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator$ConnectionProviderJdbcConnectionAccess.obtainConnection(JdbcEnvironmentInitiator.java:439) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.929733246Z [inf]  	at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:137) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:35.929737530Z [inf]  	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:360) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:35.929742758Z [inf]  	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:202) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:35.929748564Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:461) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:35.929760446Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:550) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:35.929768939Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:98) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:35.929805002Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:815) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.932103604Z [inf]  	at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:88) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.932113881Z [inf]  	at com.mysql.cj.NativeSession.connect(NativeSession.java:120) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.932126971Z [inf]  	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486) ~[na:na]
+2026-09-09T09:39:35.932133881Z [inf]  	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:61) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.932134635Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:61) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.932142481Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:104) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.932142995Z [inf]  	... 40 common frames omitted
+2026-09-09T09:39:35.932149389Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:149) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.932152223Z [inf]  Caused by: com.mysql.cj.exceptions.CJCommunicationsException: Communications link failure
+2026-09-09T09:39:35.932156857Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createCommunicationsException(ExceptionFactory.java:165) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.932160501Z [inf]  
+2026-09-09T09:39:35.932167096Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:35.932172727Z [inf]  	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62) ~[na:na]
+2026-09-09T09:39:35.932298880Z [inf]  	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502) ~[na:na]
+2026-09-09T09:39:35.933219458Z [inf]  	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[na:na]
+2026-09-09T09:39:35.933225017Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.connectOneTryOnly(ConnectionImpl.java:935) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.933227958Z [inf]  	at java.base/java.net.Socket.connect(Socket.java:751) ~[na:na]
+2026-09-09T09:39:35.933234719Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:805) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.933234879Z [inf]  	at com.mysql.cj.protocol.StandardSocketFactory.connect(StandardSocketFactory.java:153) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.933242250Z [inf]  	... 53 common frames omitted
+2026-09-09T09:39:35.933247520Z [inf]  	at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:62) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:35.933249744Z [inf]  Caused by: java.net.ConnectException: Connection refused
+2026-09-09T09:39:35.933253707Z [inf]  	... 56 common frames omitted
+2026-09-09T09:39:35.933255881Z [inf]  	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[na:na]
+2026-09-09T09:39:35.933260011Z [inf]  
+2026-09-09T09:39:35.933265447Z [inf]  	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682) ~[na:na]
+2026-09-09T09:39:35.933267599Z [inf]  2026-09-09T09:39:35.912Z ERROR 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Failed to initialize JPA EntityManagerFactory: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:35.933271440Z [inf]  	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:542) ~[na:na]
+2026-09-09T09:39:35.933276066Z [inf]  	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[na:na]
+2026-09-09T09:39:35.934880195Z [inf]  2026-09-09T09:39:35.912Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:35.934888816Z [inf]  2026-09-09T09:39:35.915Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T09:39:35.934895160Z [inf]  2026-09-09T09:39:35.925Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T09:39:35.934900542Z [inf]  
+2026-09-09T09:39:35.934905897Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T09:39:35.949186049Z [inf]  2026-09-09T09:39:35.944Z ERROR 1 --- [inventory] [           main] o.s.boot.SpringApplication               : Application run failed
+2026-09-09T09:39:35.949201113Z [inf]  
+2026-09-09T09:39:35.949209672Z [inf]  org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:35.949214932Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1806) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.949222446Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.949229058Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.949235830Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.949241411Z [inf]  	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.949249196Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.949254927Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.950006262Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:954) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.950006941Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1364) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:35.950017180Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1353) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:35.950017593Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.950025059Z [inf]  	at com.rnpc.inventory.InventoryApplication.main(InventoryApplication.java:11) ~[!/:0.0.1-SNAPSHOT]
+2026-09-09T09:39:35.950025366Z [inf]  	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:35.950033008Z [inf]  	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+2026-09-09T09:39:35.950034469Z [inf]  	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:755) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:35.950040988Z [inf]  	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+2026-09-09T09:39:35.950043119Z [inf]  	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:35.950049021Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:35.950050636Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:35.950056701Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:35.952175998Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:276) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.952185745Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.952194456Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.952199530Z [inf]  	at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.952204372Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:221) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.952209880Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:189) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.952214799Z [inf]  	at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:171) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.952219951Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1431) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.952237433Z [inf]  	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:35.952242486Z [inf]  Caused by: org.hibernate.service.spi.ServiceException: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:35.953365342Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1502) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.953373238Z [inf]  	at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.953378677Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:390) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.953383118Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.953387441Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.953392576Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:366) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.953397202Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1853) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.953401526Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1802) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:35.953405738Z [inf]  	... 20 common frames omitted
+2026-09-09T09:39:35.953411193Z [inf]  Caused by: org.hibernate.HibernateException: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:35.954567180Z [inf]  	at org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.determineDialect(DialectFactoryImpl.java:191) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.954577068Z [inf]  	at org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.buildDialect(DialectFactoryImpl.java:87) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.954583005Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentWithDefaults(JdbcEnvironmentInitiator.java:153) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.954590021Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:364) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.954612644Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:124) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.954618467Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:78) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.954624248Z [inf]  	at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:130) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.954629831Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:35.954635533Z [inf]  	... 35 common frames omitted
+2026-09-09T09:39:35.954641449Z [inf]  
+2026-09-09T09:39:38.870642393Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T09:39:38.870668592Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T09:39:38.870674811Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T09:39:38.870680101Z [inf]  
+2026-09-09T09:39:38.870682827Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T09:39:38.870687378Z [inf]    .   ____          _            __ _ _
+2026-09-09T09:39:38.870688881Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T09:39:38.870694653Z [inf]  
+2026-09-09T09:39:38.916465014Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T09:39:38.916472981Z [inf]  
+2026-09-09T09:39:39.139387252Z [inf]  2026-09-09T09:39:39.126Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T09:39:39.139393939Z [inf]  2026-09-09T09:39:39.129Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T09:39:41.295108051Z [inf]  2026-09-09T09:39:41.288Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T09:39:41.776150562Z [inf]  2026-09-09T09:39:41.442Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 146 ms. Found 16 JPA repository interfaces.
+2026-09-09T09:39:43.133907610Z [inf]  2026-09-09T09:39:43.114Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T09:39:43.133919187Z [inf]  2026-09-09T09:39:43.131Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T09:39:43.133927042Z [inf]  2026-09-09T09:39:43.131Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T09:39:43.234984685Z [inf]  2026-09-09T09:39:43.233Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T09:39:43.236569687Z [inf]  2026-09-09T09:39:43.235Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4015 ms
+2026-09-09T09:39:43.936070023Z [inf]  2026-09-09T09:39:43.907Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T09:39:44.117899023Z [inf]  2026-09-09T09:39:44.105Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T09:39:44.191297703Z [inf]  2026-09-09T09:39:44.187Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T09:39:44.931830561Z [inf]  2026-09-09T09:39:44.924Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T09:39:45.022622646Z [inf]  2026-09-09T09:39:45.019Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T09:39:46.343883560Z [inf]  2026-09-09T09:39:46.340Z  WARN 1 --- [inventory] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 0, SQLState: 08S01
+2026-09-09T09:39:46.343891749Z [inf]  2026-09-09T09:39:46.341Z ERROR 1 --- [inventory] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : Communications link failure
+2026-09-09T09:39:46.343897830Z [inf]  
+2026-09-09T09:39:46.343903626Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:46.351402474Z [inf]  2026-09-09T09:39:46.342Z  WARN 1 --- [inventory] [           main] o.h.e.j.e.i.JdbcEnvironmentInitiator     : HHH000342: Could not obtain connection to query metadata
+2026-09-09T09:39:46.351420185Z [inf]  
+2026-09-09T09:39:46.351428109Z [inf]  org.hibernate.exception.JDBCConnectionException: unable to obtain isolated JDBC connection [Communications link failure
+2026-09-09T09:39:46.351434913Z [inf]  
+2026-09-09T09:39:46.351441669Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.] [n/a]
+2026-09-09T09:39:46.351449473Z [inf]  	at org.hibernate.exception.internal.SQLStateConversionDelegate.convert(SQLStateConversionDelegate.java:100) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.351455888Z [inf]  	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.351462441Z [inf]  	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.351469029Z [inf]  	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:94) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.351475778Z [inf]  	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:116) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.351481530Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:292) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.351487397Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:124) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.352802478Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:78) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.352810388Z [inf]  	at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:130) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.352816674Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.352822394Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.352828306Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.352834683Z [inf]  	at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.352840268Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:221) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.352846322Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:189) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.352852122Z [inf]  	at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:171) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.352858349Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1431) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.352864869Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1502) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.354850821Z [inf]  	at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.354857972Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:390) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.354864290Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.354869620Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.354876082Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:366) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.354882030Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1853) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.354887457Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1802) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.354893282Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.354898774Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.354904219Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.356498656Z [inf]  	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.356507628Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.356515211Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.356519922Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:954) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.356524403Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.356529706Z [inf]  	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:46.356535658Z [inf]  	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:755) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:46.356539806Z [inf]  	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:46.356544566Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:46.356549179Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1364) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:46.356554692Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1353) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:46.356560775Z [inf]  	at com.rnpc.inventory.InventoryApplication.main(InventoryApplication.java:11) ~[!/:0.0.1-SNAPSHOT]
+2026-09-09T09:39:46.358397827Z [inf]  	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+2026-09-09T09:39:46.358407875Z [inf]  	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+2026-09-09T09:39:46.358415982Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:46.358423703Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:46.358432169Z [inf]  	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:46.358441266Z [inf]  Caused by: com.mysql.cj.jdbc.exceptions.CommunicationsException: Communications link failure
+2026-09-09T09:39:46.358449442Z [inf]  
+2026-09-09T09:39:46.358456785Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:46.358464172Z [inf]  	at com.mysql.cj.jdbc.exceptions.SQLError.createCommunicationsException(SQLError.java:174) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.358471923Z [inf]  	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:64) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.358479988Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:815) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.358487449Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.<init>(ConnectionImpl.java:438) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.358508892Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.getInstance(ConnectionImpl.java:241) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.360525623Z [inf]  	at com.mysql.cj.jdbc.NonRegisteringDriver.connect(NonRegisteringDriver.java:189) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.360534474Z [inf]  	at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:137) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:46.360540020Z [inf]  	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:360) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:46.360544387Z [inf]  	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:202) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:46.360549585Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:461) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:46.360554678Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:550) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:46.360559348Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:98) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:46.360563957Z [inf]  	at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:111) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:46.360567960Z [inf]  	at org.hibernate.engine.jdbc.connections.internal.DatasourceConnectionProviderImpl.getConnection(DatasourceConnectionProviderImpl.java:122) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.360573600Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator$ConnectionProviderJdbcConnectionAccess.obtainConnection(JdbcEnvironmentInitiator.java:439) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.360578368Z [inf]  	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:61) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.360583182Z [inf]  	... 40 common frames omitted
+2026-09-09T09:39:46.360587477Z [inf]  Caused by: com.mysql.cj.exceptions.CJCommunicationsException: Communications link failure
+2026-09-09T09:39:46.360591982Z [inf]  
+2026-09-09T09:39:46.360596755Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:46.363087070Z [inf]  	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62) ~[na:na]
+2026-09-09T09:39:46.363089131Z [inf]  	at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:88) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.363094890Z [inf]  	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502) ~[na:na]
+2026-09-09T09:39:46.363098059Z [inf]  	at com.mysql.cj.NativeSession.connect(NativeSession.java:120) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.363101313Z [inf]  	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486) ~[na:na]
+2026-09-09T09:39:46.363104735Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.connectOneTryOnly(ConnectionImpl.java:935) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.363107365Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:61) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.363110008Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:805) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.363115271Z [inf]  	... 53 common frames omitted
+2026-09-09T09:39:46.363118738Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:104) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.363124403Z [inf]  Caused by: java.net.ConnectException: Connection refused
+2026-09-09T09:39:46.363125752Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:149) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.363131630Z [inf]  	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[na:na]
+2026-09-09T09:39:46.363131765Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createCommunicationsException(ExceptionFactory.java:165) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.364454600Z [inf]  	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682) ~[na:na]
+2026-09-09T09:39:46.364460637Z [inf]  	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:542) ~[na:na]
+2026-09-09T09:39:46.364464923Z [inf]  	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[na:na]
+2026-09-09T09:39:46.364469823Z [inf]  	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[na:na]
+2026-09-09T09:39:46.364474512Z [inf]  	at java.base/java.net.Socket.connect(Socket.java:751) ~[na:na]
+2026-09-09T09:39:46.364479197Z [inf]  	at com.mysql.cj.protocol.StandardSocketFactory.connect(StandardSocketFactory.java:153) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.364483160Z [inf]  	at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:62) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:46.364488526Z [inf]  	... 56 common frames omitted
+2026-09-09T09:39:46.364493887Z [inf]  
+2026-09-09T09:39:46.364498342Z [inf]  2026-09-09T09:39:46.347Z ERROR 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Failed to initialize JPA EntityManagerFactory: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:46.364502651Z [inf]  2026-09-09T09:39:46.347Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:46.365757424Z [inf]  2026-09-09T09:39:46.350Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T09:39:46.365763866Z [inf]  2026-09-09T09:39:46.363Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T09:39:46.365792123Z [inf]  
+2026-09-09T09:39:46.365798151Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T09:39:46.881242849Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.881255398Z [inf]  2026-09-09T09:39:46.380Z ERROR 1 --- [inventory] [           main] o.s.boot.SpringApplication               : Application run failed
+2026-09-09T09:39:46.881260058Z [inf]  	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.881265595Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.881276306Z [inf]  
+2026-09-09T09:39:46.881283063Z [inf]  org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:46.881285343Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.881289945Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1806) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.881296924Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.881303572Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.884206989Z [inf]  	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+2026-09-09T09:39:46.884217915Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:46.884224813Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:46.884253635Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:954) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.884265031Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.884273595Z [inf]  	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:46.884279671Z [inf]  	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:755) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:46.884286048Z [inf]  	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:46.884291832Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:46.884296982Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1364) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:46.884303478Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1353) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:46.884310263Z [inf]  	at com.rnpc.inventory.InventoryApplication.main(InventoryApplication.java:11) ~[!/:0.0.1-SNAPSHOT]
+2026-09-09T09:39:46.884317662Z [inf]  	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+2026-09-09T09:39:46.887304849Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1431) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.887396723Z [inf]  	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:46.887403856Z [inf]  Caused by: org.hibernate.service.spi.ServiceException: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:46.887410219Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:276) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.887417492Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.887427432Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.887434564Z [inf]  	at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.887441311Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:221) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.887448247Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:189) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.887455731Z [inf]  	at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:171) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.892841863Z [inf]  Caused by: org.hibernate.HibernateException: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:46.892861176Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.892869995Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.892877519Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:366) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.892882005Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1502) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.892888973Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1853) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.892889667Z [inf]  	at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.892897016Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1802) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.892897990Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:390) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:46.892904603Z [inf]  	... 20 common frames omitted
+2026-09-09T09:39:46.895569321Z [inf]  	... 35 common frames omitted
+2026-09-09T09:39:46.895578704Z [inf]  
+2026-09-09T09:39:46.895633626Z [inf]  	at org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.determineDialect(DialectFactoryImpl.java:191) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.895639728Z [inf]  	at org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.buildDialect(DialectFactoryImpl.java:87) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.895646047Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentWithDefaults(JdbcEnvironmentInitiator.java:153) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.895651531Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:364) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.895658660Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:124) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.895665056Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:78) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.895670475Z [inf]  	at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:130) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:46.895676701Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:49.875008451Z [inf]  
+2026-09-09T09:39:49.875012655Z [inf]    .   ____          _            __ _ _
+2026-09-09T09:39:49.875016744Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T09:39:49.875020372Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T09:39:49.875024354Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T09:39:49.875028778Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T09:39:49.875032815Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T09:39:49.875036872Z [inf]  
+2026-09-09T09:39:49.875040822Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T09:39:49.875045109Z [inf]  
+2026-09-09T09:39:49.875048946Z [inf]  2026-09-09T09:39:49.656Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T09:39:49.875053522Z [inf]  2026-09-09T09:39:49.659Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T09:39:51.934163628Z [inf]  2026-09-09T09:39:51.837Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T09:39:52.021076464Z [inf]  2026-09-09T09:39:52.016Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 171 ms. Found 16 JPA repository interfaces.
+2026-09-09T09:39:53.920542854Z [inf]  2026-09-09T09:39:53.812Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T09:39:53.920552786Z [inf]  2026-09-09T09:39:53.857Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T09:39:53.920560980Z [inf]  2026-09-09T09:39:53.857Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T09:39:53.925172458Z [inf]  2026-09-09T09:39:53.922Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T09:39:53.925178641Z [inf]  2026-09-09T09:39:53.923Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4170 ms
+2026-09-09T09:39:54.957837099Z [inf]  2026-09-09T09:39:54.518Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T09:39:54.957843012Z [inf]  2026-09-09T09:39:54.761Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T09:39:54.957848668Z [inf]  2026-09-09T09:39:54.866Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T09:39:55.941574271Z [inf]  2026-09-09T09:39:55.512Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T09:39:55.941579634Z [inf]  2026-09-09T09:39:55.649Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T09:39:56.972200554Z [inf]  2026-09-09T09:39:56.968Z  WARN 1 --- [inventory] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 0, SQLState: 08S01
+2026-09-09T09:39:56.972210658Z [inf]  2026-09-09T09:39:56.968Z ERROR 1 --- [inventory] [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : Communications link failure
+2026-09-09T09:39:56.972218394Z [inf]  
+2026-09-09T09:39:56.972224741Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:56.979489753Z [inf]  2026-09-09T09:39:56.969Z  WARN 1 --- [inventory] [           main] o.h.e.j.e.i.JdbcEnvironmentInitiator     : HHH000342: Could not obtain connection to query metadata
+2026-09-09T09:39:56.979504137Z [inf]  
+2026-09-09T09:39:56.979513772Z [inf]  org.hibernate.exception.JDBCConnectionException: unable to obtain isolated JDBC connection [Communications link failure
+2026-09-09T09:39:56.979521440Z [inf]  
+2026-09-09T09:39:56.979528534Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.] [n/a]
+2026-09-09T09:39:56.979536335Z [inf]  	at org.hibernate.exception.internal.SQLStateConversionDelegate.convert(SQLStateConversionDelegate.java:100) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.979542993Z [inf]  	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.979549913Z [inf]  	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.979556135Z [inf]  	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:94) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.979563214Z [inf]  	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:116) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.979569919Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:292) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.979577783Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:124) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.981022919Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:78) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.981037067Z [inf]  	at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:130) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.981045628Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.981053700Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.981061881Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.981069518Z [inf]  	at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.981077009Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:221) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.981089279Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:189) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.981096823Z [inf]  	at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:171) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.981104334Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1431) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.981111157Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1502) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.983633755Z [inf]  	at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.983645062Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:390) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.983652103Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.983658808Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.983664533Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:366) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.983674127Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1853) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.983679038Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1802) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.983683567Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.983687772Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.983692529Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.987047471Z [inf]  	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.987055326Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.987059363Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.987063304Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:954) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.987067971Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:56.987072364Z [inf]  	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:56.987076398Z [inf]  	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:755) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:56.987080382Z [inf]  	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:56.987084069Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:56.987088018Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1364) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:56.987092349Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1353) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:56.987102273Z [inf]  	at com.rnpc.inventory.InventoryApplication.main(InventoryApplication.java:11) ~[!/:0.0.1-SNAPSHOT]
+2026-09-09T09:39:56.989688998Z [inf]  	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+2026-09-09T09:39:56.989703147Z [inf]  	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+2026-09-09T09:39:56.989711228Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:56.989717054Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:56.989722998Z [inf]  	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:56.989728944Z [inf]  Caused by: com.mysql.cj.jdbc.exceptions.CommunicationsException: Communications link failure
+2026-09-09T09:39:56.989736014Z [inf]  
+2026-09-09T09:39:56.989752367Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:56.989760092Z [inf]  	at com.mysql.cj.jdbc.exceptions.SQLError.createCommunicationsException(SQLError.java:174) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.989767105Z [inf]  	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:64) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.989774812Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:815) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.989781893Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.<init>(ConnectionImpl.java:438) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.989788667Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.getInstance(ConnectionImpl.java:241) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.992142769Z [inf]  The last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.
+2026-09-09T09:39:56.992147303Z [inf]  	at com.mysql.cj.jdbc.NonRegisteringDriver.connect(NonRegisteringDriver.java:189) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.992162685Z [inf]  	at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:137) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:56.992170801Z [inf]  	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:360) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:56.992178609Z [inf]  	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:202) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:56.992193744Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:461) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:56.992203251Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:550) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:56.992209170Z [inf]  	at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:98) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:56.992215809Z [inf]  	at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:111) ~[HikariCP-5.1.0.jar!/:na]
+2026-09-09T09:39:56.992221908Z [inf]  	at org.hibernate.engine.jdbc.connections.internal.DatasourceConnectionProviderImpl.getConnection(DatasourceConnectionProviderImpl.java:122) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.992227917Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator$ConnectionProviderJdbcConnectionAccess.obtainConnection(JdbcEnvironmentInitiator.java:439) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.992234118Z [inf]  	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:61) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:56.992240735Z [inf]  	... 40 common frames omitted
+2026-09-09T09:39:56.992247221Z [inf]  Caused by: com.mysql.cj.exceptions.CJCommunicationsException: Communications link failure
+2026-09-09T09:39:56.992252770Z [inf]  
+2026-09-09T09:39:56.994520170Z [inf]  	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62) ~[na:na]
+2026-09-09T09:39:56.994526734Z [inf]  	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502) ~[na:na]
+2026-09-09T09:39:56.994531928Z [inf]  	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486) ~[na:na]
+2026-09-09T09:39:56.994537690Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:61) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.994543467Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:104) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.994549364Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:149) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.994555336Z [inf]  	at com.mysql.cj.exceptions.ExceptionFactory.createCommunicationsException(ExceptionFactory.java:165) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.994560791Z [inf]  	at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:88) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.994565637Z [inf]  	at com.mysql.cj.NativeSession.connect(NativeSession.java:120) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.994570920Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.connectOneTryOnly(ConnectionImpl.java:935) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.994575997Z [inf]  	at com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:805) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.994581877Z [inf]  	... 53 common frames omitted
+2026-09-09T09:39:56.994588619Z [inf]  Caused by: java.net.ConnectException: Connection refused
+2026-09-09T09:39:56.994595694Z [inf]  	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[na:na]
+2026-09-09T09:39:56.996435573Z [inf]  	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682) ~[na:na]
+2026-09-09T09:39:56.996445212Z [inf]  	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:542) ~[na:na]
+2026-09-09T09:39:56.996451682Z [inf]  	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[na:na]
+2026-09-09T09:39:56.996457244Z [inf]  	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[na:na]
+2026-09-09T09:39:56.996462491Z [inf]  	at java.base/java.net.Socket.connect(Socket.java:751) ~[na:na]
+2026-09-09T09:39:56.996468015Z [inf]  	at com.mysql.cj.protocol.StandardSocketFactory.connect(StandardSocketFactory.java:153) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.996473346Z [inf]  	at com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:62) ~[mysql-connector-j-8.3.0.jar!/:8.3.0]
+2026-09-09T09:39:56.996479607Z [inf]  	... 56 common frames omitted
+2026-09-09T09:39:56.996485816Z [inf]  
+2026-09-09T09:39:56.996491770Z [inf]  2026-09-09T09:39:56.973Z ERROR 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Failed to initialize JPA EntityManagerFactory: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:56.996496763Z [inf]  2026-09-09T09:39:56.974Z  WARN 1 --- [inventory] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:57.000507938Z [inf]  2026-09-09T09:39:56.977Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-09T09:39:57.000522662Z [inf]  2026-09-09T09:39:56.989Z  INFO 1 --- [inventory] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+2026-09-09T09:39:57.000532321Z [inf]  
+2026-09-09T09:39:57.000541021Z [inf]  Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-09T09:39:57.017837437Z [inf]  	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.017848837Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.017856807Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.017875931Z [inf]  2026-09-09T09:39:57.008Z ERROR 1 --- [inventory] [           main] o.s.boot.SpringApplication               : Application run failed
+2026-09-09T09:39:57.017885108Z [inf]  
+2026-09-09T09:39:57.017892741Z [inf]  org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:57.017903172Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1806) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.017911114Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.017918993Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.017925100Z [inf]  	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.027029223Z [inf]  	at com.rnpc.inventory.InventoryApplication.main(InventoryApplication.java:11) ~[!/:0.0.1-SNAPSHOT]
+2026-09-09T09:39:57.027038495Z [inf]  	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+2026-09-09T09:39:57.027044764Z [inf]  	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+2026-09-09T09:39:57.027050914Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:57.027051064Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:954) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.027056543Z [inf]  	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:57.027060405Z [inf]  	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.027066979Z [inf]  	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:57.027074231Z [inf]  	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:755) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:57.027079917Z [inf]  	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:57.027085207Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:57.027090166Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1364) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:57.027095271Z [inf]  	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1353) ~[spring-boot-3.3.11.jar!/:3.3.11]
+2026-09-09T09:39:57.028955044Z [inf]  	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[inventory-0.0.1-SNAPSHOT.jar:0.0.1-SNAPSHOT]
+2026-09-09T09:39:57.028961870Z [inf]  Caused by: org.hibernate.service.spi.ServiceException: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:57.028967228Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:276) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.028972278Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.028977857Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.028984060Z [inf]  	at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.028990923Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:221) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.028996449Z [inf]  	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:189) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.029003091Z [inf]  	at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:171) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.029011110Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1431) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.030893362Z [inf]  	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1502) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.030901383Z [inf]  	at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:75) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.030907939Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:390) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.030913124Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.030918235Z [inf]  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.030924178Z [inf]  	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:366) ~[spring-orm-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.030929735Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1853) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.030935214Z [inf]  	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1802) ~[spring-beans-6.1.19.jar!/:6.1.19]
+2026-09-09T09:39:57.030940836Z [inf]  	... 20 common frames omitted
+2026-09-09T09:39:57.030947825Z [inf]  Caused by: org.hibernate.HibernateException: Unable to determine Dialect without JDBC metadata (please set 'jakarta.persistence.jdbc.url' for common cases or 'hibernate.dialect' when a custom Dialect implementation must be provided)
+2026-09-09T09:39:57.032307096Z [inf]  
+2026-09-09T09:39:57.032325189Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentWithDefaults(JdbcEnvironmentInitiator.java:153) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.032325546Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:78) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.032331608Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:364) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.032335849Z [inf]  	at org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.determineDialect(DialectFactoryImpl.java:191) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.032338768Z [inf]  	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:124) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.032338926Z [inf]  	at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:130) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.032346324Z [inf]  	at org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.buildDialect(DialectFactoryImpl.java:87) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.032359014Z [inf]  	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.5.3.Final.jar!/:6.5.3.Final]
+2026-09-09T09:39:57.032365384Z [inf]  	... 35 common frames omitted

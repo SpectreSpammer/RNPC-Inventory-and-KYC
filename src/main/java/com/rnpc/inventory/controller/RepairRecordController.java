@@ -1,8 +1,10 @@
 package com.rnpc.inventory.controller;
 
 import com.rnpc.inventory.dto.RepairRecordDto;
+import com.rnpc.inventory.entity.Notification;
 import com.rnpc.inventory.entity.RepairRecord;
 import com.rnpc.inventory.service.ClientService;
+import com.rnpc.inventory.service.NotificationService;
 import com.rnpc.inventory.service.RepairRecordService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("repair")
@@ -21,11 +24,14 @@ public class RepairRecordController {
 
     private final RepairRecordService service;
     private final ClientService clientService;
+    private final NotificationService notificationService;
 
     @Autowired
-    public RepairRecordController(RepairRecordService service, ClientService clientService) {
+    public RepairRecordController(RepairRecordService service, ClientService clientService,
+                                   NotificationService notificationService) {
         this.service = service;
         this.clientService = clientService;
+        this.notificationService = notificationService;
     }
 
     @GetMapping({"", "/"})
@@ -54,6 +60,23 @@ public class RepairRecordController {
         if (admin && clientId != null) {
             model.addAttribute("client", clientService.getClientById(clientId));
         }
+
+        // Topbar chrome (username/role/notification bell+dropdown) - this page never set these
+        // before the redesign, so the user-menu/bell silently never appeared (layout-app.html's
+        // topbar guards currentUsername==null). Same admin/customer split notifyAdmin/notifyCustomer
+        // already use elsewhere (NotificationService.java:51-57): admin sees the shared admin
+        // inbox, a signed-in customer sees their own.
+        if (isSignedIn(authentication)) {
+            String username = authentication.getName();
+            model.addAttribute("currentUsername", username);
+            model.addAttribute("currentRole", admin ? "Admin" : "Customer");
+            model.addAttribute("unreadNotifications",
+                    admin ? notificationService.getUnreadCountForAdmin() : notificationService.getUnreadCountForUser(username));
+            List<Notification> recent =
+                    admin ? notificationService.getForAdmin() : notificationService.getForUser(username);
+            model.addAttribute("recentNotifications", recent.stream().limit(15).collect(Collectors.toList()));
+        }
+
         return "repairs/repairIndex";
     }
 

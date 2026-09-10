@@ -1,0 +1,64 @@
+2026-09-09T13:21:16.317397520Z [inf]  Starting Container
+2026-09-09T13:21:16.986321657Z [inf]    '  |____| .__|_| |_|_| |_\__, | / / / /
+2026-09-09T13:21:16.986327676Z [inf]   =========|_|==============|___/=/_/_/_/
+2026-09-09T13:21:16.986331686Z [inf]  
+2026-09-09T13:21:16.986335126Z [inf]   :: Spring Boot ::               (v3.3.11)
+2026-09-09T13:21:16.986338476Z [inf]  
+2026-09-09T13:21:16.986355956Z [inf]  
+2026-09-09T13:21:16.986365825Z [inf]    .   ____          _            __ _ _
+2026-09-09T13:21:16.986370515Z [inf]   /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+2026-09-09T13:21:16.986374365Z [inf]  ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+2026-09-09T13:21:16.986377435Z [inf]   \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+2026-09-09T13:21:17.096776401Z [inf]  2026-09-09T13:21:17.088Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Starting InventoryApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 1 (/app/target/inventory-0.0.1-SNAPSHOT.jar started by root in /app)
+2026-09-09T13:21:17.096779121Z [inf]  2026-09-09T13:21:17.090Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-09-09T13:21:18.287570552Z [inf]  2026-09-09T13:21:18.284Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-09T13:21:18.383170480Z [inf]  2026-09-09T13:21:18.381Z  INFO 1 --- [inventory] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 92 ms. Found 16 JPA repository interfaces.
+2026-09-09T13:21:19.393116550Z [inf]  2026-09-09T13:21:19.376Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-09T13:21:19.393121020Z [inf]  2026-09-09T13:21:19.385Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-09T13:21:19.393123800Z [inf]  2026-09-09T13:21:19.385Z  INFO 1 --- [inventory] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-09-09T13:21:19.429261312Z [inf]  2026-09-09T13:21:19.413Z  INFO 1 --- [inventory] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-09T13:21:19.429268231Z [inf]  2026-09-09T13:21:19.413Z  INFO 1 --- [inventory] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2286 ms
+2026-09-09T13:21:19.970409716Z [inf]  2026-09-09T13:21:19.916Z  INFO 1 --- [inventory] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-09T13:21:20.094054012Z [inf]  2026-09-09T13:21:20.079Z  INFO 1 --- [inventory] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-09-09T13:21:20.129329327Z [inf]  2026-09-09T13:21:20.120Z  INFO 1 --- [inventory] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-09T13:21:20.588966224Z [inf]  2026-09-09T13:21:20.580Z  INFO 1 --- [inventory] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-09T13:21:20.598185422Z [inf]  2026-09-09T13:21:20.595Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-09T13:21:20.929185033Z [inf]  2026-09-09T13:21:20.918Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@29f95272
+2026-09-09T13:21:20.929188862Z [inf]  2026-09-09T13:21:20.919Z  INFO 1 --- [inventory] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-09T13:21:22.179586470Z [inf]  2026-09-09T13:21:22.116Z  INFO 1 --- [inventory] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-09T13:21:22.179589540Z [inf]  Hibernate: alter table rnpc_appointments modify column history TEXT
+2026-09-09T13:21:22.179592420Z [inf]  Hibernate: alter table rnpc_appointments modify column issue_description TEXT not null
+2026-09-09T13:21:22.179595500Z [inf]  Hibernate: alter table rnpc_appointments modify column item_description TEXT
+2026-09-09T13:21:22.179598400Z [inf]  Hibernate: alter table rnpc_cellphone_parts modify column description TEXT
+2026-09-09T13:21:22.179600980Z [inf]  Hibernate: alter table rnpc_clients modify column address TEXT
+2026-09-09T13:21:22.189120771Z [inf]  Hibernate: alter table rnpc_cooler_parts modify column notes TEXT
+2026-09-09T13:21:22.192733486Z [inf]  Hibernate: alter table rnpc_laptop_parts modify column description TEXT
+2026-09-09T13:21:22.196710691Z [inf]  Hibernate: alter table rnpc_motherboard_parts modify column notable_features TEXT
+2026-09-09T13:21:22.206019988Z [inf]  Hibernate: alter table rnpc_psu_parts modify column notes TEXT
+2026-09-09T13:21:22.206326900Z [inf]  Hibernate: alter table rnpc_repair_records modify column fix TEXT
+2026-09-09T13:21:22.215569148Z [inf]  Hibernate: alter table rnpc_repair_records modify column issue_description TEXT
+2026-09-09T13:21:22.219292920Z [inf]  Hibernate: alter table rnpc_repair_records modify column recommendation TEXT
+2026-09-09T13:21:22.222797840Z [inf]  Hibernate: alter table rnpc_repair_records modify column remarks TEXT
+2026-09-09T13:21:22.232101675Z [inf]  Hibernate: alter table users modify column address TEXT
+2026-09-09T13:21:22.274418828Z [inf]  2026-09-09T13:21:22.272Z  INFO 1 --- [inventory] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-09T13:21:23.112420053Z [inf]  2026-09-09T13:21:23.109Z  WARN 1 --- [inventory] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-09T13:21:23.192328294Z [inf]  2026-09-09T13:21:23.170Z  INFO 1 --- [inventory] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2026-09-09T13:21:23.192331004Z [inf]  2026-09-09T13:21:23.170Z  WARN 1 --- [inventory] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2026-09-09T13:21:23.328650901Z [inf]  2026-09-09T13:21:23.276Z  INFO 1 --- [inventory] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-09-09T13:21:24.435780611Z [inf]  2026-09-09T13:21:24.020Z  INFO 1 --- [inventory] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-09-09T13:21:24.435784311Z [inf]  2026-09-09T13:21:24.077Z  INFO 1 --- [inventory] [           main] c.rnpc.inventory.InventoryApplication    : Started InventoryApplication in 7.442 seconds (process running for 8.041)
+2026-09-09T13:21:24.435787401Z [inf]  Hibernate: select u1_0.id from users u1_0 where u1_0.username=? limit ?
+2026-09-09T13:21:24.435790441Z [inf]  Hibernate: select u1_0.id from users u1_0 where u1_0.username=? limit ?
+2026-09-09T13:21:24.435793641Z [inf]  Demo users created:
+2026-09-09T13:21:24.435797550Z [inf]  Admin: admin / 12345
+2026-09-09T13:21:24.435800570Z [inf]  Customer: nand159 / 12345
+2026-09-09T13:21:24.435803580Z [inf]  Hibernate: select u1_0.id,u1_0.address,u1_0.contact_number,u1_0.email,u1_0.full_name,u1_0.google_id,u1_0.password,u1_0.role,u1_0.username from users u1_0 where u1_0.email=?
+2026-09-09T13:21:24.435806480Z [inf]  Hibernate: select u1_0.id,u1_0.address,u1_0.contact_number,u1_0.email,u1_0.full_name,u1_0.google_id,u1_0.password,u1_0.role,u1_0.username from users u1_0 where u1_0.id=?
+2026-09-09T13:21:24.435809610Z [inf]  Hibernate: select count(*) from rnpc_cpu_parts cp1_0
+2026-09-09T13:21:24.435812770Z [inf]  Hibernate: select count(*) from rnpc_gpu_parts gp1_0
+2026-09-09T13:21:24.435815780Z [inf]  Hibernate: select count(*) from rnpc_motherboard_parts mp1_0
+2026-09-09T13:21:24.480566922Z [inf]  Hibernate: select count(*) from rnpc_ram_parts rp1_0
+2026-09-09T13:21:24.480573801Z [inf]  Hibernate: select count(*) from rnpc_storage_parts sp1_0
+2026-09-09T13:21:24.480577661Z [inf]  Hibernate: select count(*) from rnpc_psu_parts pp1_0
+2026-09-09T13:21:24.485185841Z [inf]  Hibernate: select count(*) from rnpc_case_parts cp1_0
+2026-09-09T13:21:24.488098245Z [inf]  Hibernate: select count(*) from rnpc_cooler_parts cp1_0

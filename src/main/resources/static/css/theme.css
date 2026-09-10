@@ -1,0 +1,40 @@
+/*
+  Every value here is transcribed directly from the approved mockup (static/gpt-preview.html /
+  mockups/gpt-dashboard.html :root block) - nothing added, nothing redesigned from memory. CSS
+  custom properties only; no element rules. Every fragment/template built from this mockup reads
+  these variables - no hardcoded hex anywhere outside this file.
+*/
+:root {
+  --accent: #0098c8;
+  --accent-hover: #00749a;
+  --accent-subtle: #e3f4fa;
+
+  --bg-page: #F5F6F8;
+  --bg-card: #FFFFFF;
+  --border: #E9EBEF;
+  --text: #1A1D21;
+  --text-muted: #7A8391;
+
+  --sidebar-bg: #101B2D;
+  --sidebar-bg-2: #0C1524;
+  --sidebar-text: #93A0B4;
+
+  --blue: #2F6FED;   --blue-subtle: #E5EEFE;
+  --green: #17A673;  --green-subtle: #E3F7EF;
+  --orange: #F0883E; --orange-subtle: #FDEEE1;
+  --purple: #8B5CF6; --purple-subtle: #F1EBFE;
+  --pink: #EC6FBB;   --pink-subtle: #FCE9F4;
+  --teal: #14B8A6;
+  --indigo: #6366F1;
+  --red: #E23D3D;    --red-subtle: #FCE9E9;
+  --amber: #D9932A;  --amber-subtle: #FBF0DD;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 1px 2px rgba(16,18,20,.05);
+  --shadow-md: 0 8px 24px -8px rgba(16,24,40,.14);
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  A <table> inside a card - matches the mockup's table.rn-table (muted uppercase headers, no
+  outer table borders, only thin row dividers) plus .table-action/.btn-accent-sm button styles
+  used inside these cards.
+  Params: title (String), icon (Feather icon name), iconColor (see card.html),
+          action (fragment expression, nullable - e.g. a "View All" link), content (fragment
+          expression, required - must contain a <table class="rn-table">...</table>)
+  Usage:
+    <div th:replace="~{fragments/table-card :: table(title='Recent Orders', icon='shopping-cart', iconColor='blue', action=~{::#ordersAction}, content=~{::#ordersTable})}"></div>
+    <div id="ordersAction" hidden><a href="/order" class="card-link">View All</a></div>
+    <div id="ordersTable" hidden>
+        <table class="rn-table">
+            <thead><tr><th>Order</th><th>Status</th></tr></thead>
+            <tbody><tr><td>ORD-00001</td><td>...</td></tr></tbody>
+        </table>
+    </div>
+-->
+<div th:fragment="table(title, icon, iconColor, action, content)" class="card">
+    <div class="card-head">
+        <div class="card-head-left">
+            <span class="card-icon" th:classappend="'card-icon-' + ${iconColor}">
+                <i th:attr="data-feather=${icon}"></i>
+            </span>
+            <h2 class="card-title" th:text="${title}"></h2>
+        </div>
+        <th:block th:if="${action != null}">
+            <div th:replace="${action}"></div>
+        </th:block>
+    </div>
+    <div th:replace="${content}"></div>
+</div>
+
+<style th:fragment="table-card-styles">
+    table.rn-table{ width:100%; border-collapse:collapse; }
+    table.rn-table thead th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); font-weight:700; padding:0 var(--space-2) var(--space-2); border-bottom:1px solid var(--border); white-space:nowrap; }
+    table.rn-table tbody td{ padding:10px var(--space-2); border-bottom:1px solid var(--border); font-size:13px; color:var(--text); vertical-align:middle; }
+    table.rn-table tbody tr:last-child td{ border-bottom:none; }
+
+    .table-action{ border:1px solid var(--border); background:var(--bg-card); border-radius:7px; padding:5px 12px; font-size:12px; font-weight:600; color:var(--text); text-decoration:none; display:inline-flex; align-items:center; gap:5px; }
+    .table-action:hover{ border-color:var(--accent); color:var(--accent); }
+    .table-action svg{ width:12px; height:12px; }
+
+    .btn-accent-sm{ background:var(--accent); color:#fff; border:none; border-radius:7px; padding:7px 14px; font-size:12.5px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; margin-top:var(--space-3); }
+    .btn-accent-sm:hover{ background:var(--accent-hover); color:#fff; }
+    .btn-accent-sm svg{ width:14px; height:14px; }
+</style>
+
+</body>
+</html>

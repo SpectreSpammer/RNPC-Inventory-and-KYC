@@ -1,135 +1,279 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-          crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <meta charset="UTF-8"/>
+    <title>Build a PC - RNPC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/page-header :: page-header-styles}"></th:block>
+    <th:block th:replace="~{fragments/card :: card-styles}"></th:block>
+    <th:block th:replace="~{fragments/table-card :: table-card-styles}"></th:block>
+    <th:block th:replace="~{fragments/empty-state :: empty-state-styles}"></th:block>
     <style>
-        .build-row td { vertical-align: middle; }
-        .part-name { font-weight: 600; }
-        .part-specs { font-size: 0.85em; color: #6c757d; white-space: pre-line; }
-        .compat-ok { color: #198754; }
-        .compat-warn { color: #dc3545; }
-        #pickerTableBody tr.out-of-stock { opacity: 0.55; }
-        .picker-modal-dialog {
-            max-width: 95vw;
-            margin-top: 2.5vh;
-            margin-bottom: 2.5vh;
+        /*
+          Page-specific layout for Build a PC, converted from gpt/User Interface.png's "Build a
+          PC" panel (top-center). See chat for the full read-back of what that panel shows and
+          the deviations noted below - this comment only tracks the ones that affect the CSS.
+
+          The hero band reuses the exact same gradient/box treatment as dashboard.html's own
+          .banner (see that file) - same values, not new ones, just duplicated since that pattern
+          isn't packaged as a shared fragment yet.
+
+          The two decorative PC-tower graphics in the mockup's hero are raster art in a design
+          comp (no markup to copy faithfully, unlike the dashboard mockup which was real HTML/CSS)
+          - approximated here as simple abstract shapes in the same style as the dashboard hero's
+          own decorative SVG, not an attempt to reproduce the artwork pixel-for-pixel.
+        */
+        .content{ padding:var(--space-5); }
+
+        .hero-band{
+            position:relative; overflow:hidden; border-radius:var(--radius); padding:var(--space-5) var(--space-6);
+            background:linear-gradient(120deg,#EAF4FF 0%, #F7FBFF 55%, #FFFFFF 100%);
+            border:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:var(--space-5);
+            margin-bottom:var(--space-5);
         }
-        .picker-modal-dialog .modal-content {
-            height: 90vh;
+        .hero-band-title{ font-size:26px; font-weight:800; margin:0 0 6px; color:var(--text); }
+        .hero-band-sub{ font-size:13.5px; color:var(--text-muted); margin:0; max-width:420px; }
+        .hero-deco{ width:150px; height:120px; flex-shrink:0; opacity:.9; }
+
+        .stepper{ display:flex; align-items:center; gap:var(--space-6); margin-bottom:var(--space-5); }
+        .step{ display:flex; align-items:center; gap:var(--space-2); }
+        .step-num{
+            width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+            font-size:12.5px; font-weight:700; flex-shrink:0; border:1.5px solid var(--border); color:var(--text-muted);
         }
-        .filter-menu, .sort-menu { min-width: 220px; padding: 0.75rem; }
-        .filter-menu { max-height: 70vh; overflow-y: auto; }
-        .filter-section-list { max-height: 150px; overflow-y: auto; }
-        .filter-accordion-item { border-bottom: 1px solid #e9ecef; }
-        .filter-accordion-item:last-of-type { border-bottom: none; }
-        .filter-accordion-toggle {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: none;
-            border: none;
-            padding: 0.5rem 0;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: #495057;
+        .step-label{ font-size:13.5px; font-weight:600; color:var(--text-muted); }
+        .step.active .step-num{ background:var(--accent); border-color:var(--accent); color:#fff; }
+        .step.active .step-label{ color:var(--text); font-weight:700; }
+
+        #compatMessages{ margin-bottom:var(--space-4); font-size:13px; }
+        #compatMessages .compat-ok{ color:var(--green); }
+        #compatMessages .compat-warn{ color:var(--red); }
+        #compatMessages .compat-empty{ color:var(--text-muted); }
+
+        .build-grid{ display:grid; grid-template-columns:210px 1fr 300px; gap:var(--space-4); align-items:start; }
+        @media (max-width:1200px){ .build-grid{ grid-template-columns:1fr; } }
+
+        /* Left rail */
+        .category-rail{ background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); padding:var(--space-2); }
+        .category-item{
+            display:flex; align-items:center; gap:var(--space-2); width:100%; padding:10px var(--space-3); margin-bottom:2px;
+            border-radius:var(--radius-sm); color:var(--text); font-size:13.5px; font-weight:600; background:none; border:none;
+            text-align:left; cursor:pointer;
         }
-        .filter-accordion-toggle .chevron { transition: transform 0.2s ease; color: #6c757d; }
-        .filter-accordion-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
-        .filter-badge { font-size: 0.7rem; }
-        .filter-accordion-body { padding-bottom: 0.5rem; }
-        .price-badge { font-size: 1rem; }
+        .category-item:hover{ background:var(--bg-page); }
+        .category-item.active{ background:var(--accent-subtle); color:var(--accent-hover); }
+        .category-item-icon{ width:18px; height:18px; flex-shrink:0; }
+        .category-item-label{ flex:1; }
+        .category-item-check{ width:15px; height:15px; color:var(--green); flex-shrink:0; }
+
+        /* Center: part list panel */
+        .part-list-panel{ background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); padding:var(--space-4); }
+        .part-list-title{ font-size:16px; font-weight:700; color:var(--text); margin:0 0 var(--space-3); }
+        .part-list-toolbar{ display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap; margin-bottom:var(--space-3); }
+        .part-search{
+            display:flex; align-items:center; gap:var(--space-2); background:var(--bg-page); border:1px solid var(--border);
+            border-radius:999px; padding:8px var(--space-3); flex:1; min-width:180px;
+        }
+        .part-search svg{ width:15px; height:15px; color:var(--text-muted); flex-shrink:0; }
+        .part-search input{ border:none; background:none; outline:none; font-size:13px; color:var(--text); width:100%; }
+        .toolbar-btn{
+            display:inline-flex; align-items:center; gap:6px; background:var(--bg-card); border:1px solid var(--border);
+            border-radius:var(--radius-sm); padding:8px 12px; font-size:12.5px; font-weight:600; color:var(--text); cursor:pointer;
+            white-space:nowrap;
+        }
+        .toolbar-btn:hover{ border-color:var(--accent); color:var(--accent-hover); }
+        .toolbar-btn .chevron{ width:13px; height:13px; color:var(--text-muted); }
+        .toolbar-badge{ background:var(--accent); color:#fff; font-size:10.5px; font-weight:700; border-radius:999px; padding:1px 6px; display:none; }
+
+        .filter-menu, .sort-menu, .brand-menu{ min-width:230px; padding:var(--space-3); border:1px solid var(--border); border-radius:var(--radius-sm); box-shadow:var(--shadow-md); }
+        .filter-menu{ max-height:65vh; overflow-y:auto; }
+        .filter-section-list{ max-height:150px; overflow-y:auto; }
+        .filter-accordion-item{ border-bottom:1px solid var(--border); }
+        .filter-accordion-item:last-of-type{ border-bottom:none; }
+        .filter-accordion-toggle{
+            width:100%; display:flex; justify-content:space-between; align-items:center; background:none; border:none;
+            padding:8px 0; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.02em; color:var(--text);
+        }
+        .filter-accordion-toggle .chevron{ transition:transform .2s ease; color:var(--text-muted); width:14px; height:14px; }
+        .filter-accordion-toggle[aria-expanded="true"] .chevron{ transform:rotate(180deg); }
+        .filter-badge{ background:var(--accent); color:#fff; font-size:10.5px; font-weight:700; border-radius:999px; padding:1px 7px; display:none; }
+        .filter-accordion-body{ padding-bottom:var(--space-2); font-size:13px; }
+        .filter-accordion-body .form-check{ font-size:13px; }
+        .filter-menu-actions{ display:flex; gap:var(--space-2); margin-top:var(--space-3); }
+        .filter-menu-actions button{ flex:1; }
+
+        /* Part cards */
+        .part-card{ display:flex; align-items:center; gap:var(--space-3); padding:var(--space-3); border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:var(--space-3); }
+        .part-card:last-child{ margin-bottom:0; }
+        .part-card-img{ width:64px; height:64px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--bg-page); flex-shrink:0; object-fit:contain; display:flex; align-items:center; justify-content:center; color:var(--text-muted); }
+        .part-card-img img{ width:100%; height:100%; object-fit:contain; border-radius:calc(var(--radius-sm) - 1px); }
+        .part-card-img svg{ width:24px; height:24px; }
+        .part-card-info{ flex:1; min-width:0; }
+        .part-card-name{ font-size:13.5px; font-weight:700; color:var(--text); margin:0 0 2px; }
+        .part-card-specs{ font-size:12px; color:var(--text-muted); margin:0; white-space:pre-line; }
+        .part-card-side{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0; }
+        .part-card-price{ font-size:14px; font-weight:800; color:var(--text); }
+        .part-card-stock{ font-size:11px; font-weight:600; color:var(--green); }
+        .part-card-stock.out{ color:var(--red); }
+        .part-card-actions{ display:flex; gap:6px; }
+        .part-card.out-of-stock{ opacity:.6; }
+        .part-empty{ text-align:center; padding:var(--space-6) var(--space-4); color:var(--text-muted); font-size:13.5px; }
+        .empty-state-hint{ font-size:12.5px; color:var(--text-muted); margin:0; }
+
+        /* .btn-accent-sm (table-card-styles) carries its own margin-top for its original
+           "sits below a table" context - overridden to 0 everywhere it's reused here so it
+           doesn't misalign inside flex rows/slots. */
+        .rn-page-header-actions .btn-accent-sm,
+        .part-card-actions .btn-accent-sm,
+        .filter-menu-actions .btn-accent-sm{ margin-top:0; }
+
+        /* Right: sticky build summary */
+        .build-summary{ position:sticky; top:var(--space-4); background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); padding:var(--space-4); }
+        .build-summary-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-3); }
+        .build-summary-title{ font-size:15px; font-weight:700; margin:0; color:var(--text); display:flex; align-items:center; gap:var(--space-2); }
+        .summary-line{ display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-2); padding:10px 0; border-bottom:1px solid var(--border); }
+        .summary-line:last-of-type{ border-bottom:none; }
+        .summary-line-info{ min-width:0; }
+        .summary-line-category{ font-size:10.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.03em; margin:0 0 2px; }
+        .summary-line-name{ font-size:12.5px; font-weight:600; color:var(--text); margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:150px; }
+        .summary-line-right{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
+        .summary-line-price{ font-size:12.5px; font-weight:700; color:var(--text); }
+        .summary-line-remove{ background:none; border:none; color:var(--text-muted); cursor:pointer; padding:2px; display:inline-flex; }
+        .summary-line-remove:hover{ color:var(--red); }
+        .summary-line-remove svg{ width:14px; height:14px; }
+        /* Subtle inline note (not a modal/alert) - whether the selected CPU's own integrated
+           graphics covers display output, or a GPU is actually required. Blue/amber-subtle match
+           the same tint pattern already used for task-tile/badge-pill elsewhere in this app. */
+        .gpu-hint{ display:flex; align-items:flex-start; gap:6px; font-size:12px; line-height:1.4; padding:8px 10px; border-radius:var(--radius-sm); margin:var(--space-2) 0; }
+        .gpu-hint svg{ width:14px; height:14px; flex-shrink:0; margin-top:1px; }
+        .gpu-hint-optional{ background:var(--blue-subtle); color:var(--blue); }
+        .gpu-hint-required{ background:var(--amber-subtle); color:var(--amber); }
+
+        .summary-total{ display:flex; justify-content:space-between; align-items:center; padding-top:var(--space-3); margin-top:var(--space-1); border-top:1px solid var(--border); }
+        .summary-total-label{ font-size:13px; font-weight:600; color:var(--text-muted); }
+        .summary-total-value{ font-size:16px; font-weight:800; color:var(--text); }
+        .build-summary .btn-accent-sm{ width:100%; justify-content:center; margin-top:var(--space-4); }
+
+        .view-details-img{ max-height:260px; margin:0 auto; display:none; }
+        .view-details-key{ width:45%; }
+        .view-details-price{ background:var(--accent); color:#fff; }
     </style>
 </head>
 <body>
-<div class="container">
-        <h1 class="text-center my-4">Build a PC</h1>
-</div>
 
-<div class="content-wrapper">
-    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+<div th:replace="~{fragments/layout-app :: sidebar(active='build', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
 
-    <main class="main-content">
-    <div th:replace="~{fragments/nav :: back}"></div>
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <p class="text-muted mb-0">Pick a CPU brand and the compatible motherboards and memory are filtered for you automatically — just like a parts picker.</p>
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-outline-secondary btn-sm" id="resetBuildBtn">Reset Build</button>
-            <button type="button" class="btn btn-primary btn-sm" id="orderNowBtn" disabled>Order Now</button>
-        </div>
-    </div>
+    <main class="content">
 
-    <form id="orderReviewForm" action="#" th:action="@{/order/review}" method="post" style="display:none;">
-        <input type="hidden" name="cpuId" id="orderCpuId"/>
-        <input type="hidden" name="gpuId" id="orderGpuId"/>
-        <input type="hidden" name="motherboardId" id="orderMotherboardId"/>
-        <input type="hidden" name="ramId" id="orderRamId"/>
-        <input type="hidden" name="storageSsdId" id="orderStorageSsdId"/>
-        <input type="hidden" name="storageHddId" id="orderStorageHddId"/>
-        <input type="hidden" name="psuId" id="orderPsuId"/>
-        <input type="hidden" name="caseId" id="orderCaseId"/>
-        <input type="hidden" name="coolerId" id="orderCoolerId"/>
-    </form>
-
-    <div id="compatMessages" class="mb-3"></div>
-
-    <div class="table-responsive">
-        <table class="table align-middle" id="buildTable">
-            <thead>
-            <tr>
-                <th style="width: 15%">Component</th>
-                <th style="width: 45%">Selection</th>
-                <th style="width: 15%">Price</th>
-                <th style="width: 25%">Action</th>
-            </tr>
-            </thead>
-            <tbody id="buildTableBody"></tbody>
-            <tfoot>
-            <tr>
-                <th colspan="2" class="text-end">Estimated Total</th>
-                <th id="buildSubtotal">Php 0.00</th>
-                <th></th>
-            </tr>
-            </tfoot>
-        </table>
-    </div>
-    </main>
-</div>
-
-<!-- Part picker modal -->
-<div class="modal fade" id="pickerModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog picker-modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="pickerModalTitle">Choose a part</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <!-- Not calling page-header::header(actions=~{::#id}) here: that fragment-expression
+             param only works safely with a source element in a DIFFERENT file (see chat) -
+             a same-template ~{::#id} self-reference duplicates the source element AND makes
+             both copies invisible, since the copy carries the source's own "hidden" attribute
+             with it. Reusing page-header-styles' own classes directly instead. -->
+        <div class="rn-page-header">
+            <div class="rn-page-header-text">
+                <h1 class="rn-page-header-title">Build a PC</h1>
+                <p class="rn-page-header-subtitle">Customize your PC with compatible parts and real-time pricing.</p>
             </div>
-            <div class="modal-body">
-                <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-                    <div class="input-group rounded" style="max-width: 650px;">
-                        <span class="input-group-text border-0" id="picker-search-addon">
-                            <i class="fas fa-search"></i>
-                        </span>
-                        <input type="search" class="form-control rounded" id="pickerSearch" placeholder="Search" aria-label="Search" aria-describedby="picker-search-addon" />
+            <div class="rn-page-header-actions">
+                <button type="button" class="btn-accent-sm" id="saveBuildBtn">
+                    <i data-feather="bookmark"></i>Save Build
+                </button>
+            </div>
+        </div>
+
+        <section class="hero-band">
+            <div>
+                <h2 class="hero-band-title">Build Your Dream PC</h2>
+                <p class="hero-band-sub">Choose your components, check compatibility, and get the best price.</p>
+            </div>
+            <svg class="hero-deco" viewBox="0 0 200 160" aria-hidden="true">
+                <rect x="20" y="10" width="90" height="140" rx="10" fill="#0F1B2E" opacity="0.15"/>
+                <rect x="90" y="25" width="70" height="110" rx="8" fill="#0098c8" opacity="0.18"/>
+                <circle cx="65" cy="120" r="14" fill="#0098c8" opacity="0.22"/>
+            </svg>
+        </section>
+
+        <div class="stepper">
+            <div class="step active">
+                <span class="step-num">1</span>
+                <span class="step-label">Components</span>
+            </div>
+            <div class="step">
+                <span class="step-num">2</span>
+                <span class="step-label">Compatibility</span>
+            </div>
+            <div class="step">
+                <span class="step-num">3</span>
+                <span class="step-label">Summary</span>
+            </div>
+        </div>
+
+        <div id="compatMessages"></div>
+
+        <form id="orderReviewForm" action="#" th:action="@{/order/review}" method="post" style="display:none;">
+            <input type="hidden" name="cpuId" id="orderCpuId"/>
+            <input type="hidden" name="gpuId" id="orderGpuId"/>
+            <input type="hidden" name="motherboardId" id="orderMotherboardId"/>
+            <input type="hidden" name="ramId" id="orderRamId"/>
+            <input type="hidden" name="storageSsdId" id="orderStorageSsdId"/>
+            <input type="hidden" name="storageHddId" id="orderStorageHddId"/>
+            <input type="hidden" name="psuId" id="orderPsuId"/>
+            <input type="hidden" name="caseId" id="orderCaseId"/>
+            <input type="hidden" name="coolerId" id="orderCoolerId"/>
+        </form>
+
+        <form id="saveBuildForm" action="#" th:action="@{/build/my-builds}" method="post" style="display:none;">
+            <input type="hidden" name="buildName" id="saveBuildName"/>
+            <input type="hidden" name="cpuId" id="saveCpuId"/>
+            <input type="hidden" name="gpuId" id="saveGpuId"/>
+            <input type="hidden" name="motherboardId" id="saveMotherboardId"/>
+            <input type="hidden" name="ramId" id="saveRamId"/>
+            <input type="hidden" name="storageSsdId" id="saveStorageSsdId"/>
+            <input type="hidden" name="storageHddId" id="saveStorageHddId"/>
+            <input type="hidden" name="psuId" id="savePsuId"/>
+            <input type="hidden" name="caseId" id="saveCaseId"/>
+            <input type="hidden" name="coolerId" id="saveCoolerId"/>
+        </form>
+
+        <div class="build-grid">
+            <nav class="category-rail" id="categoryRail"></nav>
+
+            <section class="part-list-panel">
+                <h3 class="part-list-title" id="partListTitle">CPU</h3>
+                <div class="part-list-toolbar">
+                    <div class="part-search">
+                        <i data-feather="search"></i>
+                        <input type="search" id="pickerSearch" placeholder="Search..." aria-label="Search"/>
                     </div>
+
                     <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="pickerFilterBtn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                            <i class="fas fa-filter"></i> Filter
+                        <button class="toolbar-btn dropdown-toggle" type="button" id="pickerBrandBtn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                            All Brands <span class="toolbar-badge" id="pickerBrandBadge"></span> <i data-feather="chevron-down" class="chevron"></i>
+                        </button>
+                        <div class="dropdown-menu brand-menu" aria-labelledby="pickerBrandBtn">
+                            <div class="d-flex justify-content-end mb-1">
+                                <a href="#" id="pickerSelectAllBrands" class="small">Select All</a>
+                                <a href="#" id="pickerUnselectAllBrands" class="small" style="display:none;">Unselect All</a>
+                            </div>
+                            <div id="pickerBrandChecklist" class="filter-section-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="dropdown">
+                        <button class="toolbar-btn dropdown-toggle" type="button" id="pickerFilterBtn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                            <i data-feather="filter"></i> Filter <span class="toolbar-badge" id="pickerAvailBadge"></span> <i data-feather="chevron-down" class="chevron"></i>
                         </button>
                         <div class="dropdown-menu filter-menu" aria-labelledby="pickerFilterBtn">
                             <div id="pickerFilterAccordion">
                                 <div class="filter-accordion-item">
                                     <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#pickerCollapseAvail" aria-expanded="false">
-                                        <span>Availability <span class="badge bg-primary rounded-pill filter-badge" id="pickerAvailBadge" style="display:none;"></span></span>
-                                        <i class="fas fa-chevron-down chevron"></i>
+                                        <span>Availability <span class="filter-badge" id="pickerAvailBadgeInner"></span></span>
+                                        <i data-feather="chevron-down" class="chevron"></i>
                                     </button>
                                     <div class="collapse" id="pickerCollapseAvail" data-bs-parent="#pickerFilterAccordion">
                                         <div class="filter-accordion-body">
@@ -148,32 +292,18 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="filter-accordion-item">
-                                    <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#pickerCollapseBrand" aria-expanded="false">
-                                        <span>Brand <span class="badge bg-primary rounded-pill filter-badge" id="pickerBrandBadge" style="display:none;"></span></span>
-                                        <i class="fas fa-chevron-down chevron"></i>
-                                    </button>
-                                    <div class="collapse" id="pickerCollapseBrand" data-bs-parent="#pickerFilterAccordion">
-                                        <div class="filter-accordion-body">
-                                            <div class="d-flex justify-content-end mb-1">
-                                                <a href="#" id="pickerSelectAllBrands" class="small">Select All</a>
-                                                <a href="#" id="pickerUnselectAllBrands" class="small" style="display:none;">Unselect All</a>
-                                            </div>
-                                            <div id="pickerBrandChecklist" class="filter-section-list"></div>
-                                        </div>
-                                    </div>
-                                </div>
                                 <div id="pickerFieldFilterSections"></div>
                             </div>
-                            <div class="d-flex gap-2 mt-3">
-                                <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" id="pickerResetFilterBtn">Reset</button>
-                                <button type="button" class="btn btn-primary btn-sm flex-fill" id="pickerApplyFilterBtn">Apply</button>
+                            <div class="filter-menu-actions">
+                                <button type="button" class="toolbar-btn" id="pickerResetFilterBtn">Reset</button>
+                                <button type="button" class="btn-accent-sm" id="pickerApplyFilterBtn">Apply</button>
                             </div>
                         </div>
                     </div>
+
                     <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="pickerSortBtn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                            Sort by
+                        <button class="toolbar-btn dropdown-toggle" type="button" id="pickerSortBtn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                            Sort by <i data-feather="chevron-down" class="chevron"></i>
                         </button>
                         <div class="dropdown-menu sort-menu" aria-labelledby="pickerSortBtn">
                             <div class="form-check">
@@ -191,25 +321,56 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="form-check mb-2" id="pickerCompatWrapper" style="display:none;">
                     <input class="form-check-input" type="checkbox" id="pickerCompatOnly" checked>
-                    <label class="form-check-label" for="pickerCompatOnly">
-                        Only show compatible parts
-                    </label>
+                    <label class="form-check-label" for="pickerCompatOnly">Only show compatible parts</label>
                 </div>
                 <div id="pickerCompatNote" class="text-muted small mb-2"></div>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead id="pickerTableHead"></thead>
-                        <tbody id="pickerTableBody"></tbody>
-                    </table>
+
+                <div id="partCards"></div>
+            </section>
+
+            <aside class="build-summary">
+                <div class="build-summary-head">
+                    <h3 class="build-summary-title"><i data-feather="box"></i>Build Summary</h3>
+                    <a href="#" class="card-link" id="clearAllBtn">Clear All</a>
                 </div>
+                <div id="buildSummaryBody"></div>
+                <div id="gpuHint" class="gpu-hint" hidden></div>
+                <div class="summary-total">
+                    <span class="summary-total-label">Estimated Total</span>
+                    <span class="summary-total-value" id="buildSubtotal">Php 0.00</span>
+                </div>
+                <button type="button" class="btn-accent-sm" id="continueToSummaryBtn" disabled>Continue to Summary</button>
+            </aside>
+        </div>
+    </main>
+</div>
+
+<!-- Save Build naming prompt - shown only once the customer is confirmed signed in (see
+     saveBuildBtn's click handler); an anonymous visitor gets authModal instead, same pattern
+     "Continue to Summary" already uses. -->
+<div class="modal fade" id="saveBuildModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Save Build</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <label for="saveBuildNameInput" class="form-label">Build name</label>
+                <input type="text" class="form-control" id="saveBuildNameInput" placeholder="My Build" maxlength="100"/>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="confirmSaveBuildBtn">Save</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- View modal -->
+<!-- View details modal - kept per your confirmation; the old Choose/pick modal is gone, replaced
+     by the always-visible right panel above. -->
 <div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
@@ -218,8 +379,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <img id="viewDetailsImg" src="" class="img-fluid d-block mb-3" style="display:none; max-height: 260px; margin: 0 auto;" alt="Component image"/>
-                <span class="badge bg-success price-badge mb-3" id="viewDetailsPrice"></span>
+                <img id="viewDetailsImg" src="" class="img-fluid view-details-img" alt="Component image"/>
+                <span class="badge mb-3 view-details-price" id="viewDetailsPrice"></span>
                 <table class="table table-sm" id="viewDetailsTable">
                     <tbody></tbody>
                 </table>
@@ -230,10 +391,8 @@
 
 <div th:replace="~{fragments/auth :: authModal}"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
-<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
 
 <script th:inline="javascript">
 /*<![CDATA[*/
@@ -251,6 +410,17 @@ const CATEGORY_LABELS = {
     PSU: 'Power Supply (PSU)',
     CASE: 'Case',
     COOLER: 'CPU Cooler'
+};
+const CATEGORY_ICONS = {
+    CPU: 'cpu',
+    MOTHERBOARD: 'grid',
+    RAM: 'server',
+    STORAGE_SSD: 'hard-drive',
+    STORAGE_HDD: 'hard-drive',
+    GPU: 'monitor',
+    PSU: 'zap',
+    CASE: 'box',
+    COOLER: 'wind'
 };
 
 // Storage is a single underlying build category ("STORAGE") in the data, split into two
@@ -312,7 +482,7 @@ function orderBrandValues(brands) {
 }
 
 const selected = {};
-let pickerCategory = null;
+let pickerCategory = 'CPU';
 let pickerActiveBrands = [];
 let pickerBrandMode = 'checkbox';
 let pickerSearchTerm = '';
@@ -373,7 +543,7 @@ function renderCompatMessages() {
     const messages = computeCompatibilityMessages();
 
     if (messages.length === 0) {
-        container.innerHTML = '<div class="text-muted small">Pick a CPU, Motherboard and RAM to see live compatibility checks here.</div>';
+        container.innerHTML = '<div class="compat-empty">Pick a CPU, Motherboard and RAM to see live compatibility checks here.</div>';
         return;
     }
 
@@ -384,52 +554,106 @@ function renderCompatMessages() {
     }).join('');
 }
 
-function renderBuildTable() {
-    const tbody = document.getElementById('buildTableBody');
+function renderCategoryRail() {
+    const rail = document.getElementById('categoryRail');
+    rail.innerHTML = CATEGORY_ORDER.map(function (category) {
+        const isActive = category === pickerCategory;
+        const isChosen = !!selected[category];
+        return '<button type="button" class="category-item' + (isActive ? ' active' : '') + '" onclick="activateCategory(\'' + category + '\')">' +
+            '<i data-feather="' + CATEGORY_ICONS[category] + '" class="category-item-icon"></i>' +
+            '<span class="category-item-label">' + CATEGORY_LABELS[category] + '</span>' +
+            (isChosen ? '<i data-feather="check" class="category-item-check"></i>' : '') +
+            '</button>';
+    }).join('');
+    if (window.feather) feather.replace();
+}
+
+function renderBuildSummary() {
+    const body = document.getElementById('buildSummaryBody');
     let subtotal = 0;
-    let rows = '';
+    const lines = [];
 
     CATEGORY_ORDER.forEach(function (category) {
         const part = selected[category];
-        if (part) subtotal += Number(part.price);
-
-        const selectionHtml = part
-            ? '<div class="part-name">' + escapeHtml(part.brand) + ' ' + escapeHtml(part.modelName) + '</div>' +
-              '<div class="part-specs">' + escapeHtml(part.specs || '') + '</div>'
-            : '<span class="text-muted">No part selected</span>';
-
-        const priceHtml = part ? formatPrice(part.price) : '-';
-
-        const actionsHtml =
-            '<button type="button" class="btn btn-primary btn-sm me-2" onclick="openPicker(\'' + category + '\')">' +
-            (part ? 'Change' : 'Choose') + '</button>' +
-            (part ? '<button type="button" class="btn btn-outline-danger btn-sm" onclick="removePart(\'' + category + '\')">Remove</button>' : '');
-
-        rows += '<tr class="build-row">' +
-            '<td>' + CATEGORY_LABELS[category] + '</td>' +
-            '<td>' + selectionHtml + '</td>' +
-            '<td>' + priceHtml + '</td>' +
-            '<td>' + actionsHtml + '</td>' +
-            '</tr>';
+        if (!part) return;
+        subtotal += Number(part.price);
+        lines.push('<div class="summary-line">' +
+            '<div class="summary-line-info">' +
+            '<p class="summary-line-category">' + CATEGORY_LABELS[category] + '</p>' +
+            '<p class="summary-line-name">' + escapeHtml(part.brand) + ' ' + escapeHtml(part.modelName) + '</p>' +
+            '</div>' +
+            '<div class="summary-line-right">' +
+            '<span class="summary-line-price">' + formatPrice(part.price) + '</span>' +
+            '<button type="button" class="summary-line-remove" title="Remove" onclick="removePart(\'' + category + '\')"><i data-feather="x"></i></button>' +
+            '</div>' +
+            '</div>');
     });
 
-    tbody.innerHTML = rows;
-    document.getElementById('buildSubtotal').textContent = formatPrice(subtotal);
-    renderCompatMessages();
+    if (lines.length === 0) {
+        body.innerHTML = '<div class="empty-state">' +
+            '<i data-feather="box" class="empty-state-icon"></i>' +
+            '<p class="empty-state-message">No components selected</p>' +
+            '<p class="empty-state-hint">Start by selecting a component from the left.</p>' +
+            '</div>';
+    } else {
+        body.innerHTML = lines.join('');
+    }
 
-    const orderNowBtn = document.getElementById('orderNowBtn');
-    const hasAnySelection = CATEGORY_ORDER.some(function (category) { return !!selected[category]; });
-    orderNowBtn.disabled = !hasAnySelection;
+    document.getElementById('buildSubtotal').textContent = formatPrice(subtotal);
+    renderGpuHint();
+    if (window.feather) feather.replace();
+
+    const continueBtn = document.getElementById('continueToSummaryBtn');
+    continueBtn.disabled = lines.length === 0;
+}
+
+// Whether the selected CPU's own integrated graphics (CpuParts.integratedGraphics,
+// CpuParts.java:27) covers display output, or a GPU is actually required - same field the part
+// card's own "iGPU: None" / "iGPU: UHD Graphics 630" specs line already reads
+// (CpuPartsService.java:265 -> BuildPartView.fields['Integrated Graphics'], buildPc.html's own
+// part-card-specs rendering).
+function renderGpuHint() {
+    const hintEl = document.getElementById('gpuHint');
+    const cpu = selected['CPU'];
+    if (!cpu) {
+        hintEl.hidden = true;
+        return;
+    }
+
+    const igpu = (cpu.fields || {})['Integrated Graphics'];
+    const hasIgpu = igpu && igpu.trim() !== '' && igpu.trim().toLowerCase() !== 'none';
+
+    hintEl.hidden = false;
+    if (hasIgpu) {
+        hintEl.className = 'gpu-hint gpu-hint-optional';
+        hintEl.innerHTML = '<i data-feather="info"></i><span>This CPU has integrated graphics ('
+            + escapeHtml(igpu) + ') - a dedicated GPU is optional.</span>';
+    } else {
+        hintEl.className = 'gpu-hint gpu-hint-required';
+        hintEl.innerHTML = '<i data-feather="alert-triangle"></i><span>This CPU has no integrated graphics - '
+            + 'a GPU is required to get display output.</span>';
+    }
+}
+
+function refreshAfterSelectionChange() {
+    renderCategoryRail();
+    renderBuildSummary();
+    renderCompatMessages();
+    // Selections can change what's compatible for the category currently on screen (e.g.
+    // picking a CPU while viewing Motherboards) - the old modal didn't need this because it was
+    // closed while the main table was being edited; the panel is always visible now.
+    renderCompatToggle();
+    renderPickerTable();
 }
 
 function removePart(category) {
     delete selected[category];
-    renderBuildTable();
+    refreshAfterSelectionChange();
 }
 
 function resetBuild() {
     Object.keys(selected).forEach(function (key) { delete selected[key]; });
-    renderBuildTable();
+    refreshAfterSelectionChange();
 }
 
 function getFilterableFields(parts) {
@@ -443,7 +667,7 @@ function getFilterableFields(parts) {
     });
 }
 
-function openPicker(category) {
+function activateCategory(category) {
     pickerCategory = category;
     pickerSearchTerm = '';
     pickerSort = 'relevance';
@@ -457,19 +681,17 @@ function openPicker(category) {
         pickerFieldFilterState[key] = Array.from(new Set(parts.map(function (p) { return getFieldFilterValue(p, key); })));
     });
 
-    document.getElementById('pickerModalTitle').textContent = 'Choose a ' + CATEGORY_LABELS[category];
+    document.getElementById('partListTitle').textContent = CATEGORY_LABELS[category];
     document.getElementById('pickerSearch').value = '';
     document.getElementById('pickerSortRelevance').checked = true;
     document.getElementById('pickerAvailAll').checked = true;
     updateAvailabilityBadge();
 
+    renderCategoryRail();
     renderBrandChecklist();
     renderFieldFilterSections();
     renderCompatToggle();
     renderPickerTable();
-
-    const modalEl = document.getElementById('pickerModal');
-    bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
 
 function renderFieldFilterSections() {
@@ -513,8 +735,8 @@ function renderFieldFilterSections() {
 
         return '<div class="filter-accordion-item">' +
             '<button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#' + collapseId + '" aria-expanded="false">' +
-            '<span>' + escapeHtml(key) + ' <span class="badge bg-primary rounded-pill filter-badge" id="' + badgeId + '" style="display:none;"></span></span>' +
-            '<i class="fas fa-chevron-down chevron"></i>' +
+            '<span>' + escapeHtml(key) + ' <span class="filter-badge" id="' + badgeId + '"></span></span>' +
+            '<i data-feather="chevron-down" class="chevron"></i>' +
             '</button>' +
             '<div class="collapse" id="' + collapseId + '" data-bs-parent="#pickerFilterAccordion">' +
             '<div class="filter-accordion-body">' +
@@ -525,6 +747,7 @@ function renderFieldFilterSections() {
     }).join('');
 
     updateAllFieldBadges();
+    if (window.feather) feather.replace();
 
     document.querySelectorAll('.picker-field-checkbox').forEach(function (cb) {
         cb.addEventListener('change', function () {
@@ -558,21 +781,18 @@ function updateChecklistBadge(badgeId, checkedCount, totalCount) {
 }
 
 function updateBrandBadge() {
+    let checkedCount, totalCount;
     if (pickerBrandMode === 'radio') {
         const checked = document.querySelector('.picker-brand-radio:checked');
-        const badge = document.getElementById('pickerBrandBadge');
-        if (checked && checked.value !== '__ALL__') {
-            badge.textContent = '1';
-            badge.style.display = '';
-        } else {
-            badge.style.display = 'none';
-        }
-        return;
+        const allBrands = document.querySelectorAll('.picker-brand-radio').length - 1;
+        totalCount = allBrands;
+        checkedCount = (checked && checked.value !== '__ALL__') ? 1 : allBrands;
+    } else {
+        const checkboxes = document.querySelectorAll('.picker-brand-checkbox');
+        totalCount = checkboxes.length;
+        checkedCount = Array.from(checkboxes).filter(function (cb) { return cb.checked; }).length;
     }
-
-    const checkboxes = document.querySelectorAll('.picker-brand-checkbox');
-    const checked = Array.from(checkboxes).filter(function (cb) { return cb.checked; });
-    updateChecklistBadge('pickerBrandBadge', checked.length, checkboxes.length);
+    updateChecklistBadge('pickerBrandBadge', checkedCount, totalCount);
 }
 
 function updateFieldBadge(badgeId) {
@@ -589,12 +809,16 @@ function updateAllFieldBadges() {
 
 function updateAvailabilityBadge() {
     const checked = document.querySelector('input[name="pickerAvailability"]:checked');
-    const badge = document.getElementById('pickerAvailBadge');
+    const outer = document.getElementById('pickerAvailBadge');
+    const inner = document.getElementById('pickerAvailBadgeInner');
     if (checked && checked.value !== 'all') {
-        badge.textContent = '1';
-        badge.style.display = '';
+        outer.textContent = '1';
+        outer.style.display = '';
+        inner.textContent = '1';
+        inner.style.display = '';
     } else {
-        badge.style.display = 'none';
+        outer.style.display = 'none';
+        inner.style.display = 'none';
     }
 }
 
@@ -690,6 +914,10 @@ function renderCompatToggle() {
     }
 }
 
+function stockLabel(p) {
+    return p.stocks > 0 ? (p.stocks + ' in stock') : 'Out of stock';
+}
+
 function renderPickerTable() {
     let parts = partsByCategory(pickerCategory);
 
@@ -729,39 +957,38 @@ function renderPickerTable() {
         parts = parts.slice().sort(function (a, b) { return b.price - a.price; });
     }
 
-    const allInCategory = partsByCategory(pickerCategory);
-    const fieldKeys = allInCategory.length > 0 ? Object.keys(allInCategory[0].fields || {}) : [];
-    const columnCount = fieldKeys.length + 3; // + Stocks, Price, Action
-
-    const thead = document.getElementById('pickerTableHead');
-    thead.innerHTML = '<tr>' +
-        fieldKeys.map(function (key) { return '<th>' + escapeHtml(key) + '</th>'; }).join('') +
-        '<th>Stocks</th><th>Price</th><th></th>' +
-        '</tr>';
-
-    const tbody = document.getElementById('pickerTableBody');
+    const container = document.getElementById('partCards');
 
     if (parts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="' + columnCount + '" class="text-center text-muted">No matching parts found.</td></tr>';
+        container.innerHTML = '<div class="part-empty">No matching parts found.</div>';
         return;
     }
 
-    tbody.innerHTML = parts.map(function (p) {
+    container.innerHTML = parts.map(function (p) {
         const outOfStock = p.stocks <= 0;
-        const fieldCells = fieldKeys.map(function (key) {
-            return '<td>' + escapeHtml((p.fields || {})[key]) + '</td>';
-        }).join('');
+        const imgHtml = p.imageFileName
+            ? '<img src="/images/' + escapeHtml(p.imageFileName) + '" alt=""/>'
+            : '<i data-feather="' + CATEGORY_ICONS[pickerCategory] + '"></i>';
 
-        return '<tr class="' + (outOfStock ? 'out-of-stock' : '') + '">' +
-            fieldCells +
-            '<td>' + (outOfStock ? 'Out of stock' : p.stocks) + '</td>' +
-            '<td>' + formatPrice(p.price) + '</td>' +
-            '<td style="white-space:nowrap">' +
-            '<button type="button" class="btn btn-outline-secondary btn-sm" onclick="viewPartDetails(' + p.componentId + ')">View</button> ' +
-            '<button type="button" class="btn btn-success btn-sm" ' + (outOfStock ? 'disabled' : '') +
-            ' onclick="selectPart(' + p.componentId + ')">Select</button></td>' +
-            '</tr>';
+        return '<div class="part-card' + (outOfStock ? ' out-of-stock' : '') + '">' +
+            '<div class="part-card-img">' + imgHtml + '</div>' +
+            '<div class="part-card-info">' +
+            '<p class="part-card-name">' + escapeHtml(p.brand) + ' ' + escapeHtml(p.modelName) + '</p>' +
+            '<p class="part-card-specs">' + escapeHtml(p.specs || '') + '</p>' +
+            '</div>' +
+            '<div class="part-card-side">' +
+            '<span class="part-card-price">' + formatPrice(p.price) + '</span>' +
+            '<span class="part-card-stock' + (outOfStock ? ' out' : '') + '">' + stockLabel(p) + '</span>' +
+            '<div class="part-card-actions">' +
+            '<button type="button" class="toolbar-btn" onclick="viewPartDetails(' + p.componentId + ')">View</button>' +
+            '<button type="button" class="btn-accent-sm" ' + (outOfStock ? 'disabled' : '') +
+            ' onclick="selectPart(' + p.componentId + ')"><i data-feather="plus"></i>Add</button>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
     }).join('');
+
+    if (window.feather) feather.replace();
 }
 
 function viewPartDetails(componentId) {
@@ -782,7 +1009,7 @@ function viewPartDetails(componentId) {
 
     const fields = part.fields || {};
     const rows = Object.keys(fields).map(function (key) {
-        return '<tr><th class="text-muted" style="width:45%">' + escapeHtml(key) + '</th><td>' + escapeHtml(fields[key]) + '</td></tr>';
+        return '<tr><th class="text-muted view-details-key">' + escapeHtml(key) + '</th><td>' + escapeHtml(fields[key]) + '</td></tr>';
     }).join('');
 
     document.querySelector('#viewDetailsTable tbody').innerHTML = rows +
@@ -799,18 +1026,18 @@ function selectPart(componentId) {
     if (!part) return;
 
     selected[pickerCategory] = part;
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('pickerModal')).hide();
-    renderBuildTable();
+    refreshAfterSelectionChange();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('resetBuildBtn').addEventListener('click', function () {
-        if (confirm('Clear your entire build?')) {
+    document.getElementById('clearAllBtn').addEventListener('click', function (e) {
+        e.preventDefault();
+        if (Object.keys(selected).length > 0 && confirm('Clear your entire build?')) {
             resetBuild();
         }
     });
 
-    document.getElementById('orderNowBtn').addEventListener('click', function () {
+    document.getElementById('continueToSummaryBtn').addEventListener('click', function () {
         const fieldByCategory = {
             CPU: 'orderCpuId',
             GPU: 'orderGpuId',
@@ -869,35 +1096,78 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     });
 
-    renderBuildTable();
+    // Save Build - same paramByCategory mapping and /api/auth/status gate "Continue to Summary"
+    // already uses, but posts to /build/my-builds instead once a name is confirmed.
+    document.getElementById('saveBuildBtn').addEventListener('click', function () {
+        const hasAnySelection = CATEGORY_ORDER.some(function (category) { return !!selected[category]; });
+        if (!hasAnySelection) {
+            alert('Select at least one part before saving this build.');
+            return;
+        }
 
-    // The picker modal's body scrolls (modal-dialog-scrollable), which otherwise clips
-    // Bootstrap's absolutely-positioned dropdown-menu at the modal's edge — cutting off
-    // the Apply/Reset buttons at the bottom of the Filter panel. Fixed positioning escapes
-    // that clipping since it's relative to the viewport, not the scrolling ancestor.
-    //
-    // Hovering opens these too, but via Bootstrap's own show()/hide() (not a CSS :hover rule)
-    // so Popper computes the exact same position whichever way the menu opened — a CSS-only
-    // hover reveal shows the menu at its unpositioned default first, then jumps once a click
-    // triggers Popper, which is the bug this avoids.
-    ['pickerFilterBtn', 'pickerSortBtn'].forEach(function (id) {
-        const toggleEl = document.getElementById(id);
-        const wrapperEl = toggleEl.closest('.dropdown');
-        const dropdown = bootstrap.Dropdown.getOrCreateInstance(toggleEl, {
-            popperConfig: function (defaultConfig) {
-                return Object.assign({}, defaultConfig, { strategy: 'fixed' });
-            }
-        });
-
-        let hideTimer;
-        wrapperEl.addEventListener('mouseenter', function () {
-            clearTimeout(hideTimer);
-            dropdown.show();
-        });
-        wrapperEl.addEventListener('mouseleave', function () {
-            hideTimer = setTimeout(function () { dropdown.hide(); }, 150);
-        });
+        fetch('/api/auth/status')
+            .then(function (res) { return res.json(); })
+            .then(function (status) {
+                if (status.authenticated) {
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('saveBuildModal')).show();
+                } else {
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('authModal')).show();
+                }
+            })
+            .catch(function () {
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('saveBuildModal')).show();
+            });
     });
+
+    document.getElementById('confirmSaveBuildBtn').addEventListener('click', function () {
+        const saveFieldByCategory = {
+            CPU: 'saveCpuId',
+            GPU: 'saveGpuId',
+            MOTHERBOARD: 'saveMotherboardId',
+            RAM: 'saveRamId',
+            STORAGE_SSD: 'saveStorageSsdId',
+            STORAGE_HDD: 'saveStorageHddId',
+            PSU: 'savePsuId',
+            CASE: 'saveCaseId',
+            COOLER: 'saveCoolerId'
+        };
+        document.getElementById('saveBuildName').value = document.getElementById('saveBuildNameInput').value;
+        CATEGORY_ORDER.forEach(function (category) {
+            document.getElementById(saveFieldByCategory[category]).value = selected[category] ? selected[category].componentId : '';
+        });
+        document.getElementById('saveBuildForm').submit();
+    });
+
+    // ?loadBuildId=X (from the My Builds page's "Load in Picker") - resolves each saved
+    // category/componentId against the catalog this page already has loaded (ALL_PARTS) rather
+    // than trusting a stale price/brand from storage.
+    (function () {
+        const loadBuildId = new URLSearchParams(window.location.search).get('loadBuildId');
+        if (!loadBuildId) return;
+
+        fetch('/build/my-builds/' + encodeURIComponent(loadBuildId) + '/load')
+            .then(function (res) { return res.ok ? res.json() : Promise.reject(); })
+            .then(function (result) {
+                Object.keys(result.selections || {}).forEach(function (category) {
+                    const componentId = result.selections[category];
+                    const part = ALL_PARTS.find(function (p) {
+                        return p.componentId === componentId && p.category === actualCategory(category);
+                    });
+                    if (part) selected[category] = part;
+                });
+                refreshAfterSelectionChange();
+                if (result.unavailableLabels && result.unavailableLabels.length > 0) {
+                    alert('Some items from that saved build are no longer available and were skipped:\n'
+                        + result.unavailableLabels.join('\n'));
+                }
+            })
+            .catch(function () {
+                alert('Could not load that saved build.');
+            });
+    })();
+
+    renderBuildSummary();
+    activateCategory('CPU');
 
     document.getElementById('pickerSearch').addEventListener('input', function () {
         pickerSearchTerm = this.value;
@@ -909,6 +1179,9 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.picker-brand-checkbox').forEach(function (cb) { cb.checked = true; });
         updatePickerSelectAllToggle();
         updateBrandBadge();
+        // Setting .checked programmatically doesn't fire a native 'change' event, so the
+        // brand checklist's live-commit listener (below) wouldn't otherwise see this.
+        commitPickerFilters();
     });
 
     document.getElementById('pickerUnselectAllBrands').addEventListener('click', function (e) {
@@ -916,6 +1189,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.picker-brand-checkbox').forEach(function (cb) { cb.checked = false; });
         updatePickerSelectAllToggle();
         updateBrandBadge();
+        commitPickerFilters();
     });
 
     document.querySelectorAll('input[name="pickerAvailability"]').forEach(function (radio) {
@@ -930,6 +1204,8 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 pickerActiveBrands = [checkedBrand.value];
             }
+            renderPickerTable();
+            bootstrap.Dropdown.getOrCreateInstance(document.getElementById('pickerBrandBtn')).hide();
         } else {
             pickerActiveBrands = Array.from(document.querySelectorAll('.picker-brand-checkbox:checked')).map(function (cb) { return cb.value; });
         }
@@ -959,16 +1235,22 @@ document.addEventListener('DOMContentLoaded', function () {
         pickerFieldFilterState = fieldState;
 
         renderPickerTable();
-        bootstrap.Dropdown.getOrCreateInstance(document.getElementById('pickerFilterBtn')).hide();
     }
 
-    document.getElementById('pickerApplyFilterBtn').addEventListener('click', commitPickerFilters);
+    // Brand dropdown commits immediately on change (single always-visible dropdown, not a
+    // "confirm inside the Filter accordion" step - matches the mockup's single "All Brands"
+    // control behaving like a normal filter, not a two-step apply).
+    document.getElementById('pickerBrandChecklist').addEventListener('change', commitPickerFilters);
+
+    document.getElementById('pickerApplyFilterBtn').addEventListener('click', function () {
+        commitPickerFilters();
+        bootstrap.Dropdown.getOrCreateInstance(document.getElementById('pickerFilterBtn')).hide();
+    });
 
     document.getElementById('pickerResetFilterBtn').addEventListener('click', function () {
         const parts = partsByCategory(pickerCategory);
 
         pickerAvailability = 'all';
-        pickerActiveBrands = Array.from(new Set(parts.map(function (p) { return p.brand; })));
         pickerFieldFilterState = {};
         getFilterableFields(parts).forEach(function (key) {
             pickerFieldFilterState[key] = Array.from(new Set(parts.map(function (p) { return getFieldFilterValue(p, key); })));
@@ -977,7 +1259,6 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('pickerAvailAll').checked = true;
         updateAvailabilityBadge();
 
-        renderBrandChecklist();
         renderFieldFilterSections();
         renderPickerTable();
 

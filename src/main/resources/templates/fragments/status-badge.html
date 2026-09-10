@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Maps a real status enum value to a human label + color - never prints the raw enum name.
+  Matches the mockup's .badge-pill treatment and color families exactly (green-subtle for
+  positive/resolved states, amber-subtle for waiting states, blue-subtle for active-work states,
+  red-subtle for negative states). Two of the mockup's own badge classes - "Active" and
+  "Building" - are NOT real enum values anywhere in this codebase (verified below); they don't
+  appear here since nothing is invented.
+
+  Every case is a literal value that actually exists, cited here:
+    Appointment.Status        src/main/java/com/rnpc/inventory/entity/Appointment.java:75-77
+      PENDING, CONFIRMED, CANCELLED
+    Appointment.RefundStatus  Appointment.java:79-81
+      NOT_APPLICABLE, PENDING, NOT_REFUNDABLE, REFUNDED
+    Order.OrderStatus         src/main/java/com/rnpc/inventory/entity/Order.java:75-77
+      AWAITING_PAYMENT, PAID, CANCELLATION_REQUESTED, CANCELLED
+    Order.RefundStatus        Order.java:79-81
+      NOT_APPLICABLE, PENDING, REFUNDED
+    RepairRecord.RepairStatus src/main/java/com/rnpc/inventory/entity/RepairRecord.java:60-62
+      PENDING, IN_PROGRESS, COMPLETED, RELEASED, CANCELLED
+
+  Param: status - the raw enum value (pass ${order.status}, ${appointment.status},
+         ${repairRecord.status}, ${order.refundStatus}, etc. directly - th:switch compares
+         against status.name() since SpringEL equality between an enum instance and a string
+         literal never matches, even though the constant names line up with the case values).
+  Usage: <span th:replace="~{fragments/status-badge :: badge(status=${order.status})}"></span>
+-->
+<span th:fragment="badge(status)" th:switch="${status != null ? status.name() : null}" class="badge-pill">
+
+    <span th:case="'PENDING'" class="badge-pill badge-pending">Pending</span>
+    <span th:case="'AWAITING_PAYMENT'" class="badge-pill badge-pending">Awaiting Payment</span>
+    <span th:case="'CANCELLATION_REQUESTED'" class="badge-pill badge-pending">Cancellation Requested</span>
+    <span th:case="'CONFIRMED'" class="badge-pill badge-confirmed">Confirmed</span>
+    <span th:case="'PAID'" class="badge-pill badge-confirmed">Paid</span>
+    <span th:case="'IN_PROGRESS'" class="badge-pill badge-in-progress">In Progress</span>
+    <span th:case="'COMPLETED'" class="badge-pill badge-completed">Completed</span>
+    <span th:case="'RELEASED'" class="badge-pill badge-released">Released</span>
+    <span th:case="'REFUNDED'" class="badge-pill badge-completed">Refunded</span>
+    <span th:case="'CANCELLED'" class="badge-pill badge-cancelled">Cancelled</span>
+    <span th:case="'NOT_REFUNDABLE'" class="badge-pill badge-cancelled">Not Refundable</span>
+    <span th:case="'NOT_APPLICABLE'" class="badge-pill badge-not-applicable">N/A</span>
+
+    <!-- Any enum value this fragment hasn't been taught about yet - visibly wrong (dashed
+         border, raw name) instead of silently blank, so a future added status gets noticed. -->
+    <span th:case="*" class="badge-pill badge-unknown" th:text="${status}"></span>
+</span>
+
+<style th:fragment="badge-styles">
+    .badge-pill{ display:inline-flex; align-items:center; padding:3px 11px; border-radius:999px; font-size:12px; font-weight:700; white-space:nowrap; }
+    .badge-confirmed, .badge-released, .badge-completed{ background:var(--green-subtle); color:var(--green); }
+    .badge-pending{ background:var(--amber-subtle); color:var(--amber); }
+    .badge-in-progress{ background:var(--blue-subtle); color:var(--blue); }
+    .badge-cancelled{ background:var(--red-subtle); color:var(--red); }
+    .badge-not-applicable{ background:var(--bg-page); color:var(--text-muted); }
+    .badge-unknown{ background:var(--bg-page); color:var(--text-muted); border:1px dashed var(--text-muted); }
+</style>
+
+</body>
+</html>

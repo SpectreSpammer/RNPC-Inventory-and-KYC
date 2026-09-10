@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Generic card, matching the mockup's .card/.card-head/.card-icon/.card-title/.card-link classes
+  exactly. The mockup set each card-icon's color with an inline style="background:var(--x)" -
+  converted here to modifier classes (iconColor param) since inline styles aren't allowed.
+
+  Params: title (String), icon (Feather icon name, nullable - omit for a card with no header
+          icon/title, e.g. Quick Tasks' header still has one so always pass it for headed cards),
+          iconColor ('blue'|'green'|'orange'|'purple'|'amber'|'red', nullable - required if icon given),
+          action (fragment expression, nullable - e.g. a "View All" link), content (fragment expression, required)
+  Usage:
+    <div th:replace="~{fragments/card :: card(title='Recent Orders', icon='shopping-cart', iconColor='blue', action=~{::#recentOrdersAction}, content=~{::#recentOrders})}"></div>
+    <div id="recentOrdersAction" hidden><a href="/order" class="card-link">View All</a></div>
+    <div id="recentOrders" hidden> ... table/markup ... </div>
+-->
+<div th:fragment="card(title, icon, iconColor, action, content)" class="card">
+    <div th:if="${title != null and !#strings.isEmpty(title)}" class="card-head">
+        <div class="card-head-left">
+            <span th:if="${icon != null}" class="card-icon" th:classappend="'card-icon-' + ${iconColor}">
+                <i th:attr="data-feather=${icon}"></i>
+            </span>
+            <h2 class="card-title" th:text="${title}"></h2>
+        </div>
+        <!-- th:if on a wrapping th:block, not the same tag as th:replace: Thymeleaf resolves
+             fragment-inclusion before th:if regardless of markup order, so a null action would
+             still be resolved (and crash) if both attributes lived on one element. -->
+        <th:block th:if="${action != null}">
+            <div th:replace="${action}"></div>
+        </th:block>
+    </div>
+    <div th:replace="${content}"></div>
+</div>
+
+<style th:fragment="card-styles">
+    .card{ background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); padding:var(--space-4) var(--space-4); margin-bottom:var(--space-4); }
+    .card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-4); }
+    .card-head-left{ display:flex; align-items:center; gap:var(--space-2); }
+    .card-icon{ width:30px; height:30px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .card-icon svg{ width:15px; height:15px; }
+    .card-title{ font-size:15px; font-weight:700; margin:0; color:var(--text); }
+    .card-link{ font-size:12.5px; font-weight:600; color:var(--accent); text-decoration:none; }
+    .card-link:hover{ color:var(--accent-hover); }
+    .pct-badge{ font-size:13px; font-weight:800; color:var(--text); }
+
+    .card-icon-blue{ background:var(--blue-subtle); color:var(--blue); }
+    .card-icon-green{ background:var(--green-subtle); color:var(--green); }
+    .card-icon-orange{ background:var(--orange-subtle); color:var(--orange); }
+    .card-icon-purple{ background:var(--purple-subtle); color:var(--purple); }
+    .card-icon-amber{ background:var(--amber-subtle); color:var(--amber); }
+    .card-icon-red{ background:var(--red-subtle); color:var(--red); }
+</style>
+
+</body>
+</html>

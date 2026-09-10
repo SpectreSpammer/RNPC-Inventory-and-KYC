@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>RNPC Dashboard Mockup (gpt)</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+<style>
+:root{
+  --accent:#0098c8;
+  --accent-hover:#00749a;
+  --accent-subtle:#e3f4fa;
+
+  --bg-page:#F5F6F8;
+  --bg-card:#FFFFFF;
+  --border:#E9EBEF;
+  --text:#1A1D21;
+  --text-muted:#7A8391;
+
+  --sidebar-bg:#101B2D;
+  --sidebar-bg-2:#0C1524;
+  --sidebar-text:#93A0B4;
+
+  --blue:#2F6FED;   --blue-subtle:#E5EEFE;
+  --green:#17A673;  --green-subtle:#E3F7EF;
+  --orange:#F0883E; --orange-subtle:#FDEEE1;
+  --purple:#8B5CF6; --purple-subtle:#F1EBFE;
+  --pink:#EC6FBB;   --pink-subtle:#FCE9F4;
+  --teal:#14B8A6;
+  --indigo:#6366F1;
+  --red:#E23D3D;    --red-subtle:#FCE9E9;
+  --amber:#D9932A;  --amber-subtle:#FBF0DD;
+
+  --radius:12px;
+  --radius-sm:8px;
+  --shadow-sm:0 1px 2px rgba(16,18,20,.05);
+  --shadow-md:0 8px 24px -8px rgba(16,24,40,.14);
+
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px;
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0; font-family:'Inter',system-ui,-apple-system,sans-serif; background:var(--bg-page); color:var(--text);
+  display:flex;
+}
+a{ color:inherit; }
+button{ font-family:inherit; }
+
+/* ============ SIDEBAR ============ */
+.sidebar{
+  width:264px; flex-shrink:0; background:linear-gradient(180deg,var(--sidebar-bg) 0%, var(--sidebar-bg-2) 100%);
+  color:var(--sidebar-text); display:flex; flex-direction:column; height:100vh; position:sticky; top:0;
+  overflow:hidden; transition:width .18s ease; position:relative;
+}
+.sidebar.icons-only{ width:76px; }
+.sidebar.icons-only .brand-text, .sidebar.icons-only .nav-label,
+.sidebar.icons-only .nav-caret, .sidebar.icons-only .accordion-body,
+.sidebar.icons-only .status-text, .sidebar.icons-only .nav-badge-text{ display:none !important; }
+.sidebar.icons-only .status-block{ justify-content:center; }
+.sidebar.icons-only .nav-item, .sidebar.icons-only .nav-toggle{ justify-content:center; }
+
+.sidebar-brand{ display:flex; align-items:center; gap:var(--space-3); padding:var(--space-5) var(--space-4) var(--space-4); }
+.brand-mark{
+  width:44px; height:44px; border-radius:12px; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; background:rgba(0,152,200,.08); color:#fff; font-weight:800; font-size:13px; letter-spacing:.02em;
+}
+.brand-text{ display:flex; flex-direction:column; line-height:1.25; }
+.brand-title{ color:#fff; font-weight:800; font-size:15px; }
+.brand-tagline{ color:var(--sidebar-text); font-size:11px; }
+
+.sidebar-nav{ flex:1; overflow-y:auto; padding:var(--space-2) var(--space-3); }
+.nav-item, .nav-toggle{
+  display:flex; align-items:center; gap:var(--space-3); width:100%; padding:10px var(--space-3); margin-bottom:2px;
+  border-radius:var(--radius-sm); color:var(--sidebar-text); text-decoration:none; font-size:14px; font-weight:500;
+  background:none; border:none; text-align:left; cursor:pointer;
+}
+.nav-item:hover, .nav-toggle:hover{ background:rgba(255,255,255,.06); color:#fff; }
+.nav-item.active{ background:var(--accent); color:#fff; font-weight:700; box-shadow:var(--shadow-sm); }
+.nav-icon-chip{
+  width:26px; height:26px; border-radius:7px; display:inline-flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,.08); flex-shrink:0;
+}
+.nav-item.active .nav-icon-chip{ background:rgba(255,255,255,.22); }
+.nav-icon-chip svg, .nav-toggle .nav-icon-chip svg{ width:15px; height:15px; }
+.nav-label{ flex:1; }
+.nav-caret{ width:15px; height:15px; transition:transform .15s ease; flex-shrink:0; }
+.nav-toggle[aria-expanded="true"] .nav-caret{ transform:rotate(180deg); }
+.nav-badge{
+  background:var(--red); color:#fff; font-size:11px; font-weight:700; border-radius:999px; padding:1px 7px; flex-shrink:0;
+}
+
+.accordion-body{ padding-left:calc(26px + var(--space-3) + var(--space-3)); display:flex; flex-direction:column; gap:2px; margin:2px 0 6px; }
+.accordion-body a{ color:var(--sidebar-text); text-decoration:none; font-size:13.5px; padding:6px var(--space-2); border-radius:6px; opacity:.9; }
+.accordion-body a:hover{ color:#fff; background:rgba(255,255,255,.05); }
+.accordion-body a.active{ color:var(--accent); font-weight:600; opacity:1; }
+.collapse-panel{ overflow:hidden; max-height:0; transition:max-height .2s ease; }
+.collapse-panel.show{ max-height:220px; }
+
+.status-block{
+  margin:var(--space-3); padding:var(--space-3); border-radius:var(--radius-sm); background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:var(--space-2); flex-shrink:0;
+}
+.status-dot{ width:9px; height:9px; border-radius:50%; background:var(--green); flex-shrink:0; box-shadow:0 0 0 3px rgba(23,166,115,.18); }
+.status-text{ display:flex; flex-direction:column; line-height:1.3; overflow:hidden; }
+.status-shop{ color:#fff; font-size:12.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.status-online{ color:var(--green); font-size:11px; font-weight:600; }
+
+.sidebar-deco{
+  position:absolute; left:0; right:0; bottom:64px; height:160px; pointer-events:none; opacity:.5;
+  background-image:
+    linear-gradient(rgba(0,152,200,.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,152,200,.35) 1px, transparent 1px);
+  background-size:18px 18px;
+  -webkit-mask-image:linear-gradient(to top, black, transparent);
+  mask-image:linear-gradient(to top, black, transparent);
+}
+
+/* ============ MAIN / TOPBAR ============ */
+.main{ flex:1; min-width:0; display:flex; flex-direction:column; height:100vh; overflow-y:auto; }
+
+.topbar{
+  height:68px; flex-shrink:0; background:var(--bg-card); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:var(--space-4); padding:0 var(--space-5); position:sticky; top:0; z-index:5;
+}
+.hamburger{ background:none; border:none; color:var(--text); display:inline-flex; padding:6px; border-radius:8px; }
+.hamburger:hover{ background:var(--bg-page); }
+.hamburger svg{ width:20px; height:20px; }
+
+.search-box{
+  display:flex; align-items:center; gap:var(--space-2); background:var(--bg-page); border:1px solid var(--border);
+  border-radius:999px; padding:9px var(--space-4); width:360px; max-width:40vw;
+}
+.search-box svg{ width:16px; height:16px; color:var(--text-muted); flex-shrink:0; }
+.search-box input{ border:none; background:none; outline:none; font-size:13.5px; color:var(--text); width:100%; }
+.kbd-hint{
+  font-size:11px; color:var(--text-muted); background:var(--bg-card); border:1px solid var(--border); border-radius:5px;
+  padding:1px 6px; flex-shrink:0;
+}
+
+.topbar-spacer{ flex:1; }
+
+.bell{ position:relative; display:inline-flex; padding:8px; border-radius:8px; color:var(--text); }
+.bell:hover{ background:var(--bg-page); }
+.bell svg{ width:20px; height:20px; }
+.bell-count{ position:absolute; top:4px; right:4px; background:var(--red); color:#fff; border-radius:999px; font-size:10px; font-weight:700; padding:1px 5px; }
+
+.user-menu{ display:flex; align-items:center; gap:var(--space-2); background:none; border:none; padding:4px; border-radius:10px; }
+.user-menu:hover{ background:var(--bg-page); }
+.user-avatar{ width:34px; height:34px; border-radius:50%; background:var(--accent-subtle); color:var(--accent-hover); display:inline-flex; align-items:center; justify-content:center; font-weight:800; }
+.user-text{ display:flex; flex-direction:column; line-height:1.2; text-align:left; }
+.user-name{ font-size:13.5px; font-weight:700; color:var(--text); }
+.user-role{ font-size:11px; color:var(--text-muted); }
+.user-menu svg{ width:14px; height:14px; color:var(--text-muted); }
+
+/* ============ CONTENT ============ */
+.content{ padding:var(--space-5); }
+
+/* welcome banner */
+.banner{
+  position:relative; overflow:hidden; border-radius:var(--radius); padding:var(--space-5) var(--space-6);
+  background:linear-gradient(120deg,#EAF4FF 0%, #F7FBFF 55%, #FFFFFF 100%);
+  border:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:var(--space-5);
+  margin-bottom:var(--space-5);
+}
+.banner-greeting{ font-size:14px; color:var(--text-muted); margin:0 0 4px; }
+.banner-title{ font-size:26px; font-weight:800; margin:0 0 6px; color:var(--text); }
+.banner-sub{ font-size:13.5px; color:var(--text-muted); margin:0; }
+.banner-pc{
+  position:absolute; right:230px; top:50%; transform:translateY(-50%); width:190px; height:150px; opacity:.55;
+}
+.banner-datetime{
+  position:relative; z-index:1; background:var(--bg-card); border-radius:var(--radius-sm); box-shadow:var(--shadow-md);
+  display:flex; align-items:stretch; flex-shrink:0;
+}
+.banner-datetime-block{ display:flex; align-items:center; gap:var(--space-2); padding:var(--space-3) var(--space-4); }
+.banner-datetime-block svg{ width:20px; height:20px; color:var(--accent); flex-shrink:0; }
+.banner-datetime-value{ font-size:14px; font-weight:700; color:var(--text); line-height:1.25; }
+.banner-datetime-label{ font-size:11px; color:var(--text-muted); }
+.banner-divider{ width:1px; background:var(--border); }
+
+/* stat cards */
+.stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-4); margin-bottom:var(--space-5); }
+.stat-card{ background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); padding:var(--space-4) var(--space-4); position:relative; }
+.stat-top{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:var(--space-3); }
+.stat-icon{ width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0; }
+.stat-icon svg{ width:20px; height:20px; }
+.stat-chevron{ color:var(--text-muted); width:16px; height:16px; margin-top:12px; }
+.stat-label{ font-size:12.5px; color:var(--text-muted); margin:0 0 2px; font-weight:600; }
+.stat-value{ font-size:26px; font-weight:800; margin:0 0 6px; color:var(--text); }
+.stat-trend{ font-size:12.5px; color:var(--text-muted); display:flex; align-items:center; gap:4px; }
+.stat-trend .up{ color:var(--green); font-weight:700; display:inline-flex; align-items:center; gap:2px; }
+.stat-trend .up svg{ width:12px; height:12px; }
+
+/* generic card */
+.card{ background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); padding:var(--space-4) var(--space-4); margin-bottom:var(--space-4); }
+.card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-4); }
+.card-head-left{ display:flex; align-items:center; gap:var(--space-2); }
+.card-icon{ width:30px; height:30px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+.card-icon svg{ width:15px; height:15px; }
+.card-title{ font-size:15px; font-weight:700; margin:0; color:var(--text); }
+.card-link{ font-size:12.5px; font-weight:600; color:var(--accent); text-decoration:none; }
+.card-link:hover{ color:var(--accent-hover); }
+.pct-badge{ font-size:13px; font-weight:800; color:var(--text); }
+
+.dash-grid{ display:grid; grid-template-columns:1.15fr 1fr; gap:var(--space-4); align-items:start; }
+@media (max-width:1150px){ .dash-grid{ grid-template-columns:1fr; } .stat-grid{ grid-template-columns:repeat(2,1fr); } }
+
+/* PC build progress */
+.progress-track{ height:8px; border-radius:999px; background:var(--border); overflow:hidden; margin-bottom:var(--space-4); }
+.progress-fill{ height:100%; border-radius:999px; background:var(--accent); }
+.build-row{ display:flex; gap:var(--space-4); }
+.build-photo{
+  width:120px; height:96px; border-radius:var(--radius-sm); flex-shrink:0; background:var(--bg-page);
+  border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-muted);
+}
+.build-photo svg{ width:34px; height:34px; }
+.build-info{ flex:1; min-width:0; }
+.build-order{ font-weight:800; font-size:14.5px; margin:0 0 2px; display:flex; align-items:center; gap:var(--space-2); }
+.build-name{ font-size:13px; color:var(--text-muted); margin:0 0 var(--space-2); }
+.spec-list{ list-style:none; margin:0; padding:0; font-size:12.5px; }
+.spec-list li{ display:flex; gap:6px; padding:2px 0; }
+.spec-key{ color:var(--text-muted); min-width:118px; flex-shrink:0; }
+.spec-val{ color:var(--text); font-weight:500; }
+.build-link{ display:inline-block; margin-top:var(--space-2); font-size:12.5px; font-weight:600; color:var(--accent); text-decoration:none; }
+
+/* tables */
+table.rn-table{ width:100%; border-collapse:collapse; }
+table.rn-table thead th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); font-weight:700; padding:0 var(--space-2) var(--space-2); border-bottom:1px solid var(--border); white-space:nowrap; }
+table.rn-table tbody td{ padding:10px var(--space-2); border-bottom:1px solid var(--border); font-size:13px; color:var(--text); vertical-align:middle; }
+table.rn-table tbody tr:last-child td{ border-bottom:none; }
+.table-action{ border:1px solid var(--border); background:var(--bg-card); border-radius:7px; padding:5px 12px; font-size:12px; font-weight:600; color:var(--text); text-decoration:none; display:inline-flex; align-items:center; gap:5px; }
+.table-action:hover{ border-color:var(--accent); color:var(--accent); }
+.table-action svg{ width:12px; height:12px; }
+.btn-accent-sm{ background:var(--accent); color:#fff; border:none; border-radius:7px; padding:7px 14px; font-size:12.5px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+.btn-accent-sm:hover{ background:var(--accent-hover); color:#fff; }
+.btn-accent-sm svg{ width:14px; height:14px; }
+
+/* badges - soft tinted chosen for consistency (mockup mixes solid+soft; see chat) */
+.badge-pill{ display:inline-flex; align-items:center; padding:3px 11px; border-radius:999px; font-size:12px; font-weight:700; white-space:nowrap; }
+.badge-confirmed, .badge-active, .badge-released, .badge-completed{ background:var(--green-subtle); color:var(--green); }
+.badge-pending{ background:var(--amber-subtle); color:var(--amber); }
+.badge-building, .badge-in-progress{ background:var(--blue-subtle); color:var(--blue); }
+.badge-cancelled{ background:var(--red-subtle); color:var(--red); }
+
+/* quick tasks 2x2 */
+.task-grid{ display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); }
+.task-tile{ display:flex; align-items:center; gap:var(--space-3); border-radius:var(--radius-sm); padding:var(--space-3); text-decoration:none; }
+.task-tile-icon{ width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.task-tile-icon svg{ width:16px; height:16px; }
+.task-tile-label{ font-size:13px; font-weight:700; color:var(--text); flex:1; line-height:1.25; }
+.task-tile-chev{ width:14px; height:14px; color:var(--text-muted); flex-shrink:0; }
+.task-blue{ background:var(--blue-subtle); } .task-blue .task-tile-icon{ background:var(--blue); color:#fff; }
+.task-green{ background:var(--green-subtle); } .task-green .task-tile-icon{ background:var(--green); color:#fff; }
+.task-purple{ background:var(--purple-subtle); } .task-purple .task-tile-icon{ background:var(--purple); color:#fff; }
+.task-orange{ background:var(--orange-subtle); } .task-orange .task-tile-icon{ background:var(--orange); color:#fff; }
+
+/* system overview bars */
+.sys-row{ display:flex; align-items:center; gap:var(--space-3); padding:9px 0; }
+.sys-row + .sys-row{ border-top:1px solid var(--border); }
+.sys-icon{ width:26px; height:26px; border-radius:7px; background:var(--bg-page); color:var(--text-muted); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.sys-icon svg{ width:13px; height:13px; }
+.sys-label{ font-size:13px; color:var(--text); width:118px; flex-shrink:0; }
+.sys-bar-track{ flex:1; height:7px; border-radius:999px; background:var(--border); overflow:hidden; }
+.sys-bar-fill{ height:100%; border-radius:999px; }
+.sys-pct{ font-size:12.5px; font-weight:700; color:var(--text); width:36px; text-align:right; flex-shrink:0; }
+
+/* warranty tracker - same bar thickness (7px) and track color as .sys-bar-*, no new colors */
+.warranty-row{ display:flex; align-items:center; gap:var(--space-3); padding:10px 0; }
+.warranty-row + .warranty-row{ border-top:1px solid var(--border); }
+.warranty-info{ width:220px; flex-shrink:0; }
+.warranty-job{ font-size:13px; font-weight:700; color:var(--text); margin:0; }
+.warranty-fix{ font-size:11.5px; color:var(--text-muted); margin:2px 0 0; }
+.warranty-bar-track{ flex:1; height:7px; border-radius:999px; background:var(--border); overflow:hidden; }
+.warranty-bar-fill{ display:block; height:100%; border-radius:999px; }
+.warranty-bar-fill.green{ background:var(--green); }
+.warranty-bar-fill.amber{ background:var(--amber); }
+.warranty-bar-fill.expired{ background:var(--text-muted); }
+.warranty-days{ width:64px; text-align:right; flex-shrink:0; font-size:12.5px; font-weight:700; }
+.warranty-days.green{ color:var(--green); }
+.warranty-days.amber{ color:var(--amber); }
+.warranty-days.expired{ color:var(--text-muted); font-weight:600; }
+</style>
+</head>
+<body>
+
+<!-- ============ SIDEBAR ============ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">RN</div>
+    <div class="brand-text">
+      <span class="brand-title">RNPC</span>
+      <span class="brand-tagline">PC &amp; Cellphone Repair Shop</span>
+    </div>
+  </div>
+
+  <div class="sidebar-nav">
+    <a href="#" class="nav-item active">
+      <span class="nav-icon-chip"><i data-feather="home"></i></span>
+      <span class="nav-label">Dashboard</span>
+    </a>
+
+    <button class="nav-toggle" type="button" data-toggle="build" aria-expanded="false">
+      <span class="nav-icon-chip"><i data-feather="cpu"></i></span>
+      <span class="nav-label">Build a PC</span>
+      <i data-feather="chevron-down" class="nav-caret"></i>
+    </button>
+    <div class="collapse-panel" data-panel="build">
+      <div class="accordion-body">
+        <a href="#">Start a New Build</a>
+        <a href="#">Saved Builds</a>
+      </div>
+    </div>
+
+    <button class="nav-toggle" type="button" data-toggle="orders" aria-expanded="false">
+      <span class="nav-icon-chip"><i data-feather="shopping-cart"></i></span>
+      <span class="nav-label">Orders</span>
+      <i data-feather="chevron-down" class="nav-caret"></i>
+    </button>
+    <div class="collapse-panel" data-panel="orders">
+      <div class="accordion-body">
+        <a href="#">Order Summary</a>
+        <a href="#">Order History</a>
+      </div>
+    </div>
+
+    <button class="nav-toggle" type="button" data-toggle="appt" aria-expanded="true">
+      <span class="nav-icon-chip"><i data-feather="calendar"></i></span>
+      <span class="nav-label">Appointments</span>
+      <i data-feather="chevron-down" class="nav-caret"></i>
+    </button>
+    <div class="collapse-panel show" data-panel="appt">
+      <div class="accordion-body">
+        <a href="#">Book Appointment</a>
+        <a href="#" class="active">View Appointments</a>
+      </div>
+    </div>
+
+    <button class="nav-toggle" type="button" data-toggle="repairs" aria-expanded="false">
+      <span class="nav-icon-chip"><i data-feather="tool"></i></span>
+      <span class="nav-label">Repairs</span>
+      <i data-feather="chevron-down" class="nav-caret"></i>
+    </button>
+    <div class="collapse-panel" data-panel="repairs">
+      <div class="accordion-body">
+        <a href="#">My Repairs</a>
+        <a href="#">Repair History</a>
+      </div>
+    </div>
+
+    <a href="#" class="nav-item">
+      <span class="nav-icon-chip"><i data-feather="bell"></i></span>
+      <span class="nav-label">Notifications</span>
+      <span class="nav-badge"><span class="nav-badge-text">3</span></span>
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon-chip"><i data-feather="user"></i></span>
+      <span class="nav-label">My Profile</span>
+    </a>
+  </div>
+
+  <div class="sidebar-deco" aria-hidden="true"></div>
+
+  <div class="status-block">
+    <span class="status-dot"></span>
+    <span class="status-text">
+      <span class="status-shop">RNPC Repair Shop</span>
+      <span class="status-online">● Online</span>
+    </span>
+  </div>
+</nav>
+
+<!-- ============ MAIN ============ -->
+<div class="main">
+  <header class="topbar">
+    <button class="hamburger" id="hamburger" type="button" aria-label="Toggle sidebar">
+      <i data-feather="menu"></i>
+    </button>
+
+    <div class="search-box">
+      <i data-feather="search"></i>
+      <input type="search" placeholder="Search orders, customers, or services..." />
+      <span class="kbd-hint">Ctrl+K</span>
+    </div>
+
+    <div class="topbar-spacer"></div>
+
+    <a href="#" class="bell">
+      <i data-feather="bell"></i>
+      <span class="bell-count">3</span>
+    </a>
+
+    <button class="user-menu" type="button">
+      <span class="user-avatar">R</span>
+      <span class="user-text">
+        <span class="user-name">Robin</span>
+        <span class="user-role">User</span>
+      </span>
+      <i data-feather="chevron-down"></i>
+    </button>
+  </header>
+
+  <main class="content">
+
+    <!-- Welcome banner -->
+    <section class="banner">
+      <div>
+        <p class="banner-greeting">Good morning,</p>
+        <h1 class="banner-title">Welcome back, Robin! &#128075;</h1>
+        <p class="banner-sub">Here's what's happening with your repair shop today.</p>
+      </div>
+      <svg class="banner-pc" viewBox="0 0 200 160" aria-hidden="true">
+        <rect x="20" y="10" width="90" height="140" rx="10" fill="#0F1B2E" opacity="0.15"/>
+        <rect x="35" y="25" width="60" height="60" rx="6" fill="#0098c8" opacity="0.18"/>
+        <circle cx="65" cy="120" r="14" fill="#0098c8" opacity="0.22"/>
+      </svg>
+      <div class="banner-datetime">
+        <div class="banner-datetime-block">
+          <i data-feather="calendar"></i>
+          <span>
+            <span class="banner-datetime-value" style="display:block;">Oct 05, 2026</span>
+            <span class="banner-datetime-label">Monday</span>
+          </span>
+        </div>
+        <div class="banner-divider"></div>
+        <div class="banner-datetime-block">
+          <i data-feather="clock"></i>
+          <span class="banner-datetime-value">01:24 PM</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stat cards -->
+    <section class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-top">
+          <span class="stat-icon" style="background:var(--blue);"><i data-feather="clipboard"></i></span>
+          <i data-feather="chevron-right" class="stat-chevron"></i>
+        </div>
+        <p class="stat-label">Total Orders</p>
+        <p class="stat-value">12</p>
+        <p class="stat-trend"><span class="up"><i data-feather="arrow-up"></i>33%</span> vs last week</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <span class="stat-icon" style="background:var(--green);"><i data-feather="calendar"></i></span>
+          <i data-feather="chevron-right" class="stat-chevron"></i>
+        </div>
+        <p class="stat-label">Scheduled Appointments</p>
+        <p class="stat-value">3</p>
+        <p class="stat-trend"><span class="up"><i data-feather="arrow-up"></i>50%</span> vs last week</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <span class="stat-icon" style="background:var(--orange);"><i data-feather="tool"></i></span>
+          <i data-feather="chevron-right" class="stat-chevron"></i>
+        </div>
+        <p class="stat-label">In Repair</p>
+        <p class="stat-value">6</p>
+        <p class="stat-trend"><span class="up"><i data-feather="arrow-up"></i>20%</span> vs last week</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <span class="stat-icon" style="background:var(--purple);"><i data-feather="check-circle"></i></span>
+          <i data-feather="chevron-right" class="stat-chevron"></i>
+        </div>
+        <p class="stat-label">Completed Today</p>
+        <p class="stat-value">4</p>
+        <p class="stat-trend"><span class="up"><i data-feather="arrow-up"></i>100%</span> vs yesterday</p>
+      </div>
+    </section>
+
+    <!-- Dashboard grid -->
+    <div class="dash-grid">
+
+      <!-- LEFT column -->
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-left">
+              <span class="card-icon" style="background:var(--blue-subtle);color:var(--blue);"><i data-feather="monitor"></i></span>
+              <h2 class="card-title">PC Build Progress</h2>
+            </div>
+            <span class="pct-badge">40%</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:40%"></div></div>
+          <div class="build-row">
+            <div class="build-photo">
+              <!-- Inline SVG, not a data-feather icon: this placeholder must never depend on the
+                   Feather CDN script loading/running - if that call ever fails or is blocked,
+                   an <i data-feather> here would render as an empty/broken-looking box. -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <path d="M21 15l-5-5L5 21"/>
+              </svg>
+            </div>
+            <div class="build-info">
+              <p class="build-order">ORD-00003 <span class="badge-pill badge-building">Building</span></p>
+              <p class="build-name">Lian Li O11 Dynamic EVO</p>
+              <ul class="spec-list">
+                <li><span class="spec-key">Case</span><span class="spec-val">Lian Li O11</span></li>
+                <li><span class="spec-key">Memory</span><span class="spec-val">AMD Ryzen 9 9950XD</span></li>
+                <li><span class="spec-key">Storage (HDD)</span><span class="spec-val">Cooler Master Hyper 212 Black Edition</span></li>
+                <li><span class="spec-key">Power Supply (PSU)</span><span class="spec-val">Lian Li o11 H5110M</span></li>
+              </ul>
+              <a href="#" class="build-link">View Build Details &rarr;</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-left">
+              <span class="card-icon" style="background:var(--purple-subtle);color:var(--purple);"><i data-feather="tool"></i></span>
+              <h2 class="card-title">My Repairs</h2>
+            </div>
+            <a href="#" class="card-link">View All</a>
+          </div>
+          <table class="rn-table">
+            <thead><tr><th>Issue</th><th>Status</th><th>Final cost</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>JO-00001: Released</td>
+                <td><span class="badge-pill badge-released">Released</span></td>
+                <td>Php 2000.00</td>
+                <td><a href="#" class="table-action"><i data-feather="eye"></i>View</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-left">
+              <span class="card-icon" style="background:var(--blue-subtle);color:var(--blue);"><i data-feather="shopping-cart"></i></span>
+              <h2 class="card-title">Recent Orders</h2>
+            </div>
+            <a href="#" class="card-link">View All</a>
+          </div>
+          <table class="rn-table">
+            <thead><tr><th>Order #</th><th>Customer</th><th>Device</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>ORD-00003</td><td>robin</td><td>Desktop</td>
+                <td><span class="badge-pill badge-building">Building</span></td>
+                <td><a href="#" class="table-action"><i data-feather="eye"></i>View</a></td>
+              </tr>
+              <tr>
+                <td>ORD-00002</td><td>nami san</td><td>Cellphone</td>
+                <td><span class="badge-pill badge-active">Active</span></td>
+                <td><a href="#" class="table-action"><i data-feather="eye"></i>View</a></td>
+              </tr>
+              <tr>
+                <td>ORD-00001</td><td>robin</td><td>Laptop</td>
+                <td><span class="badge-pill badge-active">Active</span></td>
+                <td><a href="#" class="table-action"><i data-feather="eye"></i>View</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RIGHT column -->
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-left">
+              <span class="card-icon" style="background:var(--blue-subtle);color:var(--blue);"><i data-feather="calendar"></i></span>
+              <h2 class="card-title">Upcoming Appointments</h2>
+            </div>
+            <a href="#" class="card-link">View All</a>
+          </div>
+          <table class="rn-table">
+            <thead><tr><th>Name</th><th>Service</th><th>Date &amp; Time</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Robin - Desktop</td><td>PC Build</td><td>Oct 05, 2026<br/>10:00 AM</td>
+                <td><span class="badge-pill badge-confirmed">Confirmed</span></td>
+              </tr>
+              <tr>
+                <td>Nami San</td><td>Cellphone Repair</td><td>Oct 06, 2026<br/>01:00 PM</td>
+                <td><span class="badge-pill badge-confirmed">Confirmed</span></td>
+              </tr>
+              <tr>
+                <td>Client 3</td><td>Laptop Repair</td><td>Oct 07, 2026<br/>09:30 AM</td>
+                <td><span class="badge-pill badge-pending">Pending</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <a href="#" class="btn-accent-sm" style="margin-top:var(--space-3);"><i data-feather="plus"></i>Book New Appointment</a>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-left">
+              <span class="card-icon" style="background:var(--amber-subtle);color:var(--amber);"><i data-feather="zap"></i></span>
+              <h2 class="card-title">Quick Tasks</h2>
+            </div>
+          </div>
+          <div class="task-grid">
+            <a href="#" class="task-tile task-blue">
+              <span class="task-tile-icon"><i data-feather="upload-cloud"></i></span>
+              <span class="task-tile-label">Upload Payment Receipt</span>
+              <i data-feather="chevron-right" class="task-tile-chev"></i>
+            </a>
+            <a href="#" class="task-tile task-green">
+              <span class="task-tile-icon"><i data-feather="file-text"></i></span>
+              <span class="task-tile-label">Update Order Receipt</span>
+              <i data-feather="chevron-right" class="task-tile-chev"></i>
+            </a>
+            <a href="#" class="task-tile task-purple">
+              <span class="task-tile-icon"><i data-feather="calendar"></i></span>
+              <span class="task-tile-label">Calendar Data</span>
+              <i data-feather="chevron-right" class="task-tile-chev"></i>
+            </a>
+            <a href="#" class="task-tile task-orange">
+              <span class="task-tile-icon"><i data-feather="file-text"></i></span>
+              <span class="task-tile-label">Update Appointment Receipt</span>
+              <i data-feather="chevron-right" class="task-tile-chev"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-left">
+              <span class="card-icon" style="background:var(--green-subtle);color:var(--green);"><i data-feather="shield"></i></span>
+              <h2 class="card-title">Warranty Tracker</h2>
+            </div>
+            <a href="#" class="card-link">View All</a>
+          </div>
+
+          <!-- Urgency: green >30 days left, amber <=30 days left, gray/muted expired (bar full,
+               "Expired" replaces the day count). Bar thickness/track match .sys-bar-* exactly
+               (7px, var(--border) track) - no new colors, reusing --green/--amber/--text-muted. -->
+          <div class="warranty-row">
+            <span class="warranty-info">
+              <p class="warranty-job">JO-00001 &middot; Lian Li O11 Dynamic EVO</p>
+              <p class="warranty-fix">Replaced GPU fan</p>
+            </span>
+            <span class="warranty-bar-track"><span class="warranty-bar-fill green" style="width:28%"></span></span>
+            <span class="warranty-days green">65 days</span>
+          </div>
+          <div class="warranty-row">
+            <span class="warranty-info">
+              <p class="warranty-job">JO-00002 &middot; ASUS ROG Strix G15</p>
+              <p class="warranty-fix">Replaced keyboard</p>
+            </span>
+            <span class="warranty-bar-track"><span class="warranty-bar-fill amber" style="width:80%"></span></span>
+            <span class="warranty-days amber">18 days</span>
+          </div>
+          <div class="warranty-row">
+            <span class="warranty-info">
+              <p class="warranty-job">JO-00003 &middot; iPhone 13 Pro</p>
+              <p class="warranty-fix">Screen replacement</p>
+            </span>
+            <span class="warranty-bar-track"><span class="warranty-bar-fill amber" style="width:94%"></span></span>
+            <span class="warranty-days amber">5 days</span>
+          </div>
+          <div class="warranty-row">
+            <span class="warranty-info">
+              <p class="warranty-job">JO-00004 &middot; Dell XPS 13</p>
+              <p class="warranty-fix">Battery replacement</p>
+            </span>
+            <span class="warranty-bar-track"><span class="warranty-bar-fill expired" style="width:100%"></span></span>
+            <span class="warranty-days expired">Expired</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+<script>
+  feather.replace();
+
+  // Accordion: one section open at a time, click to expand/collapse
+  document.querySelectorAll('.nav-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var key = btn.getAttribute('data-toggle');
+      var panel = document.querySelector('.collapse-panel[data-panel="' + key + '"]');
+      var isOpen = panel.classList.contains('show');
+
+      document.querySelectorAll('.collapse-panel').forEach(function (p) { p.classList.remove('show'); });
+      document.querySelectorAll('.nav-toggle').forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
+
+      if (!isOpen) {
+        panel.classList.add('show');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  // Hamburger: collapse sidebar to icons-only
+  document.getElementById('hamburger').addEventListener('click', function () {
+    document.getElementById('sidebar').classList.toggle('icons-only');
+  });
+</script>
+</body>
+</html>

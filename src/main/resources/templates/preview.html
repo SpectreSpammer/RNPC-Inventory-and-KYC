@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Design Preview</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/page-header :: page-header-styles}"></th:block>
+    <th:block th:replace="~{fragments/card :: card-styles}"></th:block>
+    <th:block th:replace="~{fragments/stat-card :: stat-card-styles}"></th:block>
+    <th:block th:replace="~{fragments/progress-card :: progress-card-styles}"></th:block>
+    <th:block th:replace="~{fragments/table-card :: table-card-styles}"></th:block>
+    <th:block th:replace="~{fragments/status-badge :: badge-styles}"></th:block>
+    <th:block th:replace="~{fragments/empty-state :: empty-state-styles}"></th:block>
+    <style>
+        body { margin: 0; display: flex; font-family: var(--font-sans); }
+        .preview-shell { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .preview-note { background: var(--accent-subtle); color: var(--accent-hover); padding: var(--space-3) var(--space-4); border-radius: var(--radius); margin-bottom: var(--space-5); font-size: var(--text-small); }
+        .preview-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-bottom: var(--space-5); }
+        .preview-dashboard-row { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--space-5); align-items: start; }
+        .preview-sub-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); }
+        .preview-badge-grid { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+        .preview-badge-item { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+        .preview-badge-item code { font-size: 11px; color: var(--text-muted); }
+        .preview-spec-list { list-style: none; margin: var(--space-3) 0 0; padding: 0; font-size: var(--text-small); color: var(--text); }
+        .preview-spec-list li { padding: 4px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+        .preview-spec-list li:last-child { border-bottom: none; }
+        .preview-spec-label { color: var(--text-muted); }
+        .preview-task-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+        .preview-task-btn { display: block; padding: var(--space-3) var(--space-4); border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg-page); color: var(--text); text-decoration: none; font-size: var(--text-small); font-weight: 500; }
+        .preview-task-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .preview-btn { background: var(--accent); color: #fff; border: none; border-radius: var(--radius); padding: var(--space-2) var(--space-4); font-size: var(--text-small); font-weight: 600; text-decoration: none; display: inline-block; }
+        .preview-btn:hover { background: var(--accent-hover); color: #fff; }
+        @media (max-width: 1100px) {
+            .preview-dashboard-row, .preview-sub-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/layout-app :: sidebar(active='dashboard', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+
+<div class="preview-shell">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, unreadNotifications=${unreadNotifications})}"></div>
+
+    <main class="rn-content">
+
+        <div class="preview-note">
+            The sidebar's menu is driven by the real <code>navIsAdmin</code> global attribute (GlobalNavAttributes.java),
+            not by the mock username/role shown in the user block above - visiting this page signed out (or as a
+            customer) shows the <strong>customer menu</strong> (1 accordion: Schedule an Appointment). Log in as
+            <code>admin</code>/<code>12345</code> via <code>/login</code> first, then revisit <code>/preview</code>, to
+            see the <strong>staff menu</strong> (3 accordions: Parts / Ticket / KYC - the better test of "one section
+            open at a time").
+        </div>
+
+        <div th:replace="~{fragments/page-header :: header(title='Welcome back, Robin', actions=~{::#previewActions})}"></div>
+        <div id="previewActions" hidden>
+            <a href="#" class="preview-btn">New Order</a>
+        </div>
+
+        <div class="preview-stats">
+            <div th:replace="~{fragments/stat-card :: stat(label='Total Orders', value='128', trend='+12% vs last month', trendDirection='up')}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(label='Revenue (30d)', value='Php 482,350.75', trend='+8% vs last month', trendDirection='up')}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(label='Pending Repairs', value='7', trend='-2 vs last week', trendDirection='down')}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(label='Unread Notifications', value=${unreadNotifications}, trend=null, trendDirection=null)}"></div>
+        </div>
+
+        <div class="preview-dashboard-row">
+            <div>
+                <div th:replace="~{fragments/progress-card :: progress(title='PC Build Progress', percent=40, content=~{::#buildDetails})}"></div>
+                <div id="buildDetails" hidden>
+                    <p><strong>ORD-00003</strong> - Lian Li O11</p>
+                    <ul class="preview-spec-list">
+                        <li><span class="preview-spec-label">Case</span><span>Lian Li O11</span></li>
+                        <li><span class="preview-spec-label">Memory</span><span>AMD Ryzen 9 9950XD</span></li>
+                        <li><span class="preview-spec-label">Storage (HDD)</span><span>Cooler Master Hyper 212 Bi</span></li>
+                        <li><span class="preview-spec-label">Power Supply (PSU)</span><span>Lian Li o11 H5110M</span></li>
+                    </ul>
+                </div>
+
+                <div th:replace="~{fragments/table-card :: table(title='My Repairs', action=null, content=~{::#repairsTable})}"></div>
+                <div id="repairsTable" hidden>
+                    <table class="rn-table">
+                        <thead><tr><th>Issue</th><th>Status</th><th>Final cost</th><th>Action</th></tr></thead>
+                        <tbody>
+                        <tr>
+                            <td>JO-00001</td>
+                            <td><span th:replace="~{fragments/status-badge :: badge(status='RELEASED')}"></span></td>
+                            <td th:replace="~{fragments/money :: amount(amount=2000)}"></td>
+                            <td><a href="#" class="preview-btn">View</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <div th:replace="~{fragments/table-card :: table(title='Scheduled Appointments', action=null, content=~{::#apptTable})}"></div>
+                <div id="apptTable" hidden>
+                    <table class="rn-table">
+                        <thead><tr><th>Name</th><th>Status</th><th>Action</th></tr></thead>
+                        <tbody>
+                        <tr>
+                            <td>Robin - Desktop - Oct 05, 2026</td>
+                            <td><span th:replace="~{fragments/status-badge :: badge(status='CONFIRMED')}"></span></td>
+                            <td><a href="#" class="preview-btn">View Details</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="preview-sub-row">
+                    <div th:replace="~{fragments/table-card :: table(title='Recent Orders', action=null, content=~{::#recentOrdersTable})}"></div>
+                    <div id="recentOrdersTable" hidden>
+                        <table class="rn-table">
+                            <thead><tr><th>Order</th><th>Status</th></tr></thead>
+                            <tbody>
+                            <tr><td>ORD-00003</td><td><span th:replace="~{fragments/status-badge :: badge(status='AWAITING_PAYMENT')}"></span></td></tr>
+                            <tr><td>ORD-00002</td><td><span th:replace="~{fragments/status-badge :: badge(status='PAID')}"></span></td></tr>
+                            <tr><td>ORD-00001</td><td><span th:replace="~{fragments/status-badge :: badge(status='PAID')}"></span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div th:replace="~{fragments/card :: card(title='Quick Tasks', action=null, content=~{::#quickTasks})}"></div>
+                    <div id="quickTasks" hidden>
+                        <ul class="preview-task-list">
+                            <li><a href="#" class="preview-task-btn">Upload Payment Receipt</a></li>
+                            <li><a href="#" class="preview-task-btn">Update Order Receipt</a></li>
+                            <li><a href="#" class="preview-task-btn">Update Appointment Receipt</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:replace="~{fragments/card :: card(title='Status badges - every real enum value', action=null, content=~{::#badgesDemo})}"></div>
+        <div id="badgesDemo" hidden>
+            <p class="preview-spec-label">
+                Each passes the literal enum constant name into <code>status-badge :: badge(status=...)</code> -
+                exactly what a real page passes as <code>${order.status}</code>, <code>${appointment.status}</code>,
+                <code>${repairRecord.status}</code>, or a refund status. Last one is unrecognized, to prove the
+                fallback case works instead of rendering blank.
+            </p>
+            <div class="preview-badge-grid">
+                <div class="preview-badge-item" th:each="s : ${T(java.util.List).of('PENDING','AWAITING_PAYMENT','CANCELLATION_REQUESTED','CONFIRMED','PAID','IN_PROGRESS','COMPLETED','RELEASED','REFUNDED','CANCELLED','NOT_REFUNDABLE','NOT_APPLICABLE','SOME_FUTURE_STATUS')}">
+                    <span th:replace="~{fragments/status-badge :: badge(status=${s})}"></span>
+                    <code th:text="${s}"></code>
+                </div>
+            </div>
+        </div>
+
+        <div th:replace="~{fragments/card :: card(title='Empty state', action=null, content=~{::#emptyDemo})}"></div>
+        <div id="emptyDemo" hidden>
+            <div th:replace="~{fragments/empty-state :: state(icon='shopping-cart', message='No orders yet', actions=~{::#emptyActions})}"></div>
+            <div id="emptyActions" hidden>
+                <a href="/build" class="preview-btn">Build a PC</a>
+            </div>
+        </div>
+
+        <div th:replace="~{fragments/card :: card(title='Money formatting', action=null, content=~{::#moneyDemo})}"></div>
+        <div id="moneyDemo" hidden>
+            <p>Small: <span th:replace="~{fragments/money :: amount(amount=8760)}"></span></p>
+            <p>Large: <span th:replace="~{fragments/money :: amount(amount=1234567.5)}"></span></p>
+            <p>Zero: <span th:replace="~{fragments/money :: amount(amount=0)}"></span></p>
+        </div>
+
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+
+</body>
+</html>

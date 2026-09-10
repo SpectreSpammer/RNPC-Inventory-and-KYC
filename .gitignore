@@ -38,3 +38,6 @@ secret_api_key.csv
 
 ### Chat scratch (screenshots dropped into Claude Code conversations, not project deliverables) ###
 screenshots/
+
+### Local dev log file (logging.file.name in application.properties) ###
+logs/

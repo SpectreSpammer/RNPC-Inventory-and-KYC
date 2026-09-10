@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Title left, action slot right - belongs INSIDE the content area (below layout-app's topbar),
+  as a plain h1, replacing a page's old top-of-page <h1> that used to sit above/beside the
+  sidebar.
+
+  Params: title (String), subtitle (String, nullable), actions (fragment expression, nullable)
+  Usage:
+    <div th:replace="~{fragments/page-header :: header(title='Orders', subtitle=null, actions=~{::#ordersActions})}"></div>
+    <div id="ordersActions" hidden>
+        <a href="/build" class="btn rn-btn-accent">New Order</a>
+    </div>
+  Omit subtitle/actions (or pass null) for a header with no subtitle/buttons.
+-->
+<div th:fragment="header(title, subtitle, actions)" class="rn-page-header">
+    <div class="rn-page-header-text">
+        <h1 class="rn-page-header-title" th:text="${title}"></h1>
+        <p th:if="${subtitle != null and !#strings.isEmpty(subtitle)}" class="rn-page-header-subtitle" th:text="${subtitle}"></p>
+    </div>
+    <!-- th:if on a wrapping th:block, NOT the same tag as th:replace: Thymeleaf processes
+         fragment-inclusion before th:if regardless of markup order, so a null actions would
+         still be resolved (and crash) if both attributes lived on one element. -->
+    <th:block th:if="${actions != null}">
+        <div th:replace="${actions}" class="rn-page-header-actions"></div>
+    </th:block>
+</div>
+
+<style th:fragment="page-header-styles">
+    .rn-page-header { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-5); }
+    .rn-page-header-text { display: flex; flex-direction: column; gap: 4px; }
+    .rn-page-header-title { font-size: 24px; font-weight: 700; margin: 0; color: var(--text); }
+    .rn-page-header-subtitle { font-size: 13.5px; color: var(--text-muted); margin: 0; }
+    .rn-page-header-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+</style>
+
+</body>
+</html>

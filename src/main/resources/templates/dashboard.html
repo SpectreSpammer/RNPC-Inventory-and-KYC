@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Dashboard - RNPC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/card :: card-styles}"></th:block>
+    <th:block th:replace="~{fragments/stat-card :: stat-card-styles}"></th:block>
+    <th:block th:replace="~{fragments/progress-card :: progress-card-styles}"></th:block>
+    <th:block th:replace="~{fragments/table-card :: table-card-styles}"></th:block>
+    <th:block th:replace="~{fragments/status-badge :: badge-styles}"></th:block>
+    <th:block th:replace="~{fragments/empty-state :: empty-state-styles}"></th:block>
+    <style>
+        /*
+          IMPORTANT (found the hard way while wiring this page - see chat): card.html/
+          table-card.html/progress-card.html/empty-state.html's "content"/"action"/"actions"
+          params are Thymeleaf fragment expressions (~{::#id}) meant for CROSS-FILE use (like
+          every other fragment in this app, e.g. fragments/nav.html). Referencing a same-template
+          sibling <div id="x" hidden> from WITHIN this same page duplicates it - it renders once
+          in its own original position (hidden attribute and all - which also makes the "active"
+          copy invisible, since ~{::#id} carries the whole element's own attributes into the
+          copy), AND again wherever the fragment call consumes it. th:remove="all" on the source
+          doesn't fix it (removes the copy too); <template> doesn't fix it either (browsers never
+          render template content, so the "active" copy stays inert too). So every card below is
+          built with direct inline markup reproducing card.html/table-card.html/progress-card.html's
+          exact CSS classes, instead of calling those fragments from this page. status-badge.html,
+          money.html, and stat-card.html are unaffected and still called normally - they only take
+          plain values, no same-template fragment-expression params.
+
+          Page-specific layout classes below match the mockup's own classes exactly; not pulled
+          into a reusable fragment since STEP 3 only asked for the 7 generic ones.
+        */
+        .content{ padding:var(--space-5); }
+
+        .banner{
+            position:relative; overflow:hidden; border-radius:var(--radius); padding:var(--space-5) var(--space-6);
+            background:linear-gradient(120deg,#EAF4FF 0%, #F7FBFF 55%, #FFFFFF 100%);
+            border:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:var(--space-5);
+            margin-bottom:var(--space-5);
+        }
+        .banner-greeting{ font-size:14px; color:var(--text-muted); margin:0 0 4px; }
+        .banner-title{ font-size:26px; font-weight:800; margin:0 0 6px; color:var(--text); }
+        .banner-sub{ font-size:13.5px; color:var(--text-muted); margin:0; }
+        .banner-pc{ position:absolute; right:230px; top:50%; transform:translateY(-50%); width:190px; height:150px; opacity:.55; }
+        .banner-datetime{ position:relative; z-index:1; background:var(--bg-card); border-radius:var(--radius-sm); box-shadow:var(--shadow-md); display:flex; align-items:stretch; flex-shrink:0; }
+        .banner-datetime-block{ display:flex; align-items:center; gap:var(--space-2); padding:var(--space-3) var(--space-4); }
+        .banner-datetime-block svg{ width:20px; height:20px; color:var(--accent); flex-shrink:0; }
+        .banner-datetime-text{ display:block; }
+        .banner-datetime-value{ display:block; font-size:14px; font-weight:700; color:var(--text); line-height:1.25; }
+        .banner-datetime-label{ font-size:11px; color:var(--text-muted); }
+        .banner-divider{ width:1px; background:var(--border); }
+
+        .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-4); margin-bottom:var(--space-5); }
+        .dash-grid{ display:grid; grid-template-columns:1.15fr 1fr; gap:var(--space-4); align-items:start; }
+        @media (max-width:1150px){ .dash-grid{ grid-template-columns:1fr; } .stat-grid{ grid-template-columns:repeat(2,1fr); } }
+
+        .build-progress-name{ font-size:14px; font-weight:700; color:var(--text); margin:0; }
+        .build-progress-date{ font-size:12px; color:var(--text-muted); margin:2px 0 0; }
+        .build-progress-bar-row{ display:flex; align-items:center; gap:var(--space-3); margin:var(--space-3) 0; }
+        .build-progress-bar-track{ display:block; flex:1; height:8px; }
+        .build-progress-bar-bg{ fill:var(--border); }
+        .build-progress-bar-fill{ fill:var(--accent); }
+        .build-progress-percent{ font-size:12.5px; font-weight:700; color:var(--text); width:36px; flex-shrink:0; text-align:right; }
+        .build-progress-specs{ display:flex; flex-direction:column; gap:6px; margin-bottom:var(--space-3); }
+        .build-progress-total{ font-size:13px; font-weight:700; color:var(--text); margin-bottom:var(--space-3); }
+        .build-progress-actions{ display:flex; align-items:center; gap:var(--space-3); }
+
+        .spec-row{ display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); font-size:12.5px; }
+        .spec-label{ color:var(--text-muted); font-weight:600; flex-shrink:0; }
+        .spec-value{ color:var(--text); text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .spec-value.spec-empty{ color:var(--text-muted); font-style:italic; }
+
+        .task-grid{ display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); }
+        .task-tile{ display:flex; align-items:center; gap:var(--space-3); border-radius:var(--radius-sm); padding:var(--space-3); text-decoration:none; }
+        .task-tile-icon{ width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .task-tile-icon svg{ width:16px; height:16px; }
+        .task-tile-label{ font-size:13px; font-weight:700; color:var(--text); flex:1; line-height:1.25; }
+        .task-tile-chev{ width:14px; height:14px; color:var(--text-muted); flex-shrink:0; }
+        .task-blue{ background:var(--blue-subtle); } .task-blue .task-tile-icon{ background:var(--blue); color:#fff; }
+        .task-green{ background:var(--green-subtle); } .task-green .task-tile-icon{ background:var(--green); color:#fff; }
+        .task-purple{ background:var(--purple-subtle); } .task-purple .task-tile-icon{ background:var(--purple); color:#fff; }
+        .task-orange{ background:var(--orange-subtle); } .task-orange .task-tile-icon{ background:var(--orange); color:#fff; }
+
+        /* ~3 warranty-row's worth (10px+10px padding + the two-line warranty-info text) before
+           it scrolls - keeps this card's total height in line with the left column's, per the
+           fix requested in chat, without a fixed height on the card itself. */
+        .warranty-list{ max-height:168px; overflow-y:auto; }
+        .warranty-row{ display:flex; align-items:center; gap:var(--space-3); padding:10px 0; }
+        .warranty-row + .warranty-row{ border-top:1px solid var(--border); }
+        .warranty-info{ width:220px; flex-shrink:0; }
+        .warranty-job{ font-size:13px; font-weight:700; color:var(--text); margin:0; }
+        .warranty-fix{ font-size:11.5px; color:var(--text-muted); margin:2px 0 0; }
+        .warranty-bar-track{ display:block; flex:1; height:7px; }
+        .warranty-bar-bg{ fill:var(--border); }
+        .warranty-bar-fill.green{ fill:var(--green); }
+        .warranty-bar-fill.amber{ fill:var(--amber); }
+        .warranty-bar-fill.expired{ fill:var(--text-muted); }
+        .warranty-days{ width:64px; text-align:right; flex-shrink:0; font-size:12.5px; font-weight:700; }
+        .warranty-days.green{ color:var(--green); }
+        .warranty-days.amber{ color:var(--amber); }
+        .warranty-days.expired{ color:var(--text-muted); font-weight:600; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/layout-app :: sidebar(active='dashboard', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+
+    <main class="content">
+
+        <!-- Welcome banner -->
+        <section class="banner">
+            <div>
+                <p class="banner-greeting" th:text="${greeting}"></p>
+                <h1 class="banner-title" th:text="'Welcome back, ' + ${currentUsername} + '! ' + '&#128075;'"></h1>
+                <p class="banner-sub">Here's what's happening with your repair shop today.</p>
+            </div>
+            <svg class="banner-pc" viewBox="0 0 200 160" aria-hidden="true">
+                <rect x="20" y="10" width="90" height="140" rx="10" fill="#0F1B2E" opacity="0.15"/>
+                <rect x="35" y="25" width="60" height="60" rx="6" fill="#0098c8" opacity="0.18"/>
+                <circle cx="65" cy="120" r="14" fill="#0098c8" opacity="0.22"/>
+            </svg>
+            <div class="banner-datetime">
+                <div class="banner-datetime-block">
+                    <i data-feather="calendar"></i>
+                    <span class="banner-datetime-text">
+                        <span class="banner-datetime-value" th:text="${todayLabel}"></span>
+                        <span class="banner-datetime-label" th:text="${todayDayOfWeek}"></span>
+                    </span>
+                </div>
+                <div class="banner-divider"></div>
+                <div class="banner-datetime-block">
+                    <i data-feather="clock"></i>
+                    <span class="banner-datetime-value" th:text="${nowLabel}"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stat cards - real counts, no invented trend percentages (see DashboardController) -->
+        <section class="stat-grid">
+            <div th:replace="~{fragments/stat-card :: stat(icon='clipboard', color='blue', label='Total Orders', value=${totalOrders}, trend=null, trendDirection=null, trendLabel=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='calendar', color='green', label='Scheduled Appointments', value=${scheduledAppointments}, trend=null, trendDirection=null, trendLabel=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='tool', color='orange', label='In Repair', value=${inRepairCount}, trend=null, trendDirection=null, trendLabel=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='check-circle', color='purple', label='Completed Today', value=${completedTodayCount}, trend=null, trendDirection=null, trendLabel=null)}"></div>
+        </section>
+
+        <div class="dash-grid">
+
+            <!-- LEFT column -->
+            <div>
+                <div class="card" th:if="${latestSavedBuild != null}">
+                    <div class="card-head">
+                        <div class="card-head-left">
+                            <span class="card-icon card-icon-blue"><i data-feather="monitor"></i></span>
+                            <h2 class="card-title">Build Progress</h2>
+                        </div>
+                    </div>
+
+                    <p class="build-progress-name" th:text="${latestSavedBuild.name}"></p>
+                    <p class="build-progress-date" th:if="${latestSavedBuild.createdAt != null}"
+                       th:text="'Saved ' + ${#dates.format(latestSavedBuild.createdAt, 'MMM d, yyyy')}"></p>
+
+                    <div class="build-progress-bar-row">
+                        <svg class="build-progress-bar-track" viewBox="0 0 100 8" preserveAspectRatio="none" role="progressbar"
+                             th:attr="aria-valuenow=${latestBuildCompletionPercent}" aria-valuemin="0" aria-valuemax="100">
+                            <rect class="build-progress-bar-bg" width="100" height="8" rx="4"></rect>
+                            <rect class="build-progress-bar-fill" height="8" rx="4" th:attr="width=${latestBuildCompletionPercent}"></rect>
+                        </svg>
+                        <span class="build-progress-percent" th:text="${latestBuildCompletionPercent} + '%'"></span>
+                    </div>
+
+                    <div class="build-progress-specs">
+                        <div class="spec-row" th:each="rowEntry : ${latestBuildSpecRows}">
+                            <span class="spec-label" th:text="${rowEntry.key}"></span>
+                            <span th:if="${rowEntry.value == null}" class="spec-value spec-empty">Not selected</span>
+                            <span th:if="${rowEntry.value != null}" class="spec-value"
+                                  th:text="${rowEntry.value.brand} + ' ' + ${rowEntry.value.modelName}"></span>
+                        </div>
+                    </div>
+
+                    <div class="build-progress-total">
+                        Estimated Total: <span th:insert="~{fragments/money :: amount(amount=${latestSavedBuild.totalPrice})}"></span>
+                    </div>
+
+                    <div class="build-progress-actions">
+                        <a th:href="@{/build(loadBuildId=${latestSavedBuild.savedBuildId})}" class="btn-accent-sm">Continue Build</a>
+                        <a href="/build/my-builds" class="card-link">View All Builds</a>
+                    </div>
+                </div>
+
+                <div class="card" th:if="${latestSavedBuild == null}">
+                    <div class="card-head">
+                        <div class="card-head-left">
+                            <span class="card-icon card-icon-blue"><i data-feather="monitor"></i></span>
+                            <h2 class="card-title">Build Progress</h2>
+                        </div>
+                    </div>
+                    <div th:replace="~{fragments/empty-state :: state(icon='cpu', message='No build-progress tracking yet', actions=null)}"></div>
+                    <a href="/build" class="btn-accent-sm">Start a Build</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-head-left">
+                            <span class="card-icon card-icon-purple"><i data-feather="tool"></i></span>
+                            <h2 class="card-title">My Repairs</h2>
+                        </div>
+                        <a href="/repair" class="card-link">View All</a>
+                    </div>
+                    <table class="rn-table" th:if="${not #lists.isEmpty(myRepairs)}">
+                        <thead><tr><th>Issue</th><th>Status</th><th>Final cost</th><th>Action</th></tr></thead>
+                        <tbody>
+                        <tr th:each="repair : ${myRepairs}">
+                            <td th:text="${repair.jobOrderNumber} + ' &mdash; ' + ${#strings.abbreviate(repair.issueDescription, 40)}"></td>
+                            <td><span th:replace="~{fragments/status-badge :: badge(status=${repair.status})}"></span></td>
+                            <td th:insert="~{fragments/money :: amount(amount=${repair.cost})}"></td>
+                            <td><a href="/repair" class="table-action"><i data-feather="eye"></i>View</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <th:block th:unless="${not #lists.isEmpty(myRepairs)}">
+                        <div th:replace="~{fragments/empty-state :: state(icon='tool', message='No repairs on record yet', actions=null)}"></div>
+                    </th:block>
+                </div>
+
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-head-left">
+                            <span class="card-icon card-icon-blue"><i data-feather="shopping-cart"></i></span>
+                            <h2 class="card-title">Recent Orders</h2>
+                        </div>
+                        <a href="/order" class="card-link">View All</a>
+                    </div>
+                    <table class="rn-table" th:if="${not #lists.isEmpty(recentOrders)}">
+                        <thead><tr><th>Order #</th><th>Items</th><th>Status</th><th>Action</th></tr></thead>
+                        <tbody>
+                        <tr th:each="order : ${recentOrders}">
+                            <td th:text="${order.orderNumber}"></td>
+                            <td>
+                                <th:block th:each="item, iter : ${order.items}">
+                                    <th:block th:text="${item.brand} + ' ' + ${item.modelName}"></th:block><th:block th:if="!${iter.last}">, </th:block>
+                                </th:block>
+                            </td>
+                            <td><span th:replace="~{fragments/status-badge :: badge(status=${order.status})}"></span></td>
+                            <td><a href="/order" class="table-action"><i data-feather="eye"></i>View</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <th:block th:unless="${not #lists.isEmpty(recentOrders)}">
+                        <div th:replace="~{fragments/empty-state :: state(icon='shopping-cart', message='No orders yet', actions=null)}"></div>
+                        <a href="/build" class="btn-accent-sm">Build a PC</a>
+                    </th:block>
+                </div>
+            </div>
+
+            <!-- RIGHT column -->
+            <div>
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-head-left">
+                            <span class="card-icon card-icon-blue"><i data-feather="calendar"></i></span>
+                            <h2 class="card-title">Upcoming Appointments</h2>
+                        </div>
+                        <a href="/appointment" class="card-link">View All</a>
+                    </div>
+                    <table class="rn-table" th:if="${not #lists.isEmpty(upcomingAppointments)}">
+                        <thead><tr><th>Service</th><th>Date &amp; Time</th><th>Status</th></tr></thead>
+                        <tbody>
+                        <tr th:each="appt : ${upcomingAppointments}">
+                            <td th:text="${appt.deviceType}"></td>
+                            <td th:text="${#temporals.format(appt.preferredDate, 'MMM dd, yyyy')} + ' &middot; ' + ${#temporals.format(appt.preferredTime, 'hh:mm a')}"></td>
+                            <td><span th:replace="~{fragments/status-badge :: badge(status=${appt.status})}"></span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <th:block th:unless="${not #lists.isEmpty(upcomingAppointments)}">
+                        <div th:replace="~{fragments/empty-state :: state(icon='calendar', message='No upcoming appointments', actions=null)}"></div>
+                    </th:block>
+                    <a href="/appointment/create" class="btn-accent-sm"><i data-feather="plus"></i>Book New Appointment</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-head-left">
+                            <span class="card-icon card-icon-amber"><i data-feather="zap"></i></span>
+                            <h2 class="card-title">Quick Tasks</h2>
+                        </div>
+                    </div>
+                    <div class="task-grid">
+                        <a href="/order" class="task-tile task-blue">
+                            <span class="task-tile-icon"><i data-feather="upload-cloud"></i></span>
+                            <span class="task-tile-label">Upload Payment Receipt</span>
+                            <i data-feather="chevron-right" class="task-tile-chev"></i>
+                        </a>
+                        <a href="/order" class="task-tile task-green">
+                            <span class="task-tile-icon"><i data-feather="file-text"></i></span>
+                            <span class="task-tile-label">Update Order Receipt</span>
+                            <i data-feather="chevron-right" class="task-tile-chev"></i>
+                        </a>
+                        <!-- Mockup's 3rd tile was "Calendar Data" -> /appointment/calendar, but
+                             that route is staff-facing (AppointmentController.showCalendar); no
+                             customer-usable calendar view exists, so this points at the real
+                             customer-facing equivalent instead. -->
+                        <a href="/appointment" class="task-tile task-purple">
+                            <span class="task-tile-icon"><i data-feather="calendar"></i></span>
+                            <span class="task-tile-label">View Appointments</span>
+                            <i data-feather="chevron-right" class="task-tile-chev"></i>
+                        </a>
+                        <a href="/appointment" class="task-tile task-orange">
+                            <span class="task-tile-icon"><i data-feather="file-text"></i></span>
+                            <span class="task-tile-label">Update Appointment Receipt</span>
+                            <i data-feather="chevron-right" class="task-tile-chev"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-head-left">
+                            <span class="card-icon card-icon-green"><i data-feather="shield"></i></span>
+                            <h2 class="card-title">Warranty Tracker</h2>
+                        </div>
+                        <a href="/repair" class="card-link">View All</a>
+                    </div>
+                    <!-- Capped + scrollable so this card's total height stays in line with the
+                         left column's (Recent Orders et al.) regardless of how many warranty
+                         rows there are - header/View All above stay fixed, only this rows area
+                         scrolls. -->
+                    <div class="warranty-list">
+                        <th:block th:if="${not #lists.isEmpty(warrantyRepairs)}">
+                            <div class="warranty-row" th:each="repair : ${warrantyRepairs}"
+                                 th:with="urgency=${T(com.rnpc.inventory.controller.DashboardController).warrantyUrgency(repair)},
+                                          remainingPercent=${T(com.rnpc.inventory.controller.DashboardController).warrantyRemainingPercent(repair)},
+                                          daysLeft=${T(com.rnpc.inventory.controller.DashboardController).warrantyDaysRemaining(repair)}">
+                                <span class="warranty-info">
+                                    <p class="warranty-job" th:text="${repair.jobOrderNumber} + ' &middot; ' + ${repair.brand} + ' ' + ${repair.modelName}"></p>
+                                    <p class="warranty-fix" th:text="${repair.fix}"></p>
+                                </span>
+                                <svg class="warranty-bar-track" viewBox="0 0 100 7" preserveAspectRatio="none" role="progressbar"
+                                     th:attr="aria-valuenow=${remainingPercent}" aria-valuemin="0" aria-valuemax="100">
+                                    <rect class="warranty-bar-bg" width="100" height="7" rx="3.5"></rect>
+                                    <rect class="warranty-bar-fill" height="7" rx="3.5" th:classappend="${urgency}" th:attr="width=${remainingPercent}"></rect>
+                                </svg>
+                                <span class="warranty-days" th:classappend="${urgency}"
+                                      th:text="${urgency == 'expired' ? 'Expired' : (daysLeft + ' days')}"></span>
+                            </div>
+                        </th:block>
+                        <th:block th:unless="${not #lists.isEmpty(warrantyRepairs)}">
+                            <div th:replace="~{fragments/empty-state :: state(icon='shield', message='No repairs with a warranty on record yet', actions=null)}"></div>
+                        </th:block>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+
+</body>
+</html>

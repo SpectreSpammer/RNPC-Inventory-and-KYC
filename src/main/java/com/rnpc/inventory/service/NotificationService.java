@@ -75,4 +75,38 @@ public class NotificationService {
         notifications.forEach(n -> n.setRead(true));
         repo.saveAll(notifications);
     }
+
+    // Display-only formatting for Notification.createdAt (Notification.java:43) - no existing
+    // page in this app shows relative time (notificationIndex.html:77 shows an absolute
+    // timestamp), so this is new, but it's a pure function with no query behind it. Static so the
+    // topbar dropdown can call it directly via
+    // T(com.rnpc.inventory.service.NotificationService).relativeTime(...), same pattern
+    // DashboardController's own static display helpers already use.
+    public static String relativeTime(Date date) {
+        if (date == null) {
+            return "";
+        }
+        long seconds = (System.currentTimeMillis() - date.getTime()) / 1000;
+        if (seconds < 60) {
+            return "Just now";
+        }
+        long minutes = seconds / 60;
+        if (minutes < 60) {
+            return minutes + (minutes == 1 ? " minute ago" : " minutes ago");
+        }
+        long hours = minutes / 60;
+        if (hours < 24) {
+            return hours + (hours == 1 ? " hour ago" : " hours ago");
+        }
+        long days = hours / 24;
+        if (days < 30) {
+            return days + (days == 1 ? " day ago" : " days ago");
+        }
+        long months = days / 30;
+        if (months < 12) {
+            return months + (months == 1 ? " month ago" : " months ago");
+        }
+        long years = months / 12;
+        return years + (years == 1 ? " year ago" : " years ago");
+    }
 }
