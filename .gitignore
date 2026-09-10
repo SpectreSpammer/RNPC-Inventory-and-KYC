@@ -41,3 +41,10 @@ screenshots/
 
 ### Local dev log file (logging.file.name in application.properties) ###
 logs/
+
+### Railway deploy logs pulled down for local inspection - not a project deliverable, and (per
+### the security review in chat) has printed seeded demo credentials to stdout in the past ###
+logs from railway/
+
+### Claude Code's own local session/tool state for this project - not project source ###
+.claude/

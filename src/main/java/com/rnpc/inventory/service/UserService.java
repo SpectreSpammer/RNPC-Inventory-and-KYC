@@ -111,16 +111,21 @@ public class UserService {
     }
 
     /**
-     * Create demo users for testing
+     * Create demo users for testing - only on a database that doesn't already have them
+     * (usernameExists guard), and only when the corresponding env var actually supplies a
+     * password. No fallback default: a missing/blank env var means that account is skipped
+     * entirely rather than seeded with a known password.
      */
     public void createDemoUsers() {
-        if (!usernameExists("admin")) {
-            User admin = new User("admin", "12345", User.Role.ADMIN);
+        String adminPassword = System.getenv("DEMO_ADMIN_PASSWORD");
+        if (!usernameExists("admin") && adminPassword != null && !adminPassword.isBlank()) {
+            User admin = new User("admin", adminPassword, User.Role.ADMIN);
             saveUser(admin);
         }
 
-        if (!usernameExists("nand159")) {
-            User customer = new User("nand159", "12345", User.Role.CUSTOMER);
+        String customerPassword = System.getenv("DEMO_CUSTOMER_PASSWORD");
+        if (!usernameExists("nand159") && customerPassword != null && !customerPassword.isBlank()) {
+            User customer = new User("nand159", customerPassword, User.Role.CUSTOMER);
             saveUser(customer);
         }
     }
