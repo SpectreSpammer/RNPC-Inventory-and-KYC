@@ -258,7 +258,8 @@
                     No notifications yet.
                 </div>
                 <th:block th:if="${recentNotifications != null}">
-                    <a th:each="notif : ${recentNotifications}" href="/notification" class="notif-dropdown-item">
+                    <a th:each="notif : ${recentNotifications}" href="/notification" class="notif-dropdown-item"
+                       th:attr="data-entity-type=${notif.entityType}, data-entity-id=${notif.entityId}">
                         <span class="notif-dot" th:unless="${notif.read}"></span>
                         <span class="notif-dropdown-text">
                             <span class="notif-dropdown-message" th:text="${notif.message}"></span>
@@ -287,6 +288,27 @@
         </ul>
     </div>
 </header>
+
+<!--
+  Shared modal target for topbar notification click-through (see app-script below) - same
+  fetch-a-fragment-into-a-modal pattern and the same two ids notificationIndex.html:83-95 already
+  uses, so a page including this fragment behaves identically to the full /notification page.
+  Include once per page, anywhere in <body>:
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+-->
+<div class="modal fade" id="notifDetailModal" th:fragment="notifDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="notifDetailModalBody">
+                <div class="text-center text-muted py-4">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <style th:fragment="app-styles">
     body{ margin:0; font-family:var(--font-sans); background:var(--bg-page); color:var(--text); display:flex; }
@@ -466,6 +488,38 @@
             markAllReadBtn.addEventListener('click', function () {
                 fetch('/notification/mark-all-read', { method: 'POST' })
                     .then(function (res) { if (res.ok) { location.reload(); } });
+            });
+        }
+
+        // Same fetch-a-fragment-into-a-modal click-through as notificationIndex.html:120,124-138 -
+        // only intercepts the click when both data attributes are present (a real entityType/
+        // entityId pair); otherwise the item's existing href="/notification" navigates normally,
+        // same as today.
+        var notifDetailModalEl = document.getElementById('notifDetailModal');
+        if (notifDetailModalEl && window.bootstrap) {
+            var notifDetailModalBody = document.getElementById('notifDetailModalBody');
+            var notifFragmentUrls = { ORDER: '/order/', REPAIR: '/repair/', APPOINTMENT: '/appointment/' };
+
+            document.querySelectorAll('.notif-dropdown-item').forEach(function (item) {
+                item.addEventListener('click', function (e) {
+                    var type = item.getAttribute('data-entity-type');
+                    var id = item.getAttribute('data-entity-id');
+                    var base = notifFragmentUrls[type];
+                    if (!base || !id) { return; }
+
+                    e.preventDefault();
+                    notifDetailModalBody.innerHTML = '<div class="text-center text-muted py-4">Loading...</div>';
+                    bootstrap.Modal.getOrCreateInstance(notifDetailModalEl).show();
+                    fetch(base + id + '/modal')
+                        .then(function (res) { return res.text(); })
+                        .then(function (html) {
+                            notifDetailModalBody.innerHTML = html;
+                            if (window.feather) { feather.replace(); }
+                        })
+                        .catch(function () {
+                            notifDetailModalBody.innerHTML = '<div class="text-danger text-center py-4">Failed to load details.</div>';
+                        });
+                });
             });
         }
     });
