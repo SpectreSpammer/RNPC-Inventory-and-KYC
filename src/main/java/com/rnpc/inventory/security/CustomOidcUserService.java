@@ -39,6 +39,9 @@ public class CustomOidcUserService extends OidcUserService {
         if (email == null || email.isBlank()) {
             throw new OAuth2AuthenticationException("Google account did not return an email address");
         }
+        if (!Boolean.TRUE.equals(oidcUser.getEmailVerified())) {
+            throw new OAuth2AuthenticationException("Google account email is not verified");
+        }
 
         User user = userRepository.findByEmail(email).orElseGet(() -> {
             User newUser = new User();

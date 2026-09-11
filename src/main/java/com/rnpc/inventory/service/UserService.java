@@ -3,7 +3,6 @@ package com.rnpc.inventory.service;
 import com.rnpc.inventory.entity.User;
 import com.rnpc.inventory.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -13,19 +12,6 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    /**
-     * Authenticate user with username and password
-     * @param username the username
-     * @param password the password
-     * @return Optional containing the user if authentication successful
-     */
-    public Optional<User> authenticateUser(String username, String password) {
-        return userRepository.findByUsernameAndPassword(username, password);
-    }
 
     /**
      * Find user by username
@@ -46,34 +32,12 @@ public class UserService {
     }
 
     /**
-     * Check if username exists
-     * @param username the username to check
-     * @return true if username exists
-     */
-    public boolean usernameExists(String username) {
-        return userRepository.existsByUsername(username);
-    }
-
-    /**
      * Check if email exists
      * @param email the email to check
      * @return true if email exists
      */
     public boolean emailExists(String email) {
         return userRepository.existsByEmail(email);
-    }
-
-    /**
-     * Register a new self-service customer account. Public sign-up can only ever create
-     * CUSTOMER accounts - admins are set up separately, never through this form.
-     */
-    public User registerCustomer(String username, String email, String rawPassword) {
-        User user = new User();
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(rawPassword));
-        user.setRole(User.Role.CUSTOMER);
-        return userRepository.save(user);
     }
 
     /**
@@ -108,26 +72,6 @@ public class UserService {
         user.setContactNumber(contactNumber);
         user.setEmail(email);
         return userRepository.save(user);
-    }
-
-    /**
-     * Create demo users for testing - only on a database that doesn't already have them
-     * (usernameExists guard), and only when the corresponding env var actually supplies a
-     * password. No fallback default: a missing/blank env var means that account is skipped
-     * entirely rather than seeded with a known password.
-     */
-    public void createDemoUsers() {
-        String adminPassword = System.getenv("DEMO_ADMIN_PASSWORD");
-        if (!usernameExists("admin") && adminPassword != null && !adminPassword.isBlank()) {
-            User admin = new User("admin", adminPassword, User.Role.ADMIN);
-            saveUser(admin);
-        }
-
-        String customerPassword = System.getenv("DEMO_CUSTOMER_PASSWORD");
-        if (!usernameExists("nand159") && customerPassword != null && !customerPassword.isBlank()) {
-            User customer = new User("nand159", customerPassword, User.Role.CUSTOMER);
-            saveUser(customer);
-        }
     }
 
     /**

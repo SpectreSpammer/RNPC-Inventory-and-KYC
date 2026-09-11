@@ -48,11 +48,6 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Create demo users - passwords come from DEMO_ADMIN_PASSWORD/DEMO_CUSTOMER_PASSWORD env
-        // vars with no fallback (see UserService.createDemoUsers); never logged, whether created
-        // or skipped.
-        userService.createDemoUsers();
-
         // Pre-registered as ADMIN so signing in with this Google account reuses that role
         // instead of defaulting a first-time sign-in to CUSTOMER.
         userService.ensureAdminEmail("rnpcandcellphonerepairshop@gmail.com");

@@ -13,82 +13,17 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body px-4 pb-4 pt-0">
-                <ul class="nav nav-tabs mb-3" id="authTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane" type="button" role="tab">Log In</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup-pane" type="button" role="tab">Sign Up</button>
-                    </li>
-                </ul>
+                <div id="loginFeedback"></div>
 
-                <div class="tab-content">
-                    <!-- LOG IN -->
-                    <div class="tab-pane fade show active" id="login-pane" role="tabpanel">
-                        <div id="loginFeedback"></div>
-
-                        <a class="btn-google" href="/oauth2/authorization/google">
-                            <svg width="18" height="18" viewBox="0 0 48 48">
-                                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
-                                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4c-7.4 0-13.8 4.2-17 10.3z"/>
-                                <path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.8 14-5l-6.5-5.4C29.4 35.1 26.8 36 24 36c-5.3 0-9.7-3.4-11.3-8l-6.5 5c3.2 6.2 9.6 11 17.8 11z"/>
-                                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.6l6.5 5.4C40.9 36.9 44 31.1 44 24c0-1.3-.1-2.7-.4-3.5z"/>
-                            </svg>
-                            Continue with Google
-                        </a>
-
-                        <div class="auth-divider">OR CONTINUE WITH USERNAME</div>
-
-                        <form action="/login" method="post">
-                            <div class="mb-3">
-                                <label for="modalLoginUsername" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="modalLoginUsername" name="username" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="modalLoginPassword" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="modalLoginPassword" name="password" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Log In</button>
-                        </form>
-                    </div>
-
-                    <!-- SIGN UP -->
-                    <div class="tab-pane fade" id="signup-pane" role="tabpanel">
-                        <div id="signupFeedback"></div>
-
-                        <a class="btn-google" href="/oauth2/authorization/google">
-                            <svg width="18" height="18" viewBox="0 0 48 48">
-                                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
-                                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4c-7.4 0-13.8 4.2-17 10.3z"/>
-                                <path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.8 14-5l-6.5-5.4C29.4 35.1 26.8 36 24 36c-5.3 0-9.7-3.4-11.3-8l-6.5 5c3.2 6.2 9.6 11 17.8 11z"/>
-                                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.6l6.5 5.4C40.9 36.9 44 31.1 44 24c0-1.3-.1-2.7-.4-3.5z"/>
-                            </svg>
-                            Sign up with Google
-                        </a>
-
-                        <div class="auth-divider">OR FILL IN YOUR DETAILS</div>
-
-                        <form action="/signup" method="post">
-                            <div class="mb-3">
-                                <label for="modalSignupUsername" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="modalSignupUsername" name="username" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="modalSignupEmail" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="modalSignupEmail" name="email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="modalSignupPassword" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="modalSignupPassword" name="password" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="modalSignupConfirm" class="form-label">Confirm password</label>
-                                <input type="password" class="form-control" id="modalSignupConfirm" name="confirmPassword" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Create Account</button>
-                        </form>
-                    </div>
-                </div>
+                <a class="btn-google" href="/oauth2/authorization/google">
+                    <svg width="18" height="18" viewBox="0 0 48 48">
+                        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+                        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4c-7.4 0-13.8 4.2-17 10.3z"/>
+                        <path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.8 14-5l-6.5-5.4C29.4 35.1 26.8 36 24 36c-5.3 0-9.7-3.4-11.3-8l-6.5 5c3.2 6.2 9.6 11 17.8 11z"/>
+                        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.6l6.5 5.4C40.9 36.9 44 31.1 44 24c0-1.3-.1-2.7-.4-3.5z"/>
+                    </svg>
+                    Continue with Google
+                </a>
             </div>
         </div>
     </div>

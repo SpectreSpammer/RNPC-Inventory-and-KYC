@@ -117,9 +117,6 @@
     <div th:if="${error}" class="error-message">
         <span th:text="${error}">Invalid credentials</span>
     </div>
-    <div th:if="${registered}" class="success-message">
-        Account created! Log in below.
-    </div>
 
     <a class="btn-google" th:href="@{/oauth2/authorization/google}">
         <svg width="18" height="18" viewBox="0 0 48 48">
@@ -130,30 +127,6 @@
         </svg>
         Continue with Google
     </a>
-
-    <div class="divider">OR CONTINUE WITH USERNAME</div>
-
-    <form th:action="@{/login}" method="post">
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required placeholder="Enter your username">
-        </div>
-
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required placeholder="Enter your password">
-        </div>
-
-        <button type="submit" class="login-btn">Log In</button>
-    </form>
-
-    <div class="user-type-hint">
-        <h4>Demo Credentials:</h4>
-        <ul>
-            <li><strong>Admin:</strong> admin / 12345</li>
-            <li><strong>Customer:</strong> nand159 / 12345</li>
-        </ul>
-    </div>
 </div>
 </body>
 </html>

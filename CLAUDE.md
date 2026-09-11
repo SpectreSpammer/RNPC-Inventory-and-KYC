@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Spring Boot 3.3.11 (Java 21) server-rendered inventory management app for RNPC. Thymeleaf templates + MySQL, with a parallel (currently unused) mssql-jdbc dependency. Manages three parts catalogs — computers, laptops, cellphone parts — plus an in-progress username/password login system.
+Spring Boot 3.3.11 (Java 21) server-rendered inventory management app for RNPC. Thymeleaf templates + MySQL, with a parallel (currently unused) mssql-jdbc dependency. Manages three parts catalogs — computers, laptops, cellphone parts — plus Google-only sign-in (no local passwords).
 
 ## Common commands
 
@@ -19,7 +19,7 @@ The app runs on port **9090** (`server.port` in `application.properties`), not t
 
 Database: MySQL at `jdbc:mysql://localhost:3306/rnpc`, user `root`, no password (local dev only — see `src/main/resources/application.properties`). `spring.jpa.hibernate.ddl-auto=update`, so schema changes to `@Entity` classes apply automatically on next run; there are no migration scripts. A MySQL server with a `rnpc` database must be running locally before starting the app.
 
-On every startup, `DataInitializer` seeds two demo users if they don't already exist: `admin`/`12345` (ADMIN) and `nand159`/`12345` (CUSTOMER). Credentials are stored and compared in plaintext (`UserRepository.findByUsernameAndPassword`) — there is no password hashing.
+Sign-in is Google-only (OAuth2/OIDC via `CustomOidcUserService`) — there is no username/password login or local sign-up, and no passwords are stored (`users.password` remains in the schema but is unused). The first time an email signs in with Google, `CustomOidcUserService` creates a CUSTOMER account for it automatically; `DataInitializer` separately pre-registers one email as ADMIN via `UserService.ensureAdminEmail` so it gets that role on its first Google sign-in instead.
 
 ## Architecture
 

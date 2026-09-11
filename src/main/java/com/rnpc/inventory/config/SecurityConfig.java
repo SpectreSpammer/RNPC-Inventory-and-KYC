@@ -2,14 +2,11 @@ package com.rnpc.inventory.config;
 
 import com.rnpc.inventory.security.CustomOAuth2UserService;
 import com.rnpc.inventory.security.CustomOidcUserService;
-import com.rnpc.inventory.security.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
@@ -26,20 +23,14 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
     private final CustomOAuth2UserService oAuth2UserService;
     private final CustomOidcUserService oidcUserService;
-    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public SecurityConfig(CustomUserDetailsService userDetailsService,
-                           CustomOAuth2UserService oAuth2UserService,
-                           CustomOidcUserService oidcUserService,
-                           PasswordEncoder passwordEncoder) {
-        this.userDetailsService = userDetailsService;
+    public SecurityConfig(CustomOAuth2UserService oAuth2UserService,
+                           CustomOidcUserService oidcUserService) {
         this.oAuth2UserService = oAuth2UserService;
         this.oidcUserService = oidcUserService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Bean
@@ -47,13 +38,6 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/", true)
-                        .failureUrl("/login?error")
-                        .permitAll()
-                )
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
                         .userInfoEndpoint(userInfo -> userInfo
@@ -73,13 +57,5 @@ public class SecurityConfig {
                         .permitAll()
                 );
         return http.build();
-    }
-
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder);
-        return provider;
     }
 }

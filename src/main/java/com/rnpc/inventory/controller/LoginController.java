@@ -10,12 +10,9 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -35,13 +32,9 @@ public class LoginController {
     // SecurityConfig) - this controller only needs to render the page itself.
     @GetMapping("/login")
     public String showLoginPage(Model model,
-                                 @RequestParam(value = "error", required = false) String error,
-                                 @RequestParam(value = "registered", required = false) String registered) {
+                                 @RequestParam(value = "error", required = false) String error) {
         if (error != null) {
-            model.addAttribute("error", "Invalid username or password");
-        }
-        if (registered != null) {
-            model.addAttribute("registered", true);
+            model.addAttribute("error", "Google sign-in failed. Please try again.");
         }
         return "login/login";
     }
@@ -91,34 +84,5 @@ public class LoginController {
             body.put("unreadNotifications", unread);
         }
         return body;
-    }
-
-    // Public sign-up only ever creates CUSTOMER accounts. There's no Thymeleaf view to re-render
-    // field errors into here (the sign-up form lives in the static landing page's modal), so
-    // validation failures redirect back with a short message in the query string instead.
-    @PostMapping("/signup")
-    public String signup(@RequestParam String username,
-                          @RequestParam String email,
-                          @RequestParam String password,
-                          @RequestParam String confirmPassword) {
-        if (username.isBlank() || email.isBlank() || password.isBlank()) {
-            return "redirect:/?signupError=" + encode("All fields are required.");
-        }
-        if (!password.equals(confirmPassword)) {
-            return "redirect:/?signupError=" + encode("Passwords do not match.");
-        }
-        if (userService.usernameExists(username)) {
-            return "redirect:/?signupError=" + encode("That username is already taken.");
-        }
-        if (userService.emailExists(email)) {
-            return "redirect:/?signupError=" + encode("That email is already registered.");
-        }
-
-        userService.registerCustomer(username, email, password);
-        return "redirect:/login?registered=1";
-    }
-
-    private String encode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 }
