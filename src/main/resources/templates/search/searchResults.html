@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Search - RNPC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/card :: card-styles}"></th:block>
+    <th:block th:replace="~{fragments/table-card :: table-card-styles}"></th:block>
+    <th:block th:replace="~{fragments/page-header :: page-header-styles}"></th:block>
+    <th:block th:replace="~{fragments/status-badge :: badge-styles}"></th:block>
+    <th:block th:replace="~{fragments/empty-state :: empty-state-styles}"></th:block>
+    <style>
+        /*
+          table-card.html/empty-state.html's content/action params are cross-file ~{::#id}
+          fragment expressions (see dashboard.html/savedBuilds.html/repairIndex.html for the same
+          note) - not called from here for that reason; direct markup below reproduces their
+          classes (.card/.card-head/.rn-table), same as repairIndex.html does.
+        */
+        .content{ padding:var(--space-5); }
+
+        .search-section{ margin-bottom:var(--space-5); }
+
+        .search-overflow{ padding:var(--space-3) var(--space-4); text-align:right; font-size:12.5px; color:var(--text-muted); border-top:1px solid var(--border); }
+        .search-overflow a{ color:var(--accent); font-weight:600; text-decoration:none; }
+        .search-overflow a:hover{ text-decoration:underline; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/layout-app :: sidebar(active='search', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+
+    <main class="content">
+        <div class="rn-page-header">
+            <div class="rn-page-header-text">
+                <h1 class="rn-page-header-title">Search</h1>
+                <p class="rn-page-header-subtitle"
+                   th:if="${results != null}"
+                   th:text="${'Results for “' + query + '” - ' + results.totalCount + ' match(es)'}"></p>
+                <p class="rn-page-header-subtitle" th:if="${results == null}">Keep typing to search your orders, repairs, appointments, and builds.</p>
+            </div>
+        </div>
+
+        <div th:if="${results == null}" class="card">
+            <div th:replace="~{fragments/empty-state :: state(icon='search', message='Type at least 2 characters to search', actions=null)}"></div>
+        </div>
+
+        <div th:if="${results != null and results.empty}" class="card">
+            <div th:replace="~{fragments/empty-state :: state(icon='search', message='No matches found', actions=null)}"></div>
+        </div>
+
+        <section class="search-section" th:if="${results != null and not #lists.isEmpty(results.orders)}">
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-head-left">
+                        <span class="card-icon card-icon-blue"><i data-feather="shopping-bag"></i></span>
+                        <h2 class="card-title">Orders</h2>
+                    </div>
+                </div>
+                <table class="rn-table">
+                    <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Reference #</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="order : ${results.orders}">
+                        <td>
+                            <a class="search-result-link" href="/order"
+                               th:attr="data-entity-type='ORDER', data-entity-id=${order.orderId}"
+                               th:text="${order.orderNumber}"></a>
+                        </td>
+                        <td th:text="${order.referenceNumber}"></td>
+                        <td><span th:replace="~{fragments/status-badge :: badge(status=${order.status})}"></span></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="search-overflow" th:if="${results.orderTotal > #lists.size(results.orders)}">
+                    <span th:text="'Showing ' + ${#lists.size(results.orders)} + ' of ' + ${results.orderTotal} + ' - '"></span>
+                    <a href="/order">View all orders</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="search-section" th:if="${results != null and not #lists.isEmpty(results.repairs)}">
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-head-left">
+                        <span class="card-icon card-icon-purple"><i data-feather="tool"></i></span>
+                        <h2 class="card-title">Repairs</h2>
+                    </div>
+                </div>
+                <table class="rn-table">
+                    <thead>
+                    <tr>
+                        <th>Ref #</th>
+                        <th>Device</th>
+                        <th>Issue</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="repair : ${results.repairs}">
+                        <td>
+                            <a class="search-result-link" href="/repair"
+                               th:attr="data-entity-type='REPAIR', data-entity-id=${repair.repairId}"
+                               th:text="${repair.jobOrderNumber}"></a>
+                        </td>
+                        <td th:text="${repair.deviceType} + ' (' + ${repair.brand} + ' ' + ${repair.modelName} + ')'"></td>
+                        <td th:text="${repair.issueDescription}"></td>
+                        <td><span th:replace="~{fragments/status-badge :: badge(status=${repair.status})}"></span></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="search-overflow" th:if="${results.repairTotal > #lists.size(results.repairs)}">
+                    <span th:text="'Showing ' + ${#lists.size(results.repairs)} + ' of ' + ${results.repairTotal} + ' - '"></span>
+                    <a href="/repair">View all repairs</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="search-section" th:if="${results != null and not #lists.isEmpty(results.appointments)}">
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-head-left">
+                        <span class="card-icon card-icon-orange"><i data-feather="calendar"></i></span>
+                        <h2 class="card-title">Appointments</h2>
+                    </div>
+                </div>
+                <table class="rn-table">
+                    <thead>
+                    <tr>
+                        <th>Device</th>
+                        <th>Issue</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="appointment : ${results.appointments}">
+                        <td>
+                            <a class="search-result-link" href="/appointment"
+                               th:attr="data-entity-type='APPOINTMENT', data-entity-id=${appointment.appointmentId}"
+                               th:text="${appointment.deviceType} + ' - ' + ${appointment.itemDescription}"></a>
+                        </td>
+                        <td th:text="${appointment.issueDescription}"></td>
+                        <td><span th:replace="~{fragments/status-badge :: badge(status=${appointment.status})}"></span></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="search-overflow" th:if="${results.appointmentTotal > #lists.size(results.appointments)}">
+                    <span th:text="'Showing ' + ${#lists.size(results.appointments)} + ' of ' + ${results.appointmentTotal} + ' - '"></span>
+                    <a href="/appointment">View all appointments</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="search-section" th:if="${results != null and not #lists.isEmpty(results.savedBuilds)}">
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-head-left">
+                        <span class="card-icon card-icon-green"><i data-feather="cpu"></i></span>
+                        <h2 class="card-title">Saved Builds</h2>
+                    </div>
+                </div>
+                <table class="rn-table">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="build : ${results.savedBuilds}">
+                        <td><a href="/build/my-builds" th:text="${build.name}"></a></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="search-overflow" th:if="${results.savedBuildTotal > #lists.size(results.savedBuilds)}">
+                    <span th:text="'Showing ' + ${#lists.size(results.savedBuilds)} + ' of ' + ${results.savedBuildTotal} + ' - '"></span>
+                    <a href="/build/my-builds">View all builds</a>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+
+</body>
+</html>
