@@ -514,11 +514,23 @@ function partsByCategory(category) {
     return ALL_PARTS.filter(function (p) { return p.category === category; });
 }
 
+// Whether the given CPU's own integrated graphics (CpuParts.integratedGraphics, CpuParts.java:27
+// -> BuildPartView.fields['Integrated Graphics']) covers display output - shared by renderGpuHint
+// (Build Summary hint) and computeCompatibilityMessages (compatibility strip) so both read the
+// same field the same way instead of each having their own copy of this condition. Returns the
+// trimmed value when present and not 'none', otherwise null.
+function cpuIntegratedGraphics(cpu) {
+    const igpu = (cpu.fields || {})['Integrated Graphics'];
+    const trimmed = igpu ? igpu.trim() : '';
+    return trimmed !== '' && trimmed.toLowerCase() !== 'none' ? trimmed : null;
+}
+
 function computeCompatibilityMessages() {
     const messages = [];
     const cpu = selected.CPU;
     const mobo = selected.MOTHERBOARD;
     const ram = selected.RAM;
+    const gpu = selected.GPU;
 
     if (cpu && mobo) {
         if (cpu.socket === mobo.socket) {
@@ -533,6 +545,17 @@ function computeCompatibilityMessages() {
             messages.push({ ok: true, text: 'Motherboard and RAM types match (' + mobo.ramType + ').' });
         } else {
             messages.push({ ok: false, text: 'Motherboard RAM type (' + mobo.ramType + ') does not match selected RAM (' + ram.ramType + ').' });
+        }
+    }
+
+    if (cpu) {
+        const igpu = cpuIntegratedGraphics(cpu);
+        if (igpu) {
+            messages.push({ ok: true, text: 'CPU has integrated graphics (' + igpu + ') - a separate GPU is optional.' });
+        } else if (gpu) {
+            messages.push({ ok: true, text: 'CPU has no integrated graphics - your selected GPU will drive the display.' });
+        } else {
+            messages.push({ ok: false, text: 'CPU has no integrated graphics - choose a Video Card (GPU) or the PC will have no display output.' });
         }
     }
 
@@ -621,11 +644,10 @@ function renderGpuHint() {
         return;
     }
 
-    const igpu = (cpu.fields || {})['Integrated Graphics'];
-    const hasIgpu = igpu && igpu.trim() !== '' && igpu.trim().toLowerCase() !== 'none';
+    const igpu = cpuIntegratedGraphics(cpu);
 
     hintEl.hidden = false;
-    if (hasIgpu) {
+    if (igpu) {
         hintEl.className = 'gpu-hint gpu-hint-optional';
         hintEl.innerHTML = '<i data-feather="info"></i><span>This CPU has integrated graphics ('
             + escapeHtml(igpu) + ') - a dedicated GPU is optional.</span>';

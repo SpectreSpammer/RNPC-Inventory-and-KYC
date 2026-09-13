@@ -90,10 +90,10 @@
                   th:with="pendingCount=${#lists.size(repairs.?[status.name() == 'PENDING'])},
                             inProgressCount=${#lists.size(repairs.?[status.name() == 'IN_PROGRESS'])},
                             releasedCount=${#lists.size(repairs.?[status.name() == 'RELEASED'])}">
-            <div th:replace="~{fragments/stat-card :: stat(icon='clipboard', color='blue', label='Total Repairs', value=${#lists.size(repairs)}, trend=null, trendDirection=null, trendLabel=null)}"></div>
-            <div th:replace="~{fragments/stat-card :: stat(icon='clock', color='orange', label='Pending', value=${pendingCount}, trend=null, trendDirection=null, trendLabel=null)}"></div>
-            <div th:replace="~{fragments/stat-card :: stat(icon='tool', color='purple', label='In Progress', value=${inProgressCount}, trend=null, trendDirection=null, trendLabel=null)}"></div>
-            <div th:replace="~{fragments/stat-card :: stat(icon='check-circle', color='green', label='Released', value=${releasedCount}, trend=null, trendDirection=null, trendLabel=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='clipboard', color='blue', label='Total Repairs', value=${#lists.size(repairs)}, footerIcon=null, footerText=null, href=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='clock', color='orange', label='Pending', value=${pendingCount}, footerIcon=null, footerText=null, href=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='tool', color='purple', label='In Progress', value=${inProgressCount}, footerIcon=null, footerText=null, href=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='check-circle', color='green', label='Released', value=${releasedCount}, footerIcon=null, footerText=null, href=null)}"></div>
         </section>
 
         <div class="filter-row">
@@ -108,6 +108,7 @@
                 <option value="COMPLETED">Completed</option>
                 <option value="RELEASED">Released</option>
                 <option value="CANCELLED">Cancelled</option>
+                <option value="DONE">Completed &amp; Released</option>
             </select>
             <div class="filter-date-range">
                 <input type="date" id="repairDateFrom" aria-label="Repair date from"/>
@@ -228,7 +229,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         rows.forEach(function (row) {
             const matchesText = !term || row.textContent.toLowerCase().indexOf(term) > -1;
-            const matchesStatus = !status || row.getAttribute('data-status') === status;
+            const rowStatus = row.getAttribute('data-status');
+            const matchesStatus = !status || (status === 'DONE'
+                ? (rowStatus === 'COMPLETED' || rowStatus === 'RELEASED')
+                : rowStatus === status);
             const rowDate = row.getAttribute('data-repair-date');
             const matchesFrom = !from || (rowDate && rowDate >= from);
             const matchesTo = !to || (rowDate && rowDate <= to);
@@ -238,6 +242,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    // Deep link from the dashboard's stat cards (e.g. /repair?status=IN_PROGRESS or ?status=DONE) -
+    // an unknown value is ignored and the dropdown stays on All, same as no param at all.
+    const validStatuses = Array.from(statusFilter.options).map(function (o) { return o.value; });
+    const initialStatus = new URLSearchParams(window.location.search).get('status');
+    if (initialStatus && validStatuses.indexOf(initialStatus) > -1) {
+        statusFilter.value = initialStatus;
+        applyFilters();
     }
 
     if (rows.length > 0) {

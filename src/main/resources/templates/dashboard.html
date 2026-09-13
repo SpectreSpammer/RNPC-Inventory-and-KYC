@@ -35,14 +35,14 @@
 
         .banner{
             position:relative; overflow:hidden; border-radius:var(--radius); padding:var(--space-5) var(--space-6);
-            background:linear-gradient(120deg,#EAF4FF 0%, #F7FBFF 55%, #FFFFFF 100%);
+            background:linear-gradient(120deg,#EAF4FF 0%, #EAF4FF 60%, #DCEEFB 100%);
             border:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:var(--space-5);
-            margin-bottom:var(--space-5);
+            margin-bottom:var(--space-5); min-height:132px;
         }
         .banner-greeting{ font-size:14px; color:var(--text-muted); margin:0 0 4px; }
         .banner-title{ font-size:26px; font-weight:800; margin:0 0 6px; color:var(--text); }
         .banner-sub{ font-size:13.5px; color:var(--text-muted); margin:0; }
-        .banner-pc{ position:absolute; right:230px; top:50%; transform:translateY(-50%); width:190px; height:150px; opacity:.55; }
+        .banner-pc{ position:absolute; right:420px; top:4px; width:auto; height:124px; pointer-events:none; }
         .banner-datetime{ position:relative; z-index:1; background:var(--bg-card); border-radius:var(--radius-sm); box-shadow:var(--shadow-md); display:flex; align-items:stretch; flex-shrink:0; }
         .banner-datetime-block{ display:flex; align-items:center; gap:var(--space-2); padding:var(--space-3) var(--space-4); }
         .banner-datetime-block svg{ width:20px; height:20px; color:var(--accent); flex-shrink:0; }
@@ -53,7 +53,7 @@
 
         .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-4); margin-bottom:var(--space-5); }
         .dash-grid{ display:grid; grid-template-columns:1.15fr 1fr; gap:var(--space-4); align-items:start; }
-        @media (max-width:1150px){ .dash-grid{ grid-template-columns:1fr; } .stat-grid{ grid-template-columns:repeat(2,1fr); } }
+        @media (max-width:1150px){ .dash-grid{ grid-template-columns:1fr; } .stat-grid{ grid-template-columns:repeat(2,1fr); } .banner-pc{ display:none; } }
 
         .build-progress-name{ font-size:14px; font-weight:700; color:var(--text); margin:0; }
         .build-progress-date{ font-size:12px; color:var(--text-muted); margin:2px 0 0; }
@@ -65,6 +65,24 @@
         .build-progress-specs{ display:flex; flex-direction:column; gap:6px; margin-bottom:var(--space-3); }
         .build-progress-total{ font-size:13px; font-weight:700; color:var(--text); margin-bottom:var(--space-3); }
         .build-progress-actions{ display:flex; align-items:center; gap:var(--space-3); }
+
+        /* Build Progress card, state 1 (active order) - no approved mockup exists for this state,
+           so spacing/color below follows the same theme.css vars and card language every other
+           card on this page already uses, not a pixel-matched design. */
+        .build-progress-order-head{ display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); margin-bottom:var(--space-3); }
+        .build-progress-order-number{ font-size:14px; font-weight:700; color:var(--text); margin:0; }
+        .build-progress-fraction{ font-size:12.5px; font-weight:700; color:var(--text); width:48px; flex-shrink:0; text-align:right; }
+        .build-stage-list{ display:flex; flex-direction:column; gap:var(--space-2); margin:var(--space-3) 0; }
+        .build-stage-row{ display:flex; align-items:center; gap:var(--space-2); font-size:12.5px; }
+        .build-stage-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; background:var(--border); }
+        .build-stage-row.is-done .build-stage-dot{ background:var(--green); }
+        .build-stage-row.is-current .build-stage-dot{ background:var(--accent); }
+        .build-stage-label{ flex:1; color:var(--text); font-weight:600; }
+        .build-stage-row.is-pending .build-stage-label{ color:var(--text-muted); font-weight:500; }
+        .build-stage-status{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.02em; }
+        .build-stage-row.is-done .build-stage-status{ color:var(--green); }
+        .build-stage-row.is-current .build-stage-status{ color:var(--accent); }
+        .build-stage-row.is-pending .build-stage-status{ color:var(--text-muted); }
 
         .spec-row{ display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); font-size:12.5px; }
         .spec-label{ color:var(--text-muted); font-weight:600; flex-shrink:0; }
@@ -119,11 +137,7 @@
                 <h1 class="banner-title" th:text="'Welcome back, ' + ${currentUsername} + '! ' + '&#128075;'"></h1>
                 <p class="banner-sub">Here's what's happening with your repair shop today.</p>
             </div>
-            <svg class="banner-pc" viewBox="0 0 200 160" aria-hidden="true">
-                <rect x="20" y="10" width="90" height="140" rx="10" fill="#0F1B2E" opacity="0.15"/>
-                <rect x="35" y="25" width="60" height="60" rx="6" fill="#0098c8" opacity="0.18"/>
-                <circle cx="65" cy="120" r="14" fill="#0098c8" opacity="0.22"/>
-            </svg>
+            <img class="banner-pc" th:src="@{/img/banner-pc.png}" alt="" aria-hidden="true" loading="lazy"/>
             <div class="banner-datetime">
                 <div class="banner-datetime-block">
                     <i data-feather="calendar"></i>
@@ -142,65 +156,97 @@
 
         <!-- Stat cards - real counts, no invented trend percentages (see DashboardController) -->
         <section class="stat-grid">
-            <div th:replace="~{fragments/stat-card :: stat(icon='clipboard', color='blue', label='Total Orders', value=${totalOrders}, trend=null, trendDirection=null, trendLabel=null)}"></div>
-            <div th:replace="~{fragments/stat-card :: stat(icon='calendar', color='green', label='Scheduled Appointments', value=${scheduledAppointments}, trend=null, trendDirection=null, trendLabel=null)}"></div>
-            <div th:replace="~{fragments/stat-card :: stat(icon='tool', color='orange', label='In Repair', value=${inRepairCount}, trend=null, trendDirection=null, trendLabel=null)}"></div>
-            <div th:replace="~{fragments/stat-card :: stat(icon='check-circle', color='purple', label='Completed Today', value=${completedTodayCount}, trend=null, trendDirection=null, trendLabel=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='clipboard', color='blue', label='Total Orders', value=${totalOrders}, footerIcon='package', footerText=${activeOrders + (activeOrders == 1 ? ' active order' : ' active orders')}, href='/order')}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='calendar', color='green', label='Scheduled Appointments', value=${scheduledAppointments}, footerIcon='calendar', footerText=${scheduledAppointments + ' upcoming'}, href='/appointment')}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='tool', color='orange', label='In Repair', value=${inRepairCount}, footerIcon='settings', footerText=${inRepairCount == 0 ? 'No active repairs' : (inRepairCount + ' in progress')}, href='/repair?status=IN_PROGRESS')}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='check-circle', color='purple', label='Completed Services', value=${completedServices}, footerIcon='file-text', footerText='Lifetime total', href='/repair?status=DONE')}"></div>
         </section>
 
         <div class="dash-grid">
 
             <!-- LEFT column -->
             <div>
-                <div class="card" th:if="${latestSavedBuild != null}">
+                <div class="card" th:switch="${buildProgressState}">
                     <div class="card-head">
                         <div class="card-head-left">
                             <span class="card-icon card-icon-blue"><i data-feather="monitor"></i></span>
-                            <h2 class="card-title">Build Progress</h2>
+                            <h2 class="card-title">Current PC Build</h2>
                         </div>
                     </div>
 
-                    <p class="build-progress-name" th:text="${latestSavedBuild.name}"></p>
-                    <p class="build-progress-date" th:if="${latestSavedBuild.createdAt != null}"
-                       th:text="'Saved ' + ${#dates.format(latestSavedBuild.createdAt, 'MMM d, yyyy')}"></p>
-
-                    <div class="build-progress-bar-row">
-                        <svg class="build-progress-bar-track" viewBox="0 0 100 8" preserveAspectRatio="none" role="progressbar"
-                             th:attr="aria-valuenow=${latestBuildCompletionPercent}" aria-valuemin="0" aria-valuemax="100">
-                            <rect class="build-progress-bar-bg" width="100" height="8" rx="4"></rect>
-                            <rect class="build-progress-bar-fill" height="8" rx="4" th:attr="width=${latestBuildCompletionPercent}"></rect>
-                        </svg>
-                        <span class="build-progress-percent" th:text="${latestBuildCompletionPercent} + '%'"></span>
-                    </div>
-
-                    <div class="build-progress-specs">
-                        <div class="spec-row" th:each="rowEntry : ${latestBuildSpecRows}">
-                            <span class="spec-label" th:text="${rowEntry.key}"></span>
-                            <span th:if="${rowEntry.value == null}" class="spec-value spec-empty">Not selected</span>
-                            <span th:if="${rowEntry.value != null}" class="spec-value"
-                                  th:text="${rowEntry.value.brand} + ' ' + ${rowEntry.value.modelName}"></span>
+                    <!-- State 1: an order's build timeline has started and isn't COMPLETED yet -
+                         see DashboardController.showHome's activeBuildOrder resolution. -->
+                    <th:block th:case="'ACTIVE_ORDER'">
+                        <div class="build-progress-order-head">
+                            <p class="build-progress-order-number" th:text="${activeBuildOrder.orderNumber}"></p>
+                            <span class="badge-pill badge-in-progress" th:text="${activeBuildCurrentStageLabel}"></span>
                         </div>
-                    </div>
 
-                    <div class="build-progress-total">
-                        Estimated Total: <span th:insert="~{fragments/money :: amount(amount=${latestSavedBuild.totalPrice})}"></span>
-                    </div>
-
-                    <div class="build-progress-actions">
-                        <a th:href="@{/build(loadBuildId=${latestSavedBuild.savedBuildId})}" class="btn-accent-sm">Continue Build</a>
-                        <a href="/build/my-builds" class="card-link">View All Builds</a>
-                    </div>
-                </div>
-
-                <div class="card" th:if="${latestSavedBuild == null}">
-                    <div class="card-head">
-                        <div class="card-head-left">
-                            <span class="card-icon card-icon-blue"><i data-feather="monitor"></i></span>
-                            <h2 class="card-title">Build Progress</h2>
+                        <div class="build-progress-bar-row">
+                            <svg class="build-progress-bar-track" viewBox="0 0 100 8" preserveAspectRatio="none" role="progressbar"
+                                 th:attr="aria-valuenow=${activeBuildStagesDone},aria-valuemax=${activeBuildStagesTotal}" aria-valuemin="0">
+                                <rect class="build-progress-bar-bg" width="100" height="8" rx="4"></rect>
+                                <rect class="build-progress-bar-fill" height="8" rx="4"
+                                      th:attr="width=${activeBuildStagesTotal > 0 ? (activeBuildStagesDone * 100 / activeBuildStagesTotal) : 0}"></rect>
+                            </svg>
+                            <span class="build-progress-fraction" th:text="${activeBuildStagesDone} + ' / ' + ${activeBuildStagesTotal}"></span>
                         </div>
-                    </div>
-                    <div th:replace="~{fragments/empty-state :: state(icon='cpu', message='No build-progress tracking yet', actions=null)}"></div>
-                    <a href="/build" class="btn-accent-sm">Start a Build</a>
+
+                        <div class="build-stage-list">
+                            <div class="build-stage-row" th:each="stageRow : ${activeBuildStages}"
+                                 th:classappend="${stageRow.status() == 'COMPLETED' ? 'is-done' : (stageRow.status() == 'IN_PROGRESS' ? 'is-current' : 'is-pending')}">
+                                <span class="build-stage-dot"></span>
+                                <span class="build-stage-label" th:text="${stageRow.label()}"></span>
+                                <span class="build-stage-status"
+                                      th:text="${stageRow.status() == 'COMPLETED' ? 'Completed' : (stageRow.status() == 'IN_PROGRESS' ? 'In Progress' : 'Pending')}"></span>
+                            </div>
+                        </div>
+
+                        <div class="build-progress-actions">
+                            <a th:href="@{/order/{id}(id=${activeBuildOrder.orderId})}" class="card-link">View Build Details</a>
+                        </div>
+                    </th:block>
+
+                    <!-- State 2: no active order, but a saved build exists - unchanged from
+                         before except the card title above, now shared with state 1. -->
+                    <th:block th:case="'SAVED_BUILD'">
+                        <p class="build-progress-name" th:text="${latestSavedBuild.name}"></p>
+                        <p class="build-progress-date" th:if="${latestSavedBuild.createdAt != null}"
+                           th:text="'Saved ' + ${#dates.format(latestSavedBuild.createdAt, 'MMM d, yyyy')}"></p>
+
+                        <div class="build-progress-bar-row">
+                            <svg class="build-progress-bar-track" viewBox="0 0 100 8" preserveAspectRatio="none" role="progressbar"
+                                 th:attr="aria-valuenow=${latestBuildCompletionPercent}" aria-valuemin="0" aria-valuemax="100">
+                                <rect class="build-progress-bar-bg" width="100" height="8" rx="4"></rect>
+                                <rect class="build-progress-bar-fill" height="8" rx="4" th:attr="width=${latestBuildCompletionPercent}"></rect>
+                            </svg>
+                            <span class="build-progress-percent" th:text="${latestBuildCompletionPercent} + '%'"></span>
+                        </div>
+
+                        <div class="build-progress-specs">
+                            <div class="spec-row" th:each="rowEntry : ${latestBuildSpecRows}">
+                                <span class="spec-label" th:text="${rowEntry.key}"></span>
+                                <span th:if="${rowEntry.value == null}" class="spec-value spec-empty">Not selected</span>
+                                <span th:if="${rowEntry.value != null}" class="spec-value"
+                                      th:text="${rowEntry.value.brand} + ' ' + ${rowEntry.value.modelName}"></span>
+                            </div>
+                        </div>
+
+                        <div class="build-progress-total">
+                            Estimated Total: <span th:insert="~{fragments/money :: amount(amount=${latestSavedBuild.totalPrice})}"></span>
+                        </div>
+
+                        <div class="build-progress-actions">
+                            <a th:href="@{/build(loadBuildId=${latestSavedBuild.savedBuildId})}" class="btn-accent-sm">Continue Build</a>
+                            <a href="/build/my-builds" class="card-link">View All Builds</a>
+                        </div>
+                    </th:block>
+
+                    <!-- State 3: neither - nothing to show yet. -->
+                    <th:block th:case="'EMPTY'">
+                        <div th:replace="~{fragments/empty-state :: state(icon='cpu', message='Start building your dream PC', actions=null)}"></div>
+                        <a href="/build" class="btn-accent-sm">Start a Build</a>
+                    </th:block>
                 </div>
 
                 <div class="card">

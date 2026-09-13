@@ -60,10 +60,10 @@
         </div>
 
         <div class="preview-stats">
-            <div th:replace="~{fragments/stat-card :: stat(label='Total Orders', value='128', trend='+12% vs last month', trendDirection='up')}"></div>
-            <div th:replace="~{fragments/stat-card :: stat(label='Revenue (30d)', value='Php 482,350.75', trend='+8% vs last month', trendDirection='up')}"></div>
-            <div th:replace="~{fragments/stat-card :: stat(label='Pending Repairs', value='7', trend='-2 vs last week', trendDirection='down')}"></div>
-            <div th:replace="~{fragments/stat-card :: stat(label='Unread Notifications', value=${unreadNotifications}, trend=null, trendDirection=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='clipboard', color='blue', label='Total Orders', value='128', footerIcon='package', footerText='12 active orders', href=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='dollar-sign', color='green', label='Revenue (30d)', value='Php 482,350.75', footerIcon='trending-up', footerText='+8% vs last month', href=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='clock', color='orange', label='Pending Repairs', value='7', footerIcon='trending-down', footerText='-2 vs last week', href=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='bell', color='purple', label='Unread Notifications', value=${unreadNotifications}, footerIcon=null, footerText=null, href=null)}"></div>
         </div>
 
         <div class="preview-dashboard-row">

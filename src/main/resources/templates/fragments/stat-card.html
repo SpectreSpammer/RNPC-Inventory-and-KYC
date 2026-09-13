@@ -3,53 +3,84 @@
 <body>
 
 <!--
-  Matches the mockup's .stat-card/.stat-top/.stat-icon/.stat-chevron/.stat-label/.stat-value/
-  .stat-trend classes exactly. The mockup set each stat-icon's solid color with an inline
+  Matches the mockup's .stat-card/.stat-top/.stat-icon/.stat-chevron/.stat-label/.stat-value
+  classes exactly. The mockup set each stat-icon's solid color with an inline
   style="background:var(--x)" - converted to modifier classes (color param) since inline styles
   aren't allowed.
 
   Params: icon (Feather icon name), color ('blue'|'green'|'orange'|'purple'), label (String),
           value (String - pre-formatted, e.g. already run through money.html),
-          trend (String, nullable - just the percentage, e.g. "33%"), trendDirection ('up'|'down', nullable),
-          trendLabel (String, nullable - the comparison text, e.g. "vs last week" or "vs yesterday" -
-          the mockup varies this per card, so it's not hardcoded here)
-  Usage: <div th:replace="~{fragments/stat-card :: stat(icon='clipboard', color='blue', label='Total Orders', value='12', trend='33%', trendDirection='up', trendLabel='vs last week')}"></div>
-  Omit trend (or pass null) for no trend line - the mockup's own chevron/arrow still render.
+          footerIcon (Feather icon name, nullable - shown in a small chip ahead of footerText),
+          footerText (String, nullable - a short status line, e.g. "3 active orders"),
+          href (String, nullable - when present, the card renders as a plain-styled <a> to this
+          URL instead of a <div>; pass null for a non-clickable card)
+  Usage: <div th:replace="~{fragments/stat-card :: stat(icon='clipboard', color='blue', label='Total Orders', value='12', footerIcon='package', footerText='3 active orders', href='/order')}"></div>
+  Omit footerText (or pass null/empty) for no footer row. Omit href (or pass null) for a plain,
+  non-clickable card.
+
+  The outer th:fragment is a th:block (same trick layout-app.html's assets/scripts fragments use)
+  so this one fragment name can resolve to either an <a> or a <div> root element depending on
+  href, with no extra wrapping tag in the rendered output - a real <a>/<div> can't switch its own
+  tag name conditionally, and Thymeleaf only allows one element per fragment signature.
 -->
-<div th:fragment="stat(icon, color, label, value, trend, trendDirection, trendLabel)" class="stat-card">
-    <div class="stat-top">
-        <span class="stat-icon" th:classappend="'stat-icon-' + ${color}">
-            <i th:attr="data-feather=${icon}"></i>
-        </span>
-        <i data-feather="chevron-right" class="stat-chevron"></i>
+<th:block th:fragment="stat(icon, color, label, value, footerIcon, footerText, href)">
+    <a th:if="${href != null and !#strings.isEmpty(href)}" th:href="${href}" class="stat-card stat-card-link">
+        <div class="stat-top">
+            <span class="stat-icon" th:classappend="'stat-icon-' + ${color}">
+                <i th:attr="data-feather=${icon}"></i>
+            </span>
+            <i data-feather="chevron-right" class="stat-chevron"></i>
+        </div>
+        <p class="stat-label" th:text="${label}"></p>
+        <p class="stat-value" th:text="${value}"></p>
+        <p th:if="${footerText != null and !#strings.isEmpty(footerText)}" class="stat-footer" th:classappend="'stat-footer-' + ${color}">
+            <span th:if="${footerIcon != null and !#strings.isEmpty(footerIcon)}" class="stat-footer-icon">
+                <i th:attr="data-feather=${footerIcon}"></i>
+            </span>
+            <th:block th:text="${footerText}"></th:block>
+        </p>
+    </a>
+    <div th:unless="${href != null and !#strings.isEmpty(href)}" class="stat-card">
+        <div class="stat-top">
+            <span class="stat-icon" th:classappend="'stat-icon-' + ${color}">
+                <i th:attr="data-feather=${icon}"></i>
+            </span>
+            <i data-feather="chevron-right" class="stat-chevron"></i>
+        </div>
+        <p class="stat-label" th:text="${label}"></p>
+        <p class="stat-value" th:text="${value}"></p>
+        <p th:if="${footerText != null and !#strings.isEmpty(footerText)}" class="stat-footer" th:classappend="'stat-footer-' + ${color}">
+            <span th:if="${footerIcon != null and !#strings.isEmpty(footerIcon)}" class="stat-footer-icon">
+                <i th:attr="data-feather=${footerIcon}"></i>
+            </span>
+            <th:block th:text="${footerText}"></th:block>
+        </p>
     </div>
-    <p class="stat-label" th:text="${label}"></p>
-    <p class="stat-value" th:text="${value}"></p>
-    <p th:if="${trend != null and !#strings.isEmpty(trend)}" class="stat-trend">
-        <span th:classappend="${trendDirection == 'down'} ? 'down' : 'up'">
-            <i th:attr="data-feather=${trendDirection == 'down'} ? 'arrow-down' : 'arrow-up'"></i><th:block th:text="${trend}"></th:block>
-        </span>
-        <th:block th:text="${trendLabel}"></th:block>
-    </p>
-</div>
+</th:block>
 
 <style th:fragment="stat-card-styles">
     .stat-card{ background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); padding:var(--space-4) var(--space-4); position:relative; }
+    .stat-card-link{ display:block; text-decoration:none; color:inherit; }
+    .stat-card-link:hover{ box-shadow:var(--shadow-md); cursor:pointer; }
     .stat-top{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:var(--space-3); }
     .stat-icon{ width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0; }
     .stat-icon svg{ width:20px; height:20px; }
     .stat-chevron{ color:var(--text-muted); width:16px; height:16px; margin-top:12px; }
     .stat-label{ font-size:12.5px; color:var(--text-muted); margin:0 0 2px; font-weight:600; }
     .stat-value{ font-size:26px; font-weight:800; margin:0 0 6px; color:var(--text); }
-    .stat-trend{ font-size:12.5px; color:var(--text-muted); display:flex; align-items:center; gap:4px; margin:0; }
-    .stat-trend .up{ color:var(--green); font-weight:700; display:inline-flex; align-items:center; gap:2px; }
-    .stat-trend .down{ color:var(--red); font-weight:700; display:inline-flex; align-items:center; gap:2px; }
-    .stat-trend .up svg, .stat-trend .down svg{ width:12px; height:12px; }
+    .stat-footer{ display:flex; align-items:center; gap:var(--space-2); margin:var(--space-3) 0 0; padding:6px 10px; border-radius:var(--radius-sm); font-size:12px; font-weight:700; }
+    .stat-footer-icon{ width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; background:rgba(255,255,255,.55); }
+    .stat-footer-icon svg{ width:11px; height:11px; }
 
     .stat-icon-blue{ background:var(--blue); }
     .stat-icon-green{ background:var(--green); }
     .stat-icon-orange{ background:var(--orange); }
     .stat-icon-purple{ background:var(--purple); }
+
+    .stat-footer-blue{ background:var(--blue-subtle); color:var(--blue); }
+    .stat-footer-green{ background:var(--green-subtle); color:var(--green); }
+    .stat-footer-orange{ background:var(--orange-subtle); color:var(--orange); }
+    .stat-footer-purple{ background:var(--purple-subtle); color:var(--purple); }
 </style>
 
 </body>

@@ -27,6 +27,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -95,6 +96,15 @@ public class DashboardController {
         // has no such metric anywhere yet), so trend is omitted rather than fabricated.
         model.addAttribute("totalOrders", orders.size());
 
+        // Total Orders footer - not CANCELLED/CANCELLATION_REQUESTED, from the same already-scoped
+        // `orders` list above, no new repository call.
+        long activeOrders = orders.stream()
+                .filter(o -> o.getStatus() == Order.OrderStatus.AWAITING_PAYMENT || o.getStatus() == Order.OrderStatus.PAID)
+                .count();
+        model.addAttribute("activeOrders", activeOrders);
+
+        // Scheduled Appointments footer reuses this same count directly (see `upcoming` below,
+        // filtered identically) - no second count computed for it.
         long scheduledAppointments = appointments.stream()
                 .filter(a -> a.getStatus() != Appointment.Status.CANCELLED)
                 .filter(a -> !a.getPreferredDate().isBefore(today))
@@ -106,12 +116,13 @@ public class DashboardController {
                 .count();
         model.addAttribute("inRepairCount", inRepair);
 
-        long completedToday = repairs.stream()
+        // Completed Services footer - lifetime total, no date filter, same already-scoped
+        // `repairs` list above, no new repository call.
+        long completedServices = repairs.stream()
                 .filter(r -> r.getStatus() == RepairRecord.RepairStatus.COMPLETED
                         || r.getStatus() == RepairRecord.RepairStatus.RELEASED)
-                .filter(r -> r.getRepairDate() != null && toLocalDate(r.getRepairDate()).isEqual(today))
                 .count();
-        model.addAttribute("completedTodayCount", completedToday);
+        model.addAttribute("completedServices", completedServices);
 
         // Upcoming Appointments: not cancelled, today or later, soonest first, capped at 5 rows.
         List<Appointment> upcoming = appointments.stream()
@@ -173,7 +184,59 @@ public class DashboardController {
             model.addAttribute("latestBuildCompletionPercent", buildCompletionPercent(byCategory));
         }
 
+        // Build Progress card, state 1: the most recent order (orders is already orderId DESC -
+        // see getOrdersForUser) with a build timeline started but not yet handed over to the
+        // customer. Priority order below (ACTIVE_ORDER > SAVED_BUILD > EMPTY) is resolved here,
+        // as one attribute, so dashboard.html branches once via th:switch instead of testing
+        // latestSavedBuild/activeBuildOrder nulls itself.
+        Order activeBuildOrder = orders.stream()
+                .filter(o -> o.getBuildStage() != null && o.getBuildStage() != Order.BuildStage.COMPLETED)
+                .findFirst()
+                .orElse(null);
+
+        String buildProgressState;
+        if (activeBuildOrder != null) {
+            buildProgressState = "ACTIVE_ORDER";
+            model.addAttribute("activeBuildOrder", activeBuildOrder);
+
+            // Parts orders never see ASSEMBLY_IN_PROGRESS/TESTING - same rule
+            // OrderController.updateBuildStage enforces server-side.
+            List<Order.BuildStage> stageOrder = OrderService.isFullBuild(activeBuildOrder)
+                    ? List.of(Order.BuildStage.ORDER_CONFIRMED, Order.BuildStage.COMPONENTS_RESERVED,
+                            Order.BuildStage.ASSEMBLY_IN_PROGRESS, Order.BuildStage.TESTING, Order.BuildStage.READY)
+                    : List.of(Order.BuildStage.ORDER_CONFIRMED, Order.BuildStage.COMPONENTS_RESERVED, Order.BuildStage.READY);
+            int currentIndex = stageOrder.indexOf(activeBuildOrder.getBuildStage());
+
+            List<BuildStageRow> stageRows = new ArrayList<>();
+            for (int i = 0; i < stageOrder.size(); i++) {
+                Order.BuildStage stage = stageOrder.get(i);
+                String rowStatus = i < currentIndex ? "COMPLETED" : (i == currentIndex ? "IN_PROGRESS" : "PENDING");
+                // Every row (not just READY) goes through buildStageLabel, so READY reads "Ready
+                // for Pickup"/"Out for Delivery" per the order - same helper OrderController's
+                // notification and orderIndex.html's dropdown already use.
+                stageRows.add(new BuildStageRow(stage.name(),
+                        OrderService.buildStageLabel(stage, activeBuildOrder.getFulfilmentMethod()), rowStatus));
+            }
+            model.addAttribute("activeBuildStages", stageRows);
+            model.addAttribute("activeBuildStagesDone", currentIndex);
+            model.addAttribute("activeBuildStagesTotal", stageOrder.size());
+            model.addAttribute("activeBuildCurrentStageLabel",
+                    OrderService.buildStageLabel(activeBuildOrder.getBuildStage(), activeBuildOrder.getFulfilmentMethod()));
+        } else if (latestSavedBuild != null) {
+            buildProgressState = "SAVED_BUILD";
+        } else {
+            buildProgressState = "EMPTY";
+        }
+        model.addAttribute("buildProgressState", buildProgressState);
+
         return "dashboard";
+    }
+
+    // Build Progress card, state 1 row (see showHome above) - stageName is the raw BuildStage enum
+    // name (unused by the template today, kept for parity with how every other stage identifier
+    // in this codebase is carried), label is already resolved via OrderService.buildStageLabel,
+    // status is one of COMPLETED/IN_PROGRESS/PENDING.
+    private record BuildStageRow(String stageName, String label, String status) {
     }
 
     // Warranty urgency + bar percentage - both derived from real RepairRecord.repairDate
@@ -221,14 +284,9 @@ public class DashboardController {
     // (STORAGE_SSD/STORAGE_HDD) are real, save-able categories (see buildPc.html's CATEGORY_ORDER)
     // but optional, so they're shown in the spec list without counting toward this percentage.
     private static int buildCompletionPercent(Map<String, SavedBuildItemView> byCategory) {
-        int filled = 0;
-        if (byCategory.get("CPU") != null) filled++;
-        if (byCategory.get("MOTHERBOARD") != null) filled++;
-        if (byCategory.get("RAM") != null) filled++;
-        if (byCategory.get("STORAGE_SSD") != null || byCategory.get("STORAGE_HDD") != null) filled++;
-        if (byCategory.get("PSU") != null) filled++;
-        if (byCategory.get("CASE") != null) filled++;
-        if (byCategory.get("COOLER") != null) filled++;
+        // Shared with OrderService.isFullBuild's full-build-vs-parts-order check - one definition
+        // of the 7 required categories, see OrderService.countFilledBuildSlots.
+        int filled = OrderService.countFilledBuildSlots(byCategory.keySet());
         return (int) Math.round((filled * 100.0) / 7);
     }
 
