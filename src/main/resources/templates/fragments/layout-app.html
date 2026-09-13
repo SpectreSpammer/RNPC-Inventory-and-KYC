@@ -50,20 +50,23 @@
   Active-page keys:
     Customer: dashboard, build, my-builds, orders, book-appointment, view-appointments,
               repairs, notifications, profile
-    Staff:    dashboard, sales, laptop-parts, cellphone-parts, pc-parts, build, calendar,
-              new-ticket, view-ticket, view-appointments, orders, edit-profile,
-              repair-history, customers
+    Staff:    dashboard, orders, calendar, view-appointments, repairs, new-ticket, view-ticket,
+              pc-parts, laptop-parts, cellphone-parts, build, customers, add-customer, sales,
+              notifications
 
   Menu items render by role via ${navIsAdmin} - GlobalNavAttributes.java:22-27 (checks
   authority.equals("ROLE_ADMIN"), GlobalNavAttributes.java:26), same global attribute every page
-  already gets via @ControllerAdvice - GlobalNavAttributes.java:13. Role names (ADMIN/CUSTOMER)
-  are exactly User.java:143-145 - nothing invented. There's no thymeleaf-extras-springsecurity6
+  already gets via @ControllerAdvice - GlobalNavAttributes.java:13; the sidebar fragment itself
+  takes no separate role param for this - it already reads this same global attribute like every
+  other page does, so no new param was needed here (see chat). Role names (ADMIN/CUSTOMER) are
+  exactly User.java:143-145 - nothing invented. There's no thymeleaf-extras-springsecurity6
   dependency in this project (checked pom.xml, no match), so sec:authorize isn't available; this
   is the real mechanism. Anonymous visitors (routes are permitAll, SecurityConfig.java:49) fall
   into the customer branch, same as guest checkout/booking already works today.
 
-  Only the customer branch is wired to a real page this round (see DashboardController.java) -
-  the staff branch exists for structural completeness/future reuse but isn't exercised yet;
+  Only the customer branch is wired to a real page so far (see DashboardController.java) - the
+  staff branch (STAFF / ADMIN MENU below) now carries its real target nav/labels/grouping, but no
+  admin page has been converted to this shared layout yet, so it doesn't render anywhere today;
   admins still get today's existing experience (see DashboardController's forward for isAdmin).
 
   Usage:
@@ -138,17 +141,53 @@
             </a>
         </th:block>
 
-        <!-- ================= STAFF / ADMIN MENU (structural only - not exercised this round) ================= -->
+        <!-- ================= STAFF / ADMIN MENU (navigation only - see chat: no admin page has
+             been converted to this layout yet, so none of these routes render this sidebar today;
+             this only replaces the old placeholder version of this same branch) ================= -->
         <th:block th:if="${navIsAdmin}">
             <a href="/" class="nav-item" th:classappend="${active == 'dashboard'} ? 'active'">
                 <span class="nav-icon-chip"><i data-feather="home"></i></span>
                 <span class="nav-label">Dashboard</span>
             </a>
-            <a href="/sales" class="nav-item" th:classappend="${active == 'sales'} ? 'active'">
-                <span class="nav-icon-chip"><i data-feather="bar-chart-2"></i></span>
-                <span class="nav-label">Sales Report</span>
+
+            <p class="nav-section-label">Operations</p>
+            <a href="/order" class="nav-item" th:classappend="${active == 'orders'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="shopping-cart"></i></span>
+                <span class="nav-label">Orders</span>
             </a>
 
+            <button class="nav-toggle" type="button" data-toggle="admin-appt"
+                    th:attr="aria-expanded=${active == 'calendar' or active == 'view-appointments'}">
+                <span class="nav-icon-chip"><i data-feather="calendar"></i></span>
+                <span class="nav-label">Appointments</span>
+                <i data-feather="chevron-down" class="nav-caret"></i>
+            </button>
+            <div class="collapse-panel" data-panel="admin-appt" th:classappend="${active == 'calendar' or active == 'view-appointments'} ? 'show'">
+                <div class="accordion-body">
+                    <a href="/appointment/calendar" th:classappend="${active == 'calendar'} ? 'active'">Calendar</a>
+                    <a href="/appointment" th:classappend="${active == 'view-appointments'} ? 'active'">View All</a>
+                </div>
+            </div>
+
+            <a href="/repair" class="nav-item" th:classappend="${active == 'repairs'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="tool"></i></span>
+                <span class="nav-label">Repairs</span>
+            </a>
+
+            <button class="nav-toggle" type="button" data-toggle="ticket"
+                    th:attr="aria-expanded=${active == 'new-ticket' or active == 'view-ticket'}">
+                <span class="nav-icon-chip"><i data-feather="file-text"></i></span>
+                <span class="nav-label">Tickets</span>
+                <i data-feather="chevron-down" class="nav-caret"></i>
+            </button>
+            <div class="collapse-panel" data-panel="ticket" th:classappend="${active == 'new-ticket' or active == 'view-ticket'} ? 'show'">
+                <div class="accordion-body">
+                    <a href="/ticket/create" th:classappend="${active == 'new-ticket'} ? 'active'">New Ticket</a>
+                    <a href="/ticket/view" th:classappend="${active == 'view-ticket'} ? 'active'">View Tickets</a>
+                </div>
+            </div>
+
+            <p class="nav-section-label">Inventory</p>
             <button class="nav-toggle" type="button" data-toggle="parts"
                     th:attr="aria-expanded=${active == 'laptop-parts' or active == 'cellphone-parts' or active == 'pc-parts'}">
                 <span class="nav-icon-chip"><i data-feather="package"></i></span>
@@ -157,52 +196,43 @@
             </button>
             <div class="collapse-panel" data-panel="parts" th:classappend="${active == 'laptop-parts' or active == 'cellphone-parts' or active == 'pc-parts'} ? 'show'">
                 <div class="accordion-body">
+                    <a href="/computer" th:classappend="${active == 'pc-parts'} ? 'active'">PC Parts</a>
                     <a href="/laptop" th:classappend="${active == 'laptop-parts'} ? 'active'">Laptop Parts</a>
                     <a href="/cellphone" th:classappend="${active == 'cellphone-parts'} ? 'active'">Cellphone Parts</a>
-                    <a href="/computer" th:classappend="${active == 'pc-parts'} ? 'active'">PC Parts</a>
                 </div>
             </div>
-
             <a href="/build" class="nav-item" th:classappend="${active == 'build'} ? 'active'">
                 <span class="nav-icon-chip"><i data-feather="cpu"></i></span>
-                <span class="nav-label">Build a PC</span>
+                <span class="nav-label">PC Builder</span>
             </a>
 
-            <button class="nav-toggle" type="button" data-toggle="ticket"
-                    th:attr="aria-expanded=${active == 'calendar' or active == 'new-ticket' or active == 'view-ticket' or active == 'view-appointments'}">
-                <span class="nav-icon-chip"><i data-feather="file-text"></i></span>
-                <span class="nav-label">Ticket</span>
-                <i data-feather="chevron-down" class="nav-caret"></i>
-            </button>
-            <div class="collapse-panel" data-panel="ticket" th:classappend="${active == 'calendar' or active == 'new-ticket' or active == 'view-ticket' or active == 'view-appointments'} ? 'show'">
-                <div class="accordion-body">
-                    <a href="/appointment/calendar" th:classappend="${active == 'calendar'} ? 'active'">Calendar</a>
-                    <a href="/ticket/create" th:classappend="${active == 'new-ticket'} ? 'active'">New Ticket</a>
-                    <a href="/ticket/view" th:classappend="${active == 'view-ticket'} ? 'active'">View Ticket</a>
-                    <a href="/appointment" th:classappend="${active == 'view-appointments'} ? 'active'">View Appointments</a>
-                </div>
-            </div>
-
-            <button class="nav-toggle" type="button" data-toggle="kyc"
-                    th:attr="aria-expanded=${active == 'orders' or active == 'edit-profile'}">
-                <span class="nav-icon-chip"><i data-feather="shield"></i></span>
-                <span class="nav-label">KYC</span>
-                <i data-feather="chevron-down" class="nav-caret"></i>
-            </button>
-            <div class="collapse-panel" data-panel="kyc" th:classappend="${active == 'orders' or active == 'edit-profile'} ? 'show'">
-                <div class="accordion-body">
-                    <a href="/order" th:classappend="${active == 'orders'} ? 'active'">Orders</a>
-                    <a href="/profile/edit" th:classappend="${active == 'edit-profile'} ? 'active'">Edit Profile</a>
-                </div>
-            </div>
-
-            <a href="/repair" class="nav-item" th:classappend="${active == 'repair-history'} ? 'active'">
-                <span class="nav-icon-chip"><i data-feather="tool"></i></span>
-                <span class="nav-label">Repair History</span>
-            </a>
-            <a href="/client" class="nav-item" th:classappend="${active == 'customers'} ? 'active'">
+            <p class="nav-section-label">Customers</p>
+            <button class="nav-toggle" type="button" data-toggle="admin-customers"
+                    th:attr="aria-expanded=${active == 'customers' or active == 'add-customer'}">
                 <span class="nav-icon-chip"><i data-feather="users"></i></span>
                 <span class="nav-label">Customers</span>
+                <i data-feather="chevron-down" class="nav-caret"></i>
+            </button>
+            <div class="collapse-panel" data-panel="admin-customers" th:classappend="${active == 'customers' or active == 'add-customer'} ? 'show'">
+                <div class="accordion-body">
+                    <a href="/client" th:classappend="${active == 'customers'} ? 'active'">All Customers</a>
+                    <a href="/client/create" th:classappend="${active == 'add-customer'} ? 'active'">Add Customer</a>
+                </div>
+            </div>
+
+            <p class="nav-section-label">Reports</p>
+            <a href="/sales" class="nav-item" th:classappend="${active == 'sales'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="bar-chart-2"></i></span>
+                <span class="nav-label">Sales Report</span>
+            </a>
+
+            <p class="nav-section-label">System</p>
+            <a href="/notification" class="nav-item" th:classappend="${active == 'notifications'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="bell"></i></span>
+                <span class="nav-label">Notifications</span>
+                <span th:if="${unreadNotifications != null and unreadNotifications > 0}" class="nav-badge">
+                    <span class="nav-badge-text" th:text="${unreadNotifications}"></span>
+                </span>
             </a>
         </th:block>
     </div>
@@ -326,7 +356,8 @@
     .sidebar.icons-only{ width:76px; }
     .sidebar.icons-only .brand-text, .sidebar.icons-only .nav-label,
     .sidebar.icons-only .nav-caret, .sidebar.icons-only .accordion-body,
-    .sidebar.icons-only .status-text, .sidebar.icons-only .nav-badge-text{ display:none !important; }
+    .sidebar.icons-only .status-text, .sidebar.icons-only .nav-badge-text,
+    .sidebar.icons-only .nav-section-label{ display:none !important; }
     .sidebar.icons-only .status-block{ justify-content:center; }
     .sidebar.icons-only .nav-item, .sidebar.icons-only .nav-toggle{ justify-content:center; }
 
@@ -340,6 +371,11 @@
     .brand-tagline{ color:var(--sidebar-text); font-size:11px; }
 
     .sidebar-nav{ flex:1; overflow-y:auto; padding:var(--space-2) var(--space-3); }
+    /* Small-caps group headers (admin nav only - the customer nav has no groups) - no existing
+       class in this file covers this, same rgba(255,255,255,X) tinting .nav-icon-chip/.nav-item
+       hover already use against the sidebar's own fixed-dark background, not a theme.css color
+       var (this sidebar background is one dark gradient regardless of light/dark theme). */
+    .nav-section-label{ margin:var(--space-2) 0 2px; padding:0 var(--space-3); font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:rgba(255,255,255,.35); }
     .nav-item, .nav-toggle{
         display:flex; align-items:center; gap:var(--space-3); width:100%; padding:10px var(--space-3); margin-bottom:2px;
         border-radius:var(--radius-sm); color:var(--sidebar-text); text-decoration:none; font-size:14px; font-weight:500;
