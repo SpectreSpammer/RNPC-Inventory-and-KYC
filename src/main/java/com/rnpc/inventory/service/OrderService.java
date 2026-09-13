@@ -20,6 +20,8 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -104,12 +106,13 @@ public class OrderService {
     }
 
     public Order createOrder(Client client, Map<String, Integer> selections, Order.PaymentMethod paymentMethod,
-                              String referenceNumber, MultipartFile receiptFile) {
+                              Order.FulfilmentMethod fulfilmentMethod, String referenceNumber, MultipartFile receiptFile) {
         LinkedHashMap<String, BuildPartView> parts = resolveSelections(selections);
 
         Order order = new Order();
         order.setClient(client);
         order.setPaymentMethod(paymentMethod);
+        order.setFulfilmentMethod(fulfilmentMethod);
         order.setReferenceNumber(referenceNumber);
         order.setReceiptFileName(handleFileUpload(receiptFile));
         order.setStatus(Order.OrderStatus.AWAITING_PAYMENT);
@@ -149,6 +152,19 @@ public class OrderService {
         order.setStatus(Order.OrderStatus.PAID);
         order.setVerifiedByEmployeeId(verifiedByEmployeeId);
         order.setVerifiedAt(new Date());
+        // Starts the build timeline here, in the same save - never resets a stage that's already
+        // advanced (e.g. re-marking paid after some other flow already moved it along).
+        if (order.getBuildStage() == null) {
+            order.setBuildStage(Order.BuildStage.ORDER_CONFIRMED);
+        }
+        repo.save(order);
+    }
+
+    // Admin order-list stage control (OrderController.updateBuildStage) - just advances the stage,
+    // no other field touched.
+    public void updateBuildStage(Long id, Order.BuildStage buildStage) {
+        Order order = getOrderById(id);
+        order.setBuildStage(buildStage);
         repo.save(order);
     }
 
@@ -243,6 +259,59 @@ public class OrderService {
             return fileName;
         } catch (Exception ex) {
             throw new RuntimeException("Failed to upload file: " + ex.getMessage());
+        }
+    }
+
+    // The 7 required build slots (GPU optional) - one shared definition for both this class's
+    // full-build check below and DashboardController.buildCompletionPercent's completion bar, so
+    // neither has to keep its own copy of the category list. STORAGE is satisfied by either its
+    // SSD or HDD slot, same as buildCompletionPercent already treated it. Category keys match
+    // OrderItem.getCategory() (set from this class's own createOrder, see the selections map
+    // above) and SavedBuildItemView's map keys (see SavedBuildService) - both come from the same
+    // builder selection keys, so one set of keys serves both callers unmodified.
+    private static final List<List<String>> REQUIRED_BUILD_SLOTS = List.of(
+            List.of("CPU"), List.of("MOTHERBOARD"), List.of("RAM"),
+            List.of("STORAGE_SSD", "STORAGE_HDD"), List.of("PSU"), List.of("CASE"), List.of("COOLER")
+    );
+
+    public static boolean hasAllBuildCategories(Set<String> categoriesPresent) {
+        return REQUIRED_BUILD_SLOTS.stream().allMatch(slot -> slot.stream().anyMatch(categoriesPresent::contains));
+    }
+
+    // Used by DashboardController.buildCompletionPercent in place of its own manual per-category
+    // increments - same result, one definition.
+    public static int countFilledBuildSlots(Set<String> categoriesPresent) {
+        return (int) REQUIRED_BUILD_SLOTS.stream().filter(slot -> slot.stream().anyMatch(categoriesPresent::contains)).count();
+    }
+
+    // Full PC build (all 7 required categories present) vs a parts-only order. Used by
+    // OrderController.updateBuildStage to decide whether ASSEMBLY_IN_PROGRESS/TESTING are valid
+    // for a given order, and by orderIndex.html to decide whether to offer them at all.
+    public static boolean isFullBuild(Order order) {
+        Set<String> categories = order.getItems().stream().map(OrderItem::getCategory).collect(Collectors.toSet());
+        return hasAllBuildCategories(categories);
+    }
+
+    // Shared plain-words label for a build stage, used both by orderIndex.html's stage dropdown
+    // (via Thymeleaf's T(...) static call) and by OrderController.updateBuildStage's customer
+    // notification, so the two can never say something different for the same stage. READY reads
+    // per fulfilmentMethod - see Order.buildStage's own comment.
+    public static String buildStageLabel(Order.BuildStage stage, Order.FulfilmentMethod fulfilmentMethod) {
+        switch (stage) {
+            case ORDER_CONFIRMED:
+                return "Order Confirmed";
+            case COMPONENTS_RESERVED:
+                return "Components Reserved";
+            case ASSEMBLY_IN_PROGRESS:
+                return "Assembly In Progress";
+            case TESTING:
+                return "Testing";
+            case READY:
+                return fulfilmentMethod == Order.FulfilmentMethod.DELIVERY ? "Out for Delivery" : "Ready for Pickup";
+            case COMPLETED:
+                return "Completed";
+            default:
+                return stage.name();
         }
     }
 }

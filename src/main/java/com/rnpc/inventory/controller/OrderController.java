@@ -130,6 +130,16 @@ public class OrderController {
             return "redirect:/build";
         }
 
+        // Address is only truly required for Delivery - CheckoutDto itself can't express that
+        // conditionally (see CheckoutDto.address), so it's checked here, after @Valid runs but
+        // before checking result.hasErrors(), and rejected onto the same "address" field a plain
+        // @NotEmpty would have used - orderCheckout.html's existing th:errors="*{address}" picks
+        // it up with no template change needed.
+        if ("DELIVERY".equals(checkoutDto.getFulfilmentMethod())
+                && (checkoutDto.getAddress() == null || checkoutDto.getAddress().trim().isEmpty())) {
+            result.rejectValue("address", "address.required.delivery", "The address is required for delivery orders!");
+        }
+
         if (result.hasErrors()) {
             loadCheckoutModel(model, selections);
             return "orders/orderCheckout";
@@ -161,8 +171,9 @@ public class OrderController {
         }
 
         Order.PaymentMethod paymentMethod = Order.PaymentMethod.valueOf(checkoutDto.getPaymentMethod());
-        Order order = orderService.createOrder(client, selections, paymentMethod, checkoutDto.getReferenceNumber(),
-                checkoutDto.getReceiptFile());
+        Order.FulfilmentMethod fulfilmentMethod = Order.FulfilmentMethod.valueOf(checkoutDto.getFulfilmentMethod());
+        Order order = orderService.createOrder(client, selections, paymentMethod, fulfilmentMethod,
+                checkoutDto.getReferenceNumber(), checkoutDto.getReceiptFile());
         notificationService.notifyAdmin(
                 client.getFullName() + " placed order " + order.getOrderNumber() + " (Php " + order.getTotalAmount() + ")",
                 Notification.EntityType.ORDER, order.getOrderId());
@@ -203,6 +214,29 @@ public class OrderController {
             notificationService.notifyCustomer(order.getClient().getUser(),
                     "Your order " + order.getOrderNumber() + " has been marked as paid.",
                     Notification.EntityType.ORDER, order.getOrderId());
+        }
+        return "redirect:/order";
+    }
+
+    // Admin-only build-stage control on the order list (orderIndex.html's stage <select>).
+    // ASSEMBLY_IN_PROGRESS/TESTING are rejected server-side for a parts-only order even though the
+    // UI already hides them, same defensive re-check style as approveCancellation/denyCancellation
+    // re-verifying order status rather than trusting the button that was visible.
+    @PutMapping("/updateStage/{id}")
+    public String updateBuildStage(@PathVariable("id") Long id,
+                                    @RequestParam("buildStage") String buildStage,
+                                    Authentication authentication) {
+        if (isAdmin(authentication)) {
+            Order.BuildStage stage = Order.BuildStage.valueOf(buildStage);
+            Order order = orderService.getOrderById(id);
+            boolean fullBuildOnlyStage = stage == Order.BuildStage.ASSEMBLY_IN_PROGRESS || stage == Order.BuildStage.TESTING;
+            if (!fullBuildOnlyStage || OrderService.isFullBuild(order)) {
+                orderService.updateBuildStage(id, stage);
+                notificationService.notifyCustomer(order.getClient().getUser(),
+                        "Your order " + order.getOrderNumber() + " is now: "
+                                + OrderService.buildStageLabel(stage, order.getFulfilmentMethod()) + ".",
+                        Notification.EntityType.ORDER, order.getOrderId());
+            }
         }
         return "redirect:/order";
     }

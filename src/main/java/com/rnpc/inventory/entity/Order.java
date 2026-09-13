@@ -68,6 +68,18 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
+    // NULL means no build timeline yet - set to ORDER_CONFIRMED when an admin marks the order paid
+    // (see OrderService.markAsPaid), then only ever advanced from the admin order list, never reset
+    // backwards. READY renders as "Ready for Pickup" or "Out for Delivery" depending on
+    // fulfilmentMethod below - see OrderService.buildStageLabel.
+    @Enumerated(EnumType.STRING)
+    private BuildStage buildStage;
+
+    // Set at checkout (see OrderService.createOrder) - null only for orders placed before this
+    // column existed.
+    @Enumerated(EnumType.STRING)
+    private FulfilmentMethod fulfilmentMethod;
+
     public enum PaymentMethod {
         GCASH, MARIBANK, BPI, RCBC
     }
@@ -78,6 +90,14 @@ public class Order {
 
     public enum RefundStatus {
         NOT_APPLICABLE, PENDING, REFUNDED
+    }
+
+    public enum BuildStage {
+        ORDER_CONFIRMED, COMPONENTS_RESERVED, ASSEMBLY_IN_PROGRESS, TESTING, READY, COMPLETED
+    }
+
+    public enum FulfilmentMethod {
+        PICKUP, DELIVERY
     }
 
     public Long getOrderId() {
@@ -214,6 +234,22 @@ public class Order {
 
     public void setRefundedAt(Date refundedAt) {
         this.refundedAt = refundedAt;
+    }
+
+    public BuildStage getBuildStage() {
+        return buildStage;
+    }
+
+    public void setBuildStage(BuildStage buildStage) {
+        this.buildStage = buildStage;
+    }
+
+    public FulfilmentMethod getFulfilmentMethod() {
+        return fulfilmentMethod;
+    }
+
+    public void setFulfilmentMethod(FulfilmentMethod fulfilmentMethod) {
+        this.fulfilmentMethod = fulfilmentMethod;
     }
 
     // Cancelling (and any warranty-style claim that goes with it) is only allowed within 7 days of

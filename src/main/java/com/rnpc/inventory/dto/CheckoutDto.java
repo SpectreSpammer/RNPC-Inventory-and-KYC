@@ -19,13 +19,18 @@ public class CheckoutDto {
     @Email(message = "Invalid email address")
     private String email;
 
-    @NotEmpty(message = "The address is required!")
+    // Required only for DELIVERY, optional for PICKUP - enforced in OrderController.placeOrder
+    // after @Valid runs (a plain @NotEmpty here would also block Pickup orders with no address).
     @Size(max = 500, message = "The address cannot exceed 500 characters")
     private String address;
 
     @NotEmpty(message = "Please select a payment method!")
     @Pattern(regexp = "GCASH|MARIBANK|BPI|RCBC", message = "Invalid payment method selected")
     private String paymentMethod;
+
+    @NotEmpty(message = "Please select a fulfilment method!")
+    @Pattern(regexp = "PICKUP|DELIVERY", message = "Invalid fulfilment method selected")
+    private String fulfilmentMethod = "PICKUP";
 
     @NotEmpty(message = "The reference number is required!")
     @Size(max = 100, message = "The reference number cannot exceed 100 characters")
@@ -80,6 +85,14 @@ public class CheckoutDto {
 
     public void setReferenceNumber(String referenceNumber) {
         this.referenceNumber = referenceNumber;
+    }
+
+    public String getFulfilmentMethod() {
+        return fulfilmentMethod;
+    }
+
+    public void setFulfilmentMethod(String fulfilmentMethod) {
+        this.fulfilmentMethod = fulfilmentMethod;
     }
 
     public MultipartFile getReceiptFile() {

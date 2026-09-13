@@ -88,6 +88,26 @@
                 <button type="button" class="btn btn-success btn-sm"
                         th:if="${isAdmin and order.status.name() == 'AWAITING_PAYMENT'}"
                         data-bs-toggle="modal" th:attr="data-bs-target='#markPaidModal' + ${order.orderId}">Mark Paid</button>
+                <form th:if="${isAdmin and order.buildStage != null}"
+                      th:action="@{/order/updateStage/{id}(id=${order.orderId})}" method="post" style="display:inline;"
+                      th:with="isFullBuild=${T(com.rnpc.inventory.service.OrderService).isFullBuild(order)}">
+                    <input type="hidden" name="_method" value="put"/>
+                    <select name="buildStage" class="form-select form-select-sm d-inline-block w-auto"
+                            onchange="this.form.submit()">
+                        <option value="ORDER_CONFIRMED" th:selected="${order.buildStage.name() == 'ORDER_CONFIRMED'}"
+                                th:text="${T(com.rnpc.inventory.service.OrderService).buildStageLabel(T(com.rnpc.inventory.entity.Order.BuildStage).ORDER_CONFIRMED, order.fulfilmentMethod)}"></option>
+                        <option value="COMPONENTS_RESERVED" th:selected="${order.buildStage.name() == 'COMPONENTS_RESERVED'}"
+                                th:text="${T(com.rnpc.inventory.service.OrderService).buildStageLabel(T(com.rnpc.inventory.entity.Order.BuildStage).COMPONENTS_RESERVED, order.fulfilmentMethod)}"></option>
+                        <option th:if="${isFullBuild}" value="ASSEMBLY_IN_PROGRESS" th:selected="${order.buildStage.name() == 'ASSEMBLY_IN_PROGRESS'}"
+                                th:text="${T(com.rnpc.inventory.service.OrderService).buildStageLabel(T(com.rnpc.inventory.entity.Order.BuildStage).ASSEMBLY_IN_PROGRESS, order.fulfilmentMethod)}"></option>
+                        <option th:if="${isFullBuild}" value="TESTING" th:selected="${order.buildStage.name() == 'TESTING'}"
+                                th:text="${T(com.rnpc.inventory.service.OrderService).buildStageLabel(T(com.rnpc.inventory.entity.Order.BuildStage).TESTING, order.fulfilmentMethod)}"></option>
+                        <option value="READY" th:selected="${order.buildStage.name() == 'READY'}"
+                                th:text="${T(com.rnpc.inventory.service.OrderService).buildStageLabel(T(com.rnpc.inventory.entity.Order.BuildStage).READY, order.fulfilmentMethod)}"></option>
+                        <option value="COMPLETED" th:selected="${order.buildStage.name() == 'COMPLETED'}"
+                                th:text="${T(com.rnpc.inventory.service.OrderService).buildStageLabel(T(com.rnpc.inventory.entity.Order.BuildStage).COMPLETED, order.fulfilmentMethod)}"></option>
+                    </select>
+                </form>
                 <button type="button" class="btn btn-outline-secondary btn-sm"
                         th:if="${!isAdmin and order.status.name() == 'AWAITING_PAYMENT' and currentUsername != null and order.client.user != null and order.client.user.username == currentUsername}"
                         data-bs-toggle="modal" th:attr="data-bs-target='#uploadReceiptModal' + ${order.orderId}">Upload Receipt</button>
