@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Order Management - RNPC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/card :: card-styles}"></th:block>
+    <th:block th:replace="~{fragments/stat-card :: stat-card-styles}"></th:block>
+    <th:block th:replace="~{fragments/table-card :: table-card-styles}"></th:block>
+    <th:block th:replace="~{fragments/page-header :: page-header-styles}"></th:block>
+    <th:block th:replace="~{fragments/status-badge :: badge-styles}"></th:block>
+    <th:block th:replace="~{fragments/empty-state :: empty-state-styles}"></th:block>
+    <style>
+        /*
+          Admin-only split of the old combined orders/orderIndex.html (see chat) - converted to
+          this app's shared design system the same way the customer page (orders/orderIndex.html)
+          was. This is the first admin page to render layout-app's admin sidebar branch.
+
+          card.html/table-card.html/page-header.html/empty-state.html's content/action params are
+          cross-file ~{::#id} fragment expressions (see dashboard.html/repairIndex.html for the
+          same note) - not called from here for that reason; direct markup below reproduces their
+          classes, same as the customer order page and repairIndex.html do.
+
+          Status column uses the exact same controller-supplied buildStageLabels map + th:block-
+          wrapped th:if/th:replace split as the customer page (see its own comment for why
+          status-badge.html's badge(status) fragment can't cover the buildStage case) - and the
+          same fix for the th:if+th:replace-on-one-element bug already found and fixed there.
+
+          Build-stage modal uses stageOptionsByOrder (per-order, pre-filtered to the stages valid
+          for that order, pre-labelled) instead of a T(...) static call in the template, per the
+          DevTools stale-class failure already hit with T(...) on this exact page.
+
+          Every ternary below keeps its whole condition-and-branches inside ONE ${...} block, and
+          no branch contains an escaped quote - the two fragile patterns already found and fixed
+          on the customer page (SpEL escape-character parse error; th:if silently not gating a
+          th:replace on the same element).
+        */
+        .content{ padding:var(--space-5); }
+
+        .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-4); margin-bottom:var(--space-5); }
+        @media (max-width:1150px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
+
+        .filter-row{ display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; margin-bottom:var(--space-4); }
+        .order-search{
+            display:flex; align-items:center; gap:var(--space-2); background:var(--bg-card); border:1px solid var(--border);
+            border-radius:999px; padding:9px var(--space-4); flex:1; min-width:220px;
+        }
+        .order-search svg{ width:15px; height:15px; color:var(--text-muted); flex-shrink:0; }
+        .order-search input{ border:none; background:none; outline:none; font-size:13px; color:var(--text); width:100%; }
+        .filter-select{
+            border:1px solid var(--border); background:var(--bg-card); border-radius:var(--radius-sm); padding:8px 12px;
+            font-size:12.5px; font-weight:600; color:var(--text);
+        }
+
+        .order-footer{ display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); margin-top:var(--space-3); font-size:12.5px; color:var(--text-muted); }
+        .text-muted-sm{ color:var(--text-muted); font-size:11.5px; }
+        .table-action-form{ display:inline; }
+        .no-search-results{ display:none; text-align:center; padding:var(--space-6) var(--space-4); color:var(--text-muted); font-size:13.5px; font-weight:600; }
+
+        /* Build-stage modal's radio list. */
+        .stage-option{ padding:8px 0; border-bottom:1px solid var(--border); }
+        .stage-option:last-of-type{ border-bottom:none; }
+        .stage-option label{ display:flex; align-items:center; gap:var(--space-2); cursor:pointer; font-size:13.5px; color:var(--text); font-weight:600; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/layout-app :: sidebar(active='orders', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+
+    <main class="content">
+        <div class="rn-page-header">
+            <div class="rn-page-header-text">
+                <h1 class="rn-page-header-title">Order Management</h1>
+                <p class="rn-page-header-subtitle">View and manage all customer orders, builds, and repairs.</p>
+            </div>
+            <div class="rn-page-header-actions" th:if="${client != null}">
+                <a href="/client" class="table-action">Back to Clients</a>
+                <a href="/order" class="table-action">View All Orders</a>
+            </div>
+        </div>
+
+        <section class="stat-grid">
+            <div th:replace="~{fragments/stat-card :: stat(icon='clipboard', color='blue', label='Total Orders', value=${#lists.size(orders)}, footerIcon='clock', footerText=${awaitingPaymentCount + ' awaiting payment'}, href=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='check-circle', color='green', label='Paid', value=${paidOrderCount}, footerIcon='shield', footerText='Verified', href=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='tool', color='orange', label='In Progress', value=${inProgressOrderCount}, footerIcon='settings', footerText=${mostAdvancedStageLabel != null ? mostAdvancedStageLabel : 'None in progress'}, href=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='dollar-sign', color='purple', label='Revenue', value=${'Php ' + #numbers.formatDecimal(revenue, 1, 'COMMA', 2, 'POINT')}, footerIcon='trending-up', footerText='From paid orders', href=null)}"></div>
+        </section>
+
+        <div class="filter-row">
+            <div class="order-search">
+                <i data-feather="search"></i>
+                <input type="search" id="orderSearchInput" placeholder="Search by customer, item, or order number..." aria-label="Search orders"/>
+            </div>
+            <select class="filter-select" id="orderStatusFilter" aria-label="Filter by status">
+                <option value="">All Statuses</option>
+                <option value="AWAITING_PAYMENT">Awaiting Payment</option>
+                <option value="PAID">Paid</option>
+                <option value="CANCELLATION_REQUESTED">Cancellation Requested</option>
+                <option value="CANCELLED">Cancelled</option>
+                <option value="ORDER_CONFIRMED">Order Confirmed</option>
+                <option value="COMPONENTS_RESERVED">Components Reserved</option>
+                <option value="ASSEMBLY_IN_PROGRESS">Assembly In Progress</option>
+                <option value="TESTING">Testing</option>
+                <option value="READY">Ready</option>
+                <option value="COMPLETED">Completed</option>
+            </select>
+        </div>
+
+        <div th:if="${#lists.isEmpty(orders)}" class="card">
+            <div th:replace="~{fragments/empty-state :: state(icon='shopping-cart', message='No orders yet', actions=null)}"></div>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(orders)}" class="card">
+            <div class="card-head">
+                <div class="card-head-left">
+                    <span class="card-icon card-icon-blue"><i data-feather="shopping-cart"></i></span>
+                    <h2 class="card-title">Orders</h2>
+                </div>
+            </div>
+            <table class="rn-table" id="ordersTable">
+                <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Placed</th>
+                    <th>Verified at</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="order : ${orders}" class="order-row"
+                    th:attr="data-status=${order.buildStage != null ? order.buildStage.name() : order.status.name()}">
+                    <td th:text="${order.orderNumber}"></td>
+                    <td th:text="${order.client.fullName}"></td>
+                    <td>
+                        <span th:if="${not #lists.isEmpty(order.items)}"
+                              th:text="${order.items[0].brand} + ' ' + ${order.items[0].modelName}"></span>
+                        <span th:if="${#lists.size(order.items) > 1}" class="text-muted-sm"
+                              th:text="' +' + (${#lists.size(order.items)} - 1) + ' more items'"></span>
+                    </td>
+                    <td th:insert="~{fragments/money :: amount(amount=${order.totalAmount})}"></td>
+                    <td th:text="${#strings.replace(order.paymentMethod.name(), '_', ' ')}"></td>
+                    <td>
+                        <th:block th:if="${order.buildStage == null}">
+                            <span th:replace="~{fragments/status-badge :: badge(status=${order.status})}"></span>
+                        </th:block>
+                        <span th:if="${order.buildStage != null}" class="badge-pill"
+                              th:classappend="${order.buildStage.name() == 'COMPLETED' ? 'badge-completed' : (order.buildStage.name() == 'READY' ? 'badge-confirmed' : 'badge-in-progress')}"
+                              th:text="${buildStageLabels.get(order.orderId)}"></span>
+                    </td>
+                    <td th:text="${#dates.format(order.createdAt, 'MMM dd, yyyy')}"></td>
+                    <td th:text="${order.verifiedAt != null ? #dates.format(order.verifiedAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+                    <td style="white-space:nowrap">
+                        <a class="table-action search-result-link" href="/order"
+                           th:attr="data-entity-type='ORDER', data-entity-id=${order.orderId}">
+                            <i data-feather="eye"></i>View
+                        </a>
+                        <button type="button" class="table-action"
+                                th:if="${order.status.name() == 'AWAITING_PAYMENT'}"
+                                data-bs-toggle="modal" th:attr="data-bs-target='#markPaidModal' + ${order.orderId}">
+                            <i data-feather="check"></i>Mark Paid
+                        </button>
+                        <button type="button" class="table-action"
+                                th:if="${order.buildStage != null}"
+                                data-bs-toggle="modal" th:attr="data-bs-target='#stageModal' + ${order.orderId}">
+                            <i data-feather="settings"></i>Update Stage
+                        </button>
+                        <button type="button" class="table-action"
+                                th:if="${order.refundStatus.name() == 'PENDING'}"
+                                data-bs-toggle="modal" th:attr="data-bs-target='#markRefundedModal' + ${order.orderId}">
+                            <i data-feather="rotate-ccw"></i>Mark Refunded
+                        </button>
+                        <button type="button" class="table-action"
+                                th:if="${order.status.name() == 'CANCELLATION_REQUESTED'}"
+                                data-bs-toggle="modal" th:attr="data-bs-target='#approveCancelModal' + ${order.orderId}">
+                            <i data-feather="check-circle"></i>Approve Cancellation
+                        </button>
+                        <button type="button" class="table-action"
+                                th:if="${order.status.name() == 'CANCELLATION_REQUESTED'}"
+                                data-bs-toggle="modal" th:attr="data-bs-target='#denyCancelModal' + ${order.orderId}">
+                            <i data-feather="x"></i>Deny
+                        </button>
+                        <th:block th:with="cancelEligible=${order.status.name() == 'AWAITING_PAYMENT' or order.status.name() == 'PAID'}">
+                            <form th:if="${cancelEligible and order.withinCancellationWindow}"
+                                  th:action="@{/order/cancel/{id}(id=${order.orderId})}" method="post" class="table-action-form">
+                                <input type="hidden" name="_method" value="put"/>
+                                <button type="submit" class="table-action"
+                                        th:attr="data-confirm-message=${order.status.name() != 'PAID'} ? 'Cancel this order?' : 'This order is already paid - cancelling it will make a refund owed. Continue?'">
+                                    <i data-feather="x-circle"></i>Cancel
+                                </button>
+                            </form>
+                            <button type="button" class="table-action" disabled
+                                    th:if="${cancelEligible and !order.withinCancellationWindow}"
+                                    title="The 7-day warranty claim window for this order has passed">
+                                <i data-feather="x-circle"></i>Cancel
+                            </button>
+                        </th:block>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="order-footer">
+                <span th:text="${#lists.size(orders)} + ' order(s) total'"></span>
+            </div>
+            <div class="no-search-results" id="noSearchResults">No orders match your filters.</div>
+        </div>
+
+        <!-- One modal per order per action - same per-order-modal pattern the customer order page
+             and repairIndex.html use for their own row-scoped modals. -->
+        <th:block th:each="order : ${orders}">
+            <div th:if="${order.status.name() == 'AWAITING_PAYMENT'}"
+                 class="modal fade" th:id="'markPaidModal' + ${order.orderId}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirm Mark as Paid</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Mark order <strong th:text="${order.orderNumber}"></strong>
+                            (<span th:insert="~{fragments/money :: amount(amount=${order.totalAmount})}"></span>) as <strong>PAID</strong>?
+                            Double-check the reference number and uploaded receipt first - this can't be undone here.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="table-action" data-bs-dismiss="modal">Cancel</button>
+                            <form th:action="@{/order/markPaid/{id}(id=${order.orderId})}" method="post">
+                                <input type="hidden" name="_method" value="put"/>
+                                <button type="submit" class="btn-accent-sm">Yes, Mark as Paid</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Radio list of the stages valid for this order (stageOptionsByOrder, precomputed
+                 server-side in OrderController - see this page's own comment above) instead of the
+                 old bare <select> that could fire a customer notification with no confirmation. -->
+            <div th:if="${order.buildStage != null}"
+                 class="modal fade" th:id="'stageModal' + ${order.orderId}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <form th:action="@{/order/updateStage/{id}(id=${order.orderId})}" method="post">
+                            <input type="hidden" name="_method" value="put"/>
+                            <div class="modal-header">
+                                <h5 class="modal-title">Update Build Stage</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Order <strong th:text="${order.orderNumber}"></strong></p>
+                                <div class="stage-option" th:each="opt : ${stageOptionsByOrder.get(order.orderId)}">
+                                    <label>
+                                        <input type="radio" name="buildStage" th:value="${opt.stageName()}"
+                                               th:checked="${opt.stageName() == order.buildStage.name()}"/>
+                                        <span th:text="${opt.label()}"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="table-action" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn-accent-sm">Update</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${order.refundStatus.name() == 'PENDING'}"
+                 class="modal fade" th:id="'markRefundedModal' + ${order.orderId}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirm Mark as Refunded</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Mark order <strong th:text="${order.orderNumber}"></strong>
+                            (<span th:insert="~{fragments/money :: amount(amount=${order.totalAmount})}"></span>) as <strong>REFUNDED</strong>?
+                            Only confirm this once the money has actually been sent back to the customer.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="table-action" data-bs-dismiss="modal">Cancel</button>
+                            <form th:action="@{/order/markRefunded/{id}(id=${order.orderId})}" method="post">
+                                <input type="hidden" name="_method" value="put"/>
+                                <button type="submit" class="btn-accent-sm">Yes, Mark as Refunded</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${order.status.name() == 'CANCELLATION_REQUESTED'}"
+                 class="modal fade" th:id="'approveCancelModal' + ${order.orderId}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Approve Cancellation</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Approve the cancellation request for order <strong th:text="${order.orderNumber}"></strong>
+                            (<span th:insert="~{fragments/money :: amount(amount=${order.totalAmount})}"></span>)? This will cancel the order and mark a
+                            refund as owed to the customer.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="table-action" data-bs-dismiss="modal">Close</button>
+                            <form th:action="@{/order/approveCancellation/{id}(id=${order.orderId})}" method="post">
+                                <input type="hidden" name="_method" value="put"/>
+                                <button type="submit" class="btn-accent-sm">Yes, Approve</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${order.status.name() == 'CANCELLATION_REQUESTED'}"
+                 class="modal fade" th:id="'denyCancelModal' + ${order.orderId}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Deny Cancellation</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Deny the cancellation request for order <strong th:text="${order.orderNumber}"></strong>?
+                            The order will remain <strong>PAID</strong> and no refund will be recorded.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="table-action" data-bs-dismiss="modal">Close</button>
+                            <form th:action="@{/order/denyCancellation/{id}(id=${order.orderId})}" method="post">
+                                <input type="hidden" name="_method" value="put"/>
+                                <button type="submit" class="table-action">Yes, Deny</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </th:block>
+
+        <!-- Confirmation popup after "Request Receipt" (inside the shared order detail modal
+             below) - see this page's own script block. -->
+        <div class="modal fade" id="requestReceiptSentModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center py-4">
+                        Request receipt message has been sent
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <button type="button" class="btn-accent-sm" data-bs-dismiss="modal">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+
+<script th:inline="javascript">
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('orderSearchInput');
+    const statusFilter = document.getElementById('orderStatusFilter');
+    const rows = Array.from(document.querySelectorAll('.order-row'));
+    const noResults = document.getElementById('noSearchResults');
+
+    function applyFilters() {
+        const term = searchInput.value.trim().toLowerCase();
+        const status = statusFilter.value;
+        let visibleCount = 0;
+
+        rows.forEach(function (row) {
+            const matchesText = !term || row.textContent.toLowerCase().indexOf(term) > -1;
+            const matchesStatus = !status || row.getAttribute('data-status') === status;
+            const visible = matchesText && matchesStatus;
+            row.hidden = !visible;
+            if (visible) visibleCount++;
+        });
+
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    if (rows.length > 0) {
+        searchInput.addEventListener('input', applyFilters);
+        statusFilter.addEventListener('change', applyFilters);
+    }
+
+    // Cancel confirmation - the message lives on the button's data-confirm-message (set
+    // server-side per order status) rather than in an inline onclick, so no quoted JS ever has to
+    // survive a Thymeleaf expression. Delegated on document because submit bubbles. Same fix as
+    // the customer order page.
+    document.addEventListener('submit', function (e) {
+        const form = e.target.closest('.table-action-form');
+        if (!form) { return; }
+        const btn = form.querySelector('[data-confirm-message]');
+        if (!btn) { return; }
+        if (!confirm(btn.getAttribute('data-confirm-message'))) {
+            e.preventDefault();
+        }
+    });
+
+    // Request Receipt button lives inside the shared order detail modal's fetched content
+    // (orderConfirmation.html :: orderCard, loaded into #notifDetailModalBody by the delegated
+    // click handler in layout-app.html's app-script) - delegated for the same reason: it doesn't
+    // exist in the DOM until that fetch completes.
+    const requestReceiptSentModalEl = document.getElementById('requestReceiptSentModal');
+    if (requestReceiptSentModalEl && window.bootstrap) {
+        const requestReceiptSentModal = new bootstrap.Modal(requestReceiptSentModalEl);
+        const notifDetailModalBody = document.getElementById('notifDetailModalBody');
+        if (notifDetailModalBody) {
+            notifDetailModalBody.addEventListener('click', function (e) {
+                const btn = e.target.closest('.request-receipt-btn');
+                if (!btn) { return; }
+                fetch(btn.getAttribute('data-request-receipt-url'), { method: 'PUT' })
+                    .then(function (res) {
+                        if (res.ok) { requestReceiptSentModal.show(); }
+                    });
+            });
+        }
+    }
+});
+</script>
+
+</body>
+</html>

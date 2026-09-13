@@ -22,9 +22,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("order")
@@ -74,7 +76,92 @@ public class OrderController {
         if (admin && clientId != null) {
             model.addAttribute("client", clientService.getClientById(clientId));
         }
-        return "orders/orderIndex";
+
+        // Topbar chrome for the shared layout-app shell - same admin/customer split
+        // notifyAdmin/notifyCustomer already use (NotificationService.java:51-57) and
+        // RepairRecordController already follows: admin sees the shared admin inbox, a signed-in
+        // customer sees their own.
+        if (isSignedIn(authentication)) {
+            String username = authentication.getName();
+            model.addAttribute("currentRole", admin ? "Admin" : "Customer");
+            model.addAttribute("unreadNotifications",
+                    admin ? notificationService.getUnreadCountForAdmin() : notificationService.getUnreadCountForUser(username));
+            List<Notification> recent = admin ? notificationService.getForAdmin() : notificationService.getForUser(username);
+            model.addAttribute("recentNotifications", recent.stream().limit(15).collect(Collectors.toList()));
+        }
+
+        // Stat cards + Status column - shared between both templates, all derived from the
+        // `orders` list already fetched above, no new repository call.
+        long paidOrderCount = orders.stream().filter(o -> o.getStatus() == Order.OrderStatus.PAID).count();
+        model.addAttribute("paidOrderCount", paidOrderCount);
+        long awaitingPaymentCount = orders.stream().filter(o -> o.getStatus() == Order.OrderStatus.AWAITING_PAYMENT).count();
+        model.addAttribute("awaitingPaymentCount", awaitingPaymentCount);
+
+        List<Order> inProgressOrders = orders.stream()
+                .filter(o -> o.getBuildStage() != null && o.getBuildStage() != Order.BuildStage.COMPLETED)
+                .collect(Collectors.toList());
+        model.addAttribute("inProgressOrderCount", inProgressOrders.size());
+        Order mostAdvanced = inProgressOrders.stream()
+                .max(Comparator.comparingInt(o -> o.getBuildStage().ordinal()))
+                .orElse(null);
+        model.addAttribute("mostAdvancedStageLabel", mostAdvanced == null ? null
+                : OrderService.buildStageLabel(mostAdvanced.getBuildStage(), mostAdvanced.getFulfilmentMethod()));
+
+        // Per-row Status label for orders that have a build timeline - both templates show this
+        // instead of the raw order status, via OrderService.buildStageLabel. Precomputed here
+        // (keyed by orderId) rather than called via T(...) from either template, per the DevTools
+        // stale-class failure already hit with T(...) on the admin page.
+        Map<Long, String> buildStageLabels = orders.stream()
+                .filter(o -> o.getBuildStage() != null)
+                .collect(Collectors.toMap(Order::getOrderId,
+                        o -> OrderService.buildStageLabel(o.getBuildStage(), o.getFulfilmentMethod())));
+        model.addAttribute("buildStageLabels", buildStageLabels);
+
+        if (admin) {
+            // Revenue - PAID orders only, distinct from the customer page's Total Spent (all
+            // non-cancelled orders, since a customer's own "spent" includes what they're still
+            // waiting to have verified).
+            double revenue = orders.stream()
+                    .filter(o -> o.getStatus() == Order.OrderStatus.PAID)
+                    .mapToDouble(Order::getTotalAmount)
+                    .sum();
+            model.addAttribute("revenue", revenue);
+
+            // Build-stage radio options for the admin stage-update modal - one list per order,
+            // already filtered to the stages valid for that order (ASSEMBLY_IN_PROGRESS/TESTING
+            // excluded for a parts-only order, same rule updateBuildStage enforces server-side),
+            // with each stage's label pre-resolved. Precomputed here rather than calling
+            // OrderService.isFullBuild/buildStageLabel via T(...) from the template, same reason
+            // as buildStageLabels above.
+            Map<Long, List<StageOption>> stageOptionsByOrder = orders.stream()
+                    .filter(o -> o.getBuildStage() != null)
+                    .collect(Collectors.toMap(Order::getOrderId, o -> {
+                        List<Order.BuildStage> validStages = OrderService.isFullBuild(o)
+                                ? List.of(Order.BuildStage.ORDER_CONFIRMED, Order.BuildStage.COMPONENTS_RESERVED,
+                                        Order.BuildStage.ASSEMBLY_IN_PROGRESS, Order.BuildStage.TESTING,
+                                        Order.BuildStage.READY, Order.BuildStage.COMPLETED)
+                                : List.of(Order.BuildStage.ORDER_CONFIRMED, Order.BuildStage.COMPONENTS_RESERVED,
+                                        Order.BuildStage.READY, Order.BuildStage.COMPLETED);
+                        return validStages.stream()
+                                .map(stage -> new StageOption(stage.name(),
+                                        OrderService.buildStageLabel(stage, o.getFulfilmentMethod())))
+                                .collect(Collectors.toList());
+                    }));
+            model.addAttribute("stageOptionsByOrder", stageOptionsByOrder);
+        } else {
+            long activeOrderCount = orders.stream()
+                    .filter(o -> o.getStatus() == Order.OrderStatus.AWAITING_PAYMENT || o.getStatus() == Order.OrderStatus.PAID)
+                    .count();
+            model.addAttribute("activeOrderCount", activeOrderCount);
+
+            double totalSpent = orders.stream()
+                    .filter(o -> o.getStatus() != Order.OrderStatus.CANCELLED)
+                    .mapToDouble(Order::getTotalAmount)
+                    .sum();
+            model.addAttribute("totalSpent", totalSpent);
+        }
+
+        return admin ? "orders/adminOrderIndex" : "orders/orderIndex";
     }
 
     private boolean isAdmin(Authentication authentication) {
@@ -218,7 +305,7 @@ public class OrderController {
         return "redirect:/order";
     }
 
-    // Admin-only build-stage control on the order list (orderIndex.html's stage <select>).
+    // Admin-only build-stage control on the order list (adminOrderIndex.html's stage <select>).
     // ASSEMBLY_IN_PROGRESS/TESTING are rejected server-side for a parts-only order even though the
     // UI already hides them, same defensive re-check style as approveCancellation/denyCancellation
     // re-verifying order status rather than trusting the button that was visible.
@@ -319,7 +406,7 @@ public class OrderController {
 
     // Admin nudge for a customer who hasn't uploaded a receipt yet (or whose reference number
     // couldn't be cross-checked) - just fires a notification, doesn't change order state. Called
-    // via fetch from orderIndex.html so the page can pop a confirmation modal without a reload.
+    // via fetch from adminOrderIndex.html so the page can pop a confirmation modal without a reload.
     @PutMapping("/requestReceipt/{id}")
     @ResponseBody
     public ResponseEntity<Void> requestReceipt(@PathVariable("id") Long id, Authentication authentication) {
@@ -398,5 +485,11 @@ public class OrderController {
         if (caseId != null) selections.put("CASE", caseId);
         if (coolerId != null) selections.put("COOLER", coolerId);
         return selections;
+    }
+
+    // One radio option in the admin stage-update modal (adminOrderIndex.html) - stageName is the
+    // raw BuildStage enum name (the radio's value, and what /order/updateStage/{id} expects back),
+    // label is already resolved via OrderService.buildStageLabel.
+    private record StageOption(String stageName, String label) {
     }
 }

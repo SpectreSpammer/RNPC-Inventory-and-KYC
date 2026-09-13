@@ -213,7 +213,7 @@ public class DashboardController {
                 String rowStatus = i < currentIndex ? "COMPLETED" : (i == currentIndex ? "IN_PROGRESS" : "PENDING");
                 // Every row (not just READY) goes through buildStageLabel, so READY reads "Ready
                 // for Pickup"/"Out for Delivery" per the order - same helper OrderController's
-                // notification and orderIndex.html's dropdown already use.
+                // notification and adminOrderIndex.html's dropdown already use.
                 stageRows.add(new BuildStageRow(stage.name(),
                         OrderService.buildStageLabel(stage, activeBuildOrder.getFulfilmentMethod()), rowStatus));
             }

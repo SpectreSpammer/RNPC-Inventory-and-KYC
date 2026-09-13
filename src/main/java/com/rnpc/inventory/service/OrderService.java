@@ -286,13 +286,13 @@ public class OrderService {
 
     // Full PC build (all 7 required categories present) vs a parts-only order. Used by
     // OrderController.updateBuildStage to decide whether ASSEMBLY_IN_PROGRESS/TESTING are valid
-    // for a given order, and by orderIndex.html to decide whether to offer them at all.
+    // for a given order, and by adminOrderIndex.html to decide whether to offer them at all.
     public static boolean isFullBuild(Order order) {
         Set<String> categories = order.getItems().stream().map(OrderItem::getCategory).collect(Collectors.toSet());
         return hasAllBuildCategories(categories);
     }
 
-    // Shared plain-words label for a build stage, used both by orderIndex.html's stage dropdown
+    // Shared plain-words label for a build stage, used both by adminOrderIndex.html's stage dropdown
     // (via Thymeleaf's T(...) static call) and by OrderController.updateBuildStage's customer
     // notification, so the two can never say something different for the same stage. READY reads
     // per fulfilmentMethod - see Order.buildStage's own comment.

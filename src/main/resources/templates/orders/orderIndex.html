@@ -1,388 +1,258 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-          crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <meta charset="UTF-8"/>
+    <title>Order Summary - RNPC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/card :: card-styles}"></th:block>
+    <th:block th:replace="~{fragments/stat-card :: stat-card-styles}"></th:block>
+    <th:block th:replace="~{fragments/table-card :: table-card-styles}"></th:block>
+    <th:block th:replace="~{fragments/page-header :: page-header-styles}"></th:block>
+    <th:block th:replace="~{fragments/status-badge :: badge-styles}"></th:block>
+    <th:block th:replace="~{fragments/empty-state :: empty-state-styles}"></th:block>
+    <style>
+        /*
+          Customer-only split of the old combined orders/orderIndex.html (see chat) - converted to
+          this app's shared design system the same way repairs/repairIndex.html was; the admin half
+          of the old page now lives, unconverted, at orders/adminOrderIndex.html.
+
+          card.html/table-card.html/empty-state.html's content/action params are cross-file
+          ~{::#id} fragment expressions (see dashboard.html/repairIndex.html for the same note) -
+          not called from here for that reason; direct markup below reproduces their classes.
+
+          Status column: status-badge.html's badge(status) fragment can't be reused for the
+          buildStage case - its switch has no cases for BuildStage's enum values, and adding them
+          would need a per-order fulfilmentMethod-dependent label for READY that a fixed per-case
+          fragment string can't express; extending its signature to pass that through would also
+          force updating every other page that already calls badge() (including dashboard.html,
+          which this task must not touch). So the buildStage badge below is built directly with
+          the same .badge-pill classes status-badge-styles already defines, with its text supplied
+          by the controller's buildStageLabels map (see OrderController) rather than a T(...) call,
+          per the DevTools stale-class failure already hit with T(...) on the admin page. The plain
+          order-status case still calls the real fragment, unchanged.
+        */
+        .content{ padding:var(--space-5); }
+
+        .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-4); margin-bottom:var(--space-5); }
+        @media (max-width:1150px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
+
+        .filter-row{ display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; margin-bottom:var(--space-4); }
+        .order-search{
+            display:flex; align-items:center; gap:var(--space-2); background:var(--bg-card); border:1px solid var(--border);
+            border-radius:999px; padding:9px var(--space-4); flex:1; min-width:220px;
+        }
+        .order-search svg{ width:15px; height:15px; color:var(--text-muted); flex-shrink:0; }
+        .order-search input{ border:none; background:none; outline:none; font-size:13px; color:var(--text); width:100%; }
+        .filter-select{
+            border:1px solid var(--border); background:var(--bg-card); border-radius:var(--radius-sm); padding:8px 12px;
+            font-size:12.5px; font-weight:600; color:var(--text);
+        }
+
+        .order-footer{ display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); margin-top:var(--space-3); font-size:12.5px; color:var(--text-muted); }
+        .text-muted-sm{ color:var(--text-muted); font-size:11.5px; }
+        .table-action-form{ display:inline; }
+        .no-search-results{ display:none; text-align:center; padding:var(--space-6) var(--space-4); color:var(--text-muted); font-size:13.5px; font-weight:600; }
+    </style>
 </head>
 <body>
-<div class="container">
-        <h1 class="text-center my-4" th:if="${client == null}">Order Summary</h1>
-        <h1 class="text-center my-4" th:if="${client != null}">
-            Order Summary &mdash; <span th:text="${client.fullName}"></span>
-        </h1>
-</div>
 
-<div class="content-wrapper">
-    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+<div th:replace="~{fragments/layout-app :: sidebar(active='orders', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
 
-    <main class="main-content">
-    <div th:replace="~{fragments/nav :: back}"></div>
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
 
-    <div class="row mb-3">
-        <div class="col-12" th:if="${client == null}">
-            <div class="input-group rounded" style="max-width: 420px;">
-                <input type="search" class="form-control rounded" id="customerSearch" placeholder="Search by item or reference number" aria-label="Search" aria-describedby="customer-search-addon" />
-                <span class="input-group-text border-0" id="customer-search-addon">
-                    <i class="fas fa-search"></i>
-                </span>
+    <main class="content">
+        <div class="rn-page-header">
+            <div class="rn-page-header-text">
+                <h1 class="rn-page-header-title">Order Summary</h1>
+                <p class="rn-page-header-subtitle">View and manage your recent orders.</p>
             </div>
         </div>
-        <div class="col-md-6 text-md-end" th:if="${client != null}">
-            <a class="btn btn-outline-secondary" href="/client">Back to Clients</a>
-            <a class="btn btn-outline-secondary" href="/order">View All Orders</a>
+
+        <section class="stat-grid">
+            <div th:replace="~{fragments/stat-card :: stat(icon='clipboard', color='blue', label='Total Orders', value=${#lists.size(orders)}, footerIcon='package', footerText=${activeOrderCount + (activeOrderCount == 1 ? ' active order' : ' active orders')}, href=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='check-circle', color='green', label='Paid', value=${paidOrderCount}, footerIcon='clock', footerText=${'Awaiting payment: ' + awaitingPaymentCount}, href=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='tool', color='orange', label='In Progress', value=${inProgressOrderCount}, footerIcon='settings', footerText=${mostAdvancedStageLabel != null ? mostAdvancedStageLabel : 'None in progress'}, href=null)}"></div>
+            <div th:replace="~{fragments/stat-card :: stat(icon='dollar-sign', color='purple', label='Total Spent', value=${'Php ' + #numbers.formatDecimal(totalSpent, 1, 'COMMA', 2, 'POINT')}, footerIcon='trending-up', footerText='Lifetime', href=null)}"></div>
+        </section>
+
+        <div class="filter-row">
+            <div class="order-search">
+                <i data-feather="search"></i>
+                <input type="search" id="orderSearchInput" placeholder="Search by item or order number..." aria-label="Search orders"/>
+            </div>
+            <select class="filter-select" id="orderStatusFilter" aria-label="Filter by status">
+                <option value="">All Statuses</option>
+                <option value="AWAITING_PAYMENT">Awaiting Payment</option>
+                <option value="PAID">Paid</option>
+                <option value="CANCELLATION_REQUESTED">Cancellation Requested</option>
+                <option value="CANCELLED">Cancelled</option>
+                <option value="ORDER_CONFIRMED">Order Confirmed</option>
+                <option value="COMPONENTS_RESERVED">Components Reserved</option>
+                <option value="ASSEMBLY_IN_PROGRESS">Assembly In Progress</option>
+                <option value="TESTING">Testing</option>
+                <option value="READY">Ready</option>
+                <option value="COMPLETED">Completed</option>
+            </select>
         </div>
-    </div>
 
-    <table class="table" id="ordersTable">
-        <thead>
-        <tr>
-            <th class="text-nowrap">Order</th>
-            <th>Customer</th>
-            <th style="max-width: 320px;">Items</th>
-            <th class="text-nowrap">Reference Number</th>
-            <th class="text-nowrap">Payment</th>
-            <th class="text-nowrap">Status</th>
-            <th class="text-nowrap">Total</th>
-            <th class="text-nowrap">Placed</th>
-            <th th:if="${isAdmin}">Verified by</th>
-            <th th:if="${isAdmin}">Verified at</th>
-            <th th:if="${isAdmin}">Refund Status</th>
-            <th>Action</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="order : ${orders}">
-            <td class="text-nowrap" th:text="${order.orderNumber}"></td>
-            <td th:text="${order.client.fullName}"></td>
-            <td style="max-width: 320px;">
-                <span th:each="item, iter : ${order.items}">
-                    <span th:text="${item.brand + ' ' + item.modelName}"></span><span th:if="!${iter.last}">, </span>
-                </span>
-            </td>
-            <td class="text-nowrap" th:text="${order.referenceNumber != null} ? ${order.referenceNumber} : 'N/A'"></td>
-            <td class="text-nowrap" th:text="${#strings.replace(order.paymentMethod.name(), '_', ' ')}"></td>
-            <td class="text-nowrap">
-                <span class="badge"
-                      th:classappend="${order.status.name() == 'PAID'} ? 'bg-success' : (${order.status.name() == 'CANCELLED'} ? 'bg-danger' : (${order.status.name() == 'CANCELLATION_REQUESTED'} ? 'bg-info text-dark' : 'bg-warning text-dark'))"
-                      th:text="${order.status.name() == 'AWAITING_PAYMENT'} ? 'VERIFYING_PAYMENT' : (${order.status.name() == 'CANCELLATION_REQUESTED'} ? 'CANCELLATION REQUESTED' : ${order.status})"></span>
-            </td>
-            <td class="text-nowrap">Php <span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 2, 'POINT')}"></span></td>
-            <td class="text-nowrap" th:text="${#dates.format(order.createdAt, 'yyyy-MM-dd')}"></td>
-            <td th:if="${isAdmin}" th:text="${order.verifiedByEmployeeId != null} ? ${order.verifiedByEmployeeId} : '-'"></td>
-            <td th:if="${isAdmin}" th:text="${order.verifiedAt != null} ? ${#dates.format(order.verifiedAt, 'yyyy-MM-dd HH:mm')} : '-'"></td>
-            <td th:if="${isAdmin}">
-                <span class="badge"
-                      th:if="${order.refundStatus.name() != 'NOT_APPLICABLE'}"
-                      th:classappend="${order.refundStatus.name() == 'REFUNDED'} ? 'bg-success' : 'bg-warning text-dark'"
-                      th:text="${order.refundStatus}"></span>
-                <span th:if="${order.refundStatus.name() == 'NOT_APPLICABLE'}">-</span>
-            </td>
-            <td style="white-space:nowrap">
-                <button type="button" class="btn btn-outline-secondary btn-sm view-order-btn"
-                        th:attr="data-order-id=${order.orderId}">View</button>
-                <button type="button" class="btn btn-success btn-sm"
-                        th:if="${isAdmin and order.status.name() == 'AWAITING_PAYMENT'}"
-                        data-bs-toggle="modal" th:attr="data-bs-target='#markPaidModal' + ${order.orderId}">Mark Paid</button>
-                <form th:if="${isAdmin and order.buildStage != null}"
-                      th:action="@{/order/updateStage/{id}(id=${order.orderId})}" method="post" style="display:inline;"
-                      th:with="isFullBuild=${T(com.rnpc.inventory.service.OrderService).isFullBuild(order)}">
-                    <input type="hidden" name="_method" value="put"/>
-                    <select name="buildStage" class="form-select form-select-sm d-inline-block w-auto"
-                            onchange="this.form.submit()">
-                        <option value="ORDER_CONFIRMED" th:selected="${order.buildStage.name() == 'ORDER_CONFIRMED'}"
-                                th:text="${T(com.rnpc.inventory.service.OrderService).buildStageLabel(T(com.rnpc.inventory.entity.Order.BuildStage).ORDER_CONFIRMED, order.fulfilmentMethod)}"></option>
-                        <option value="COMPONENTS_RESERVED" th:selected="${order.buildStage.name() == 'COMPONENTS_RESERVED'}"
-                                th:text="${T(com.rnpc.inventory.service.OrderService).buildStageLabel(T(com.rnpc.inventory.entity.Order.BuildStage).COMPONENTS_RESERVED, order.fulfilmentMethod)}"></option>
-                        <option th:if="${isFullBuild}" value="ASSEMBLY_IN_PROGRESS" th:selected="${order.buildStage.name() == 'ASSEMBLY_IN_PROGRESS'}"
-                                th:text="${T(com.rnpc.inventory.service.OrderService).buildStageLabel(T(com.rnpc.inventory.entity.Order.BuildStage).ASSEMBLY_IN_PROGRESS, order.fulfilmentMethod)}"></option>
-                        <option th:if="${isFullBuild}" value="TESTING" th:selected="${order.buildStage.name() == 'TESTING'}"
-                                th:text="${T(com.rnpc.inventory.service.OrderService).buildStageLabel(T(com.rnpc.inventory.entity.Order.BuildStage).TESTING, order.fulfilmentMethod)}"></option>
-                        <option value="READY" th:selected="${order.buildStage.name() == 'READY'}"
-                                th:text="${T(com.rnpc.inventory.service.OrderService).buildStageLabel(T(com.rnpc.inventory.entity.Order.BuildStage).READY, order.fulfilmentMethod)}"></option>
-                        <option value="COMPLETED" th:selected="${order.buildStage.name() == 'COMPLETED'}"
-                                th:text="${T(com.rnpc.inventory.service.OrderService).buildStageLabel(T(com.rnpc.inventory.entity.Order.BuildStage).COMPLETED, order.fulfilmentMethod)}"></option>
-                    </select>
-                </form>
-                <button type="button" class="btn btn-outline-secondary btn-sm"
-                        th:if="${!isAdmin and order.status.name() == 'AWAITING_PAYMENT' and currentUsername != null and order.client.user != null and order.client.user.username == currentUsername}"
-                        data-bs-toggle="modal" th:attr="data-bs-target='#uploadReceiptModal' + ${order.orderId}">Upload Receipt</button>
-                <button type="button" class="btn btn-success btn-sm"
-                        th:if="${isAdmin and order.refundStatus.name() == 'PENDING'}"
-                        data-bs-toggle="modal" th:attr="data-bs-target='#markRefundedModal' + ${order.orderId}">Mark Refunded</button>
-                <button type="button" class="btn btn-success btn-sm"
-                        th:if="${isAdmin and order.status.name() == 'CANCELLATION_REQUESTED'}"
-                        data-bs-toggle="modal" th:attr="data-bs-target='#approveCancelModal' + ${order.orderId}">Approve Cancellation</button>
-                <button type="button" class="btn btn-outline-danger btn-sm"
-                        th:if="${isAdmin and order.status.name() == 'CANCELLATION_REQUESTED'}"
-                        data-bs-toggle="modal" th:attr="data-bs-target='#denyCancelModal' + ${order.orderId}">Deny</button>
-                <span th:if="${!isAdmin and order.status.name() == 'CANCELLATION_REQUESTED'}"
-                      class="text-muted small">Awaiting admin approval</span>
-                <th:block th:with="cancelEligible=${order.status.name() == 'AWAITING_PAYMENT' or (order.status.name() == 'PAID' and (isAdmin or (currentUsername != null and order.client.user != null and order.client.user.username == currentUsername)))}">
-                    <form th:if="${cancelEligible and order.withinCancellationWindow}"
-                          th:action="@{/order/cancel/{id}(id=${order.orderId})}" method="post" style="display:inline;">
-                        <input type="hidden" name="_method" value="put"/>
-                        <button type="submit" class="btn btn-outline-danger btn-sm"
-                                th:attr="onclick=${order.status.name() != 'PAID'} ? 'return confirm(\'Cancel this order?\')' : (${isAdmin} ? 'return confirm(\'This order is already paid - cancelling it will make a refund owed. Continue?\')' : 'return confirm(\'This order is already paid - your cancellation will be submitted to admin for approval before any refund is processed. Continue?\')')">Cancel</button>
-                    </form>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" disabled
-                            th:if="${cancelEligible and !order.withinCancellationWindow}"
-                            title="The 7-day warranty claim window for this order has passed">Cancel</button>
-                </th:block>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+        <div th:if="${#lists.isEmpty(orders)}" class="card">
+            <div th:replace="~{fragments/empty-state :: state(icon='shopping-cart', message='No orders yet', actions=null)}"></div>
+        </div>
 
-    <!-- One Mark Paid confirmation modal and one Upload Receipt modal per order - simplest way to
-         give each row its own dynamic form target without extra JS wiring. -->
-    <th:block th:each="order : ${orders}">
-        <div th:if="${isAdmin and order.status.name() == 'AWAITING_PAYMENT'}"
-             class="modal fade" th:id="'markPaidModal' + ${order.orderId}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Confirm Mark as Paid</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        Mark order <strong th:text="${order.orderNumber}"></strong>
-                        (Php <span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 2, 'POINT')}"></span>) as <strong>PAID</strong>?
-                        Double-check the reference number and uploaded receipt first - this can't be undone here.
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <form th:action="@{/order/markPaid/{id}(id=${order.orderId})}" method="post">
+        <div th:unless="${#lists.isEmpty(orders)}" class="card">
+            <div class="card-head">
+                <div class="card-head-left">
+                    <span class="card-icon card-icon-blue"><i data-feather="shopping-cart"></i></span>
+                    <h2 class="card-title">Orders</h2>
+                </div>
+            </div>
+            <table class="rn-table" id="ordersTable">
+                <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="order : ${orders}" class="order-row"
+                    th:attr="data-status=${order.buildStage != null ? order.buildStage.name() : order.status.name()}">
+                    <td th:text="${order.orderNumber}"></td>
+                    <td>
+                        <span th:if="${not #lists.isEmpty(order.items)}"
+                              th:text="${order.items[0].brand} + ' ' + ${order.items[0].modelName}"></span>
+                        <span th:if="${#lists.size(order.items) > 1}" class="text-muted-sm"
+                              th:text="' +' + (${#lists.size(order.items)} - 1) + ' more items'"></span>
+                    </td>
+                    <td th:insert="~{fragments/money :: amount(amount=${order.totalAmount})}"></td>
+                    <td th:text="${#strings.replace(order.paymentMethod.name(), '_', ' ')}"></td>
+                    <td>
+                        <th:block th:if="${order.buildStage == null}">
+                            <span th:replace="~{fragments/status-badge :: badge(status=${order.status})}"></span>
+                        </th:block>
+                        <span th:if="${order.buildStage != null}" class="badge-pill"
+                              th:classappend="${order.buildStage.name() == 'COMPLETED' ? 'badge-completed' : (order.buildStage.name() == 'READY' ? 'badge-confirmed' : 'badge-in-progress')}"
+                              th:text="${buildStageLabels.get(order.orderId)}"></span>
+                    </td>
+                    <td th:text="${#dates.format(order.createdAt, 'MMM dd, yyyy')}"></td>
+                    <td style="white-space:nowrap">
+                        <a class="table-action search-result-link" href="/order"
+                           th:attr="data-entity-type='ORDER', data-entity-id=${order.orderId}">
+                            <i data-feather="eye"></i>View
+                        </a>
+                        <button type="button" class="table-action"
+                                th:if="${order.status.name() == 'AWAITING_PAYMENT' and currentUsername != null and order.client.user != null and order.client.user.username == currentUsername}"
+                                data-bs-toggle="modal" th:attr="data-bs-target='#uploadReceiptModal' + ${order.orderId}">
+                            <i data-feather="upload"></i>Upload Receipt
+                        </button>
+                        <span th:if="${order.status.name() == 'CANCELLATION_REQUESTED'}" class="text-muted-sm">Awaiting admin approval</span>
+                        <th:block th:with="cancelEligible=${order.status.name() == 'AWAITING_PAYMENT' or (order.status.name() == 'PAID' and currentUsername != null and order.client.user != null and order.client.user.username == currentUsername)}">
+                            <form th:if="${cancelEligible and order.withinCancellationWindow}"
+                                  th:action="@{/order/cancel/{id}(id=${order.orderId})}" method="post" class="table-action-form">
+                                <input type="hidden" name="_method" value="put"/>
+                                <button type="submit" class="table-action"
+                                        th:attr="data-confirm-message=${order.status.name() != 'PAID'} ? 'Cancel this order?' : 'This order is already paid - your cancellation will be submitted to admin for approval before any refund is processed. Continue?'">
+                                    <i data-feather="x-circle"></i>Cancel
+                                </button>
+                            </form>
+                            <button type="button" class="table-action" disabled
+                                    th:if="${cancelEligible and !order.withinCancellationWindow}"
+                                    title="The 7-day warranty claim window for this order has passed">
+                                <i data-feather="x-circle"></i>Cancel
+                            </button>
+                        </th:block>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="order-footer">
+                <span th:text="${#lists.size(orders)} + ' order(s) total'"></span>
+            </div>
+            <div class="no-search-results" id="noSearchResults">No orders match your filters.</div>
+        </div>
+
+        <!-- One Upload Receipt modal per order - same per-order-modal pattern
+             adminOrderIndex.html/repairIndex.html use for their own row-scoped modals. -->
+        <th:block th:each="order : ${orders}">
+            <div th:if="${order.status.name() == 'AWAITING_PAYMENT' and currentUsername != null and order.client.user != null and order.client.user.username == currentUsername}"
+                 class="modal fade" th:id="'uploadReceiptModal' + ${order.orderId}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <form th:action="@{/order/uploadReceipt/{id}(id=${order.orderId})}" method="post" enctype="multipart/form-data">
                             <input type="hidden" name="_method" value="put"/>
-                            <button type="submit" class="btn btn-success">Yes, Mark as Paid</button>
+                            <div class="modal-header">
+                                <h5 class="modal-title">Upload Receipt</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <label th:for="'receiptFile' + ${order.orderId}">Receipt image for order
+                                    <strong th:text="${order.orderNumber}"></strong></label>
+                                <input type="file" name="receiptFile" th:id="'receiptFile' + ${order.orderId}" accept="image/*" required/>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="table-action" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn-accent-sm">Upload</button>
+                            </div>
                         </form>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div th:if="${isAdmin and order.refundStatus.name() == 'PENDING'}"
-             class="modal fade" th:id="'markRefundedModal' + ${order.orderId}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Confirm Mark as Refunded</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        Mark order <strong th:text="${order.orderNumber}"></strong>
-                        (Php <span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 2, 'POINT')}"></span>) as <strong>REFUNDED</strong>?
-                        Only confirm this once the money has actually been sent back to the customer.
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <form th:action="@{/order/markRefunded/{id}(id=${order.orderId})}" method="post">
-                            <input type="hidden" name="_method" value="put"/>
-                            <button type="submit" class="btn btn-success">Yes, Mark as Refunded</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div th:if="${isAdmin and order.status.name() == 'CANCELLATION_REQUESTED'}"
-             class="modal fade" th:id="'approveCancelModal' + ${order.orderId}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Approve Cancellation</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        Approve the cancellation request for order <strong th:text="${order.orderNumber}"></strong>
-                        (Php <span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 2, 'POINT')}"></span>)? This will cancel the order and mark a
-                        refund as owed to the customer.
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                        <form th:action="@{/order/approveCancellation/{id}(id=${order.orderId})}" method="post">
-                            <input type="hidden" name="_method" value="put"/>
-                            <button type="submit" class="btn btn-success">Yes, Approve</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div th:if="${isAdmin and order.status.name() == 'CANCELLATION_REQUESTED'}"
-             class="modal fade" th:id="'denyCancelModal' + ${order.orderId}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Deny Cancellation</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        Deny the cancellation request for order <strong th:text="${order.orderNumber}"></strong>?
-                        The order will remain <strong>PAID</strong> and no refund will be recorded.
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                        <form th:action="@{/order/denyCancellation/{id}(id=${order.orderId})}" method="post">
-                            <input type="hidden" name="_method" value="put"/>
-                            <button type="submit" class="btn btn-outline-danger">Yes, Deny</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div th:if="${!isAdmin and order.status.name() == 'AWAITING_PAYMENT' and currentUsername != null and order.client.user != null and order.client.user.username == currentUsername}"
-             class="modal fade" th:id="'uploadReceiptModal' + ${order.orderId}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <form th:action="@{/order/uploadReceipt/{id}(id=${order.orderId})}" method="post" enctype="multipart/form-data">
-                        <input type="hidden" name="_method" value="put"/>
-                        <div class="modal-header">
-                            <h5 class="modal-title">Upload Receipt</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <label for="receiptFile" class="form-label">Receipt image for order
-                                <strong th:text="${order.orderNumber}"></strong></label>
-                            <input type="file" name="receiptFile" id="receiptFile" class="form-control" accept="image/*" required>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Upload</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </th:block>
-
-    <!-- Admin's "View" fetches the same markup /order/{id} renders and drops it in here, instead
-         of navigating away from the list. -->
-    <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Order Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="orderDetailModalBody">
-                    <div class="text-center text-muted py-4">Loading...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="requestReceiptSentModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body text-center py-4">
-                    Request receipt message has been sent
-                </div>
-                <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-                </div>
-            </div>
-        </div>
-    </div>
+        </th:block>
     </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
-<script th:replace="~{fragments/nav :: sidebarScript}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const customerSearch = document.getElementById('customerSearch');
-        if (customerSearch) {
-            const rows = document.querySelectorAll('#ordersTable tbody tr');
-            customerSearch.addEventListener('input', function () {
-                const filter = this.value.toLowerCase();
-                rows.forEach(function (row) {
-                    const itemsCell = row.cells[2];
-                    const referenceCell = row.cells[3];
-                    const items = itemsCell ? itemsCell.textContent.toLowerCase() : '';
-                    const reference = referenceCell ? referenceCell.textContent.toLowerCase() : '';
-                    row.style.display = (items.indexOf(filter) > -1 || reference.indexOf(filter) > -1) ? '' : 'none';
-                });
-            });
-        }
 
-        const ordersTableBody = document.querySelector('#ordersTable tbody');
-        if (ordersTableBody) {
-            const orderRows = Array.from(ordersTableBody.querySelectorAll('tr'));
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
 
-            function rowTotal(row) {
-                const totalCell = row.cells[6];
-                const text = totalCell ? totalCell.textContent : '';
-                return parseFloat(text.replace(/[^0-9.]/g, '')) || 0;
-            }
+<script th:inline="javascript">
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('orderSearchInput');
+    const statusFilter = document.getElementById('orderStatusFilter');
+    const rows = Array.from(document.querySelectorAll('.order-row'));
+    const noResults = document.getElementById('noSearchResults');
 
-            function rowPlaced(row) {
-                const placedCell = row.cells[7];
-                return placedCell ? placedCell.textContent.trim() : '';
-            }
+    function applyFilters() {
+        const term = searchInput.value.trim().toLowerCase();
+        const status = statusFilter.value;
+        let visibleCount = 0;
 
-            function wireColumnSort(headerId, iconId, getValue, compareNumeric) {
-                const header = document.getElementById(headerId);
-                const icon = document.getElementById(iconId);
-                if (!header) return;
-                let dir = null;
-                header.addEventListener('click', function () {
-                    dir = dir === 'asc' ? 'desc' : 'asc';
-                    document.querySelectorAll('#ordersTable thead i.fas').forEach(function (i) {
-                        if (i.id !== iconId) i.className = 'fas fa-sort';
-                    });
-                    const sorted = orderRows.slice().sort(function (a, b) {
-                        const av = getValue(a), bv = getValue(b);
-                        const cmp = compareNumeric ? (av - bv) : av.localeCompare(bv);
-                        return dir === 'asc' ? cmp : -cmp;
-                    });
-                    sorted.forEach(function (row) { ordersTableBody.appendChild(row); });
-                    icon.className = 'fas ' + (dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
-                });
-            }
-
-            wireColumnSort('orderTotalSortHeader', 'orderTotalSortIcon', rowTotal, true);
-            wireColumnSort('orderPlacedSortHeader', 'orderPlacedSortIcon', rowPlaced, false);
-        }
-
-        const orderDetailModalEl = document.getElementById('orderDetailModal');
-        const orderDetailModalBody = document.getElementById('orderDetailModalBody');
-        const orderDetailModal = new bootstrap.Modal(orderDetailModalEl);
-
-        document.querySelectorAll('.view-order-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                orderDetailModalBody.innerHTML = '<div class="text-center text-muted py-4">Loading...</div>';
-                orderDetailModal.show();
-                fetch('/order/' + btn.getAttribute('data-order-id') + '/modal')
-                    .then(function (res) { return res.text(); })
-                    .then(function (html) { orderDetailModalBody.innerHTML = html; })
-                    .catch(function () {
-                        orderDetailModalBody.innerHTML = '<div class="text-danger text-center py-4">Failed to load order details.</div>';
-                    });
-            });
+        rows.forEach(function (row) {
+            const matchesText = !term || row.textContent.toLowerCase().indexOf(term) > -1;
+            const matchesStatus = !status || row.getAttribute('data-status') === status;
+            const visible = matchesText && matchesStatus;
+            row.hidden = !visible;
+            if (visible) visibleCount++;
         });
 
-        const requestReceiptSentModal = new bootstrap.Modal(document.getElementById('requestReceiptSentModal'));
-        // Delegated: the button lives inside the order detail modal body, whose content is
-        // replaced by fetched HTML every time View is clicked (see below), so it doesn't exist
-        // at page load for a direct listener to attach to.
-        orderDetailModalBody.addEventListener('click', function (e) {
-            const btn = e.target.closest('.request-receipt-btn');
-            if (!btn) return;
-            fetch(btn.getAttribute('data-request-receipt-url'), { method: 'PUT' })
-                .then(function (res) {
-                    if (res.ok) {
-                        requestReceiptSentModal.show();
-                    }
-                });
-        });
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    if (rows.length > 0) {
+        searchInput.addEventListener('input', applyFilters);
+        statusFilter.addEventListener('change', applyFilters);
+    }
+
+    // Cancel confirmation - the message lives on the button's data-confirm-message (set
+    // server-side per order status) rather than in an inline onclick, so no quoted JS ever has to
+    // survive a Thymeleaf expression. Delegated on document because submit bubbles.
+    document.addEventListener('submit', function (e) {
+        const form = e.target.closest('.table-action-form');
+        if (!form) { return; }
+        const btn = form.querySelector('[data-confirm-message]');
+        if (!btn) { return; }
+        if (!confirm(btn.getAttribute('data-confirm-message'))) {
+            e.preventDefault();
+        }
     });
+});
 </script>
+
 </body>
 </html>
