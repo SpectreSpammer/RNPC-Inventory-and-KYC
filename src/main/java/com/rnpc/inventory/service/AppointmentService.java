@@ -48,6 +48,8 @@ public class AppointmentService {
         Appointment appointment = new Appointment();
         appointment.setClient(client);
         appointment.setDeviceType(dto.getDeviceType());
+        appointment.setServiceType(dto.getServiceType());
+        appointment.setDeviceCategory(dto.getDeviceCategory());
         appointment.setItemDescription(dto.getItemDescription());
         appointment.setHistory(dto.getHistory());
         appointment.setPreferredDate(dto.getPreferredDate());

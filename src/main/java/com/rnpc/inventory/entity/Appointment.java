@@ -22,6 +22,69 @@ public class Appointment {
     @Column(nullable = false)
     private String deviceType;
 
+    // NULL on older records: those bookings used the original device-repair workflow.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "service_type", length = 32, columnDefinition = "VARCHAR(32)")
+    private ServiceType serviceType;
+
+    // Optional on existing appointments and on cleaning/consultation bookings.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "device_category", length = 32, columnDefinition = "VARCHAR(32)")
+    private DeviceCategory deviceCategory;
+
+    public enum DeviceCategory {
+        ANDROID("Android", "Cellphone"), IOS("iOS", "Cellphone"),
+        GAMING_LAPTOP("Gaming Laptop", "Laptop"),
+        REGULAR_LAPTOP("Regular Laptop", "Laptop"),
+        APPLE_MACBOOK("MacBook", "Laptop"),
+        AMD("AMD", "Desktop"), INTEL("Intel", "Desktop");
+
+        private final String label;
+        private final String deviceType;
+        DeviceCategory(String label, String deviceType) {
+            this.label = label;
+            this.deviceType = deviceType;
+        }
+        public String getLabel() { return label; }
+        public String getDeviceType() { return deviceType; }
+    }
+
+    public DeviceCategory getDeviceCategory() { return deviceCategory; }
+    public void setDeviceCategory(DeviceCategory deviceCategory) { this.deviceCategory = deviceCategory; }
+    public String getDeviceLabel() {
+        return deviceCategory == null ? deviceType : deviceType + " - " + deviceCategory.getLabel();
+    }
+
+    public enum ServiceType {
+        DESKTOP_REPAIR("Desktop Repair"),
+        LAPTOP_REPAIR("Laptop Repair"),
+        CELLPHONE_REPAIR("Cellphone Repair"),
+        PC_LAPTOP_CLEANING("PC / Laptop Cleaning"),
+        GENERAL_CONSULTATION("General Consultation");
+
+        private final String label;
+        ServiceType(String label) { this.label = label; }
+        public String getLabel() { return label; }
+
+        public boolean allowsDevice(String device) {
+            if (device == null) return false;
+            return switch (this) {
+                case DESKTOP_REPAIR -> "Desktop".equals(device);
+                case LAPTOP_REPAIR -> "Laptop".equals(device);
+                case CELLPHONE_REPAIR -> "Cellphone".equals(device);
+                case PC_LAPTOP_CLEANING -> "Desktop".equals(device) || "Laptop".equals(device);
+                case GENERAL_CONSULTATION -> "Desktop".equals(device) || "Laptop".equals(device)
+                        || "Cellphone".equals(device);
+            };
+        }
+    }
+
+    public ServiceType getServiceType() { return serviceType; }
+    public void setServiceType(ServiceType serviceType) { this.serviceType = serviceType; }
+    public String getServiceLabel() {
+        return serviceType != null ? serviceType.getLabel() : deviceType + " Repair";
+    }
+
     @Column(columnDefinition = "TEXT")
     private String itemDescription;
 

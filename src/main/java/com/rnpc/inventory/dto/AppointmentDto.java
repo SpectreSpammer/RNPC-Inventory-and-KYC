@@ -1,6 +1,9 @@
 package com.rnpc.inventory.dto;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.AssertTrue;
+import com.rnpc.inventory.entity.Appointment.ServiceType;
+import com.rnpc.inventory.entity.Appointment.DeviceCategory;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -31,6 +34,33 @@ public class AppointmentDto {
     @NotEmpty(message = "The device type is required!")
     @Pattern(regexp = "Desktop|Laptop|Cellphone", message = "Invalid device type selected")
     private String deviceType;
+
+    @NotNull(message = "Please select a service!")
+    private ServiceType serviceType;
+
+    private DeviceCategory deviceCategory;
+    public DeviceCategory getDeviceCategory() { return deviceCategory; }
+    public void setDeviceCategory(DeviceCategory deviceCategory) { this.deviceCategory = deviceCategory; }
+
+    @AssertTrue(message = "Select a device category that matches your repair service.")
+    public boolean isDeviceCategoryValid() {
+        if (serviceType == null) return true; // Required service has its own validation message.
+        boolean repair = serviceType == ServiceType.DESKTOP_REPAIR
+                || serviceType == ServiceType.LAPTOP_REPAIR || serviceType == ServiceType.CELLPHONE_REPAIR;
+        if (!repair) return deviceCategory == null;
+        return deviceCategory != null && deviceCategory.getDeviceType().equals(deviceType)
+                && serviceType.allowsDevice(deviceType);
+    }
+
+    public ServiceType getServiceType() { return serviceType; }
+    public void setServiceType(ServiceType serviceType) { this.serviceType = serviceType; }
+
+    @AssertTrue(message = "Choose a device supported by the selected service.")
+    public boolean isServiceDeviceValid() {
+        // Missing values are reported by the individual required-field constraints.
+        return serviceType == null || deviceType == null || deviceType.isBlank()
+                || serviceType.allowsDevice(deviceType);
+    }
 
     @Size(max = 1000, message = "The item description cannot exceed 1000 characters")
     private String itemDescription;
