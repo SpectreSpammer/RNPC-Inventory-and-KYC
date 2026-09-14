@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"><body>
+<!-- Presentation shared only by appointment pages; business rules stay in the existing service. -->
+<style th:fragment="styles">
+    .appointment-content{padding:var(--space-5);}
+    .appointment-page [hidden]{display:none!important;}
+    .appointment-heading{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);flex-wrap:wrap;margin-bottom:var(--space-5);}
+    .appointment-heading .rn-page-header{margin:0;}
+    .appointment-page .btn-accent-sm{margin-top:0;}
+    .appointment-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-4);margin-bottom:var(--space-5);}
+    .appointment-filter{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-4);padding-bottom:var(--space-4);margin-bottom:var(--space-3);border-bottom:1px solid var(--border);}
+    .appointment-filter-choice{display:inline-flex;align-items:center;gap:var(--space-2);font-size:13px;cursor:pointer;}
+    .appointment-page input[type=checkbox],.appointment-page input[type=radio]{accent-color:var(--accent);}
+    .appointment-muted{color:var(--text-muted);font-size:12px;}
+    .appointment-table-scroll{overflow-x:auto;}
+    .appointment-issue{min-width:160px;max-width:300px;overflow-wrap:anywhere;}
+    .appointment-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);min-width:180px;}
+    .appointment-actions form{margin:0;}
+    .appointment-sort{border:0;background:transparent;color:inherit;font:inherit;text-transform:inherit;letter-spacing:inherit;cursor:pointer;display:flex;gap:var(--space-2);align-items:center;}
+    .appointment-list-footer,.appointment-filter-empty{padding-top:var(--space-4);color:var(--text-muted);font-size:13px;}
+    .appointment-filter-empty{text-align:center;}
+    .appointment-page .modal-content{background:var(--bg-card);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-md);}
+    .appointment-page .modal-header,.appointment-page .modal-footer{border-color:var(--border);}
+    .appointment-page .form-control,.appointment-page .form-select{background:var(--bg-card);border-color:var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;padding:var(--space-3);}
+    .appointment-page .form-control:focus,.appointment-page .form-select:focus{border-color:var(--accent);box-shadow:0 0 0 var(--space-1) var(--accent-subtle);}
+    .appointment-page .form-label{font-size:13px;font-weight:600;color:var(--text);}
+    .appointment-page .text-danger,.appointment-field-error{color:var(--red)!important;font-size:12px;}
+    .appointment-note{background:var(--blue-subtle);color:var(--blue);padding:var(--space-4);border-radius:var(--radius-sm);font-size:13px;}
+    .appointment-stepper{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-4);padding:var(--space-5);margin-bottom:var(--space-4);list-style:none;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);}
+    .appointment-stepper li{display:flex;align-items:center;gap:var(--space-3);color:var(--text-muted);font-size:13px;}
+    .appointment-stepper li:not(:last-child)::after{content:'';height:1px;background:var(--border);flex:1;}
+    .appointment-step-number{width:36px;height:36px;flex-shrink:0;display:grid;place-items:center;border-radius:50%;background:var(--bg-page);font-weight:700;}
+    .appointment-stepper .is-current{color:var(--text);font-weight:700;}
+    .appointment-stepper .is-current .appointment-step-number{background:var(--accent);color:var(--bg-card);}
+    .appointment-stepper .is-done .appointment-step-number{background:var(--green-subtle);color:var(--green);}
+    .appointment-booking-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(270px,1fr);gap:var(--space-4);align-items:start;}
+    .appointment-step h2,.appointment-summary h2{font-size:18px;font-weight:700;margin-bottom:var(--space-2);}
+    .appointment-step>p{color:var(--text-muted);font-size:13px;margin-bottom:var(--space-5);}
+    .appointment-device-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-3);}
+    .appointment-device-choice{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-4);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;background:var(--bg-card);}
+    .appointment-device-choice:has(input:checked){border-color:var(--accent);background:var(--accent-subtle);}
+    .appointment-device-choice:focus-within{outline:2px solid var(--accent);outline-offset:2px;}
+    .appointment-device-choice span{display:flex;flex-direction:column;gap:var(--space-2);font-size:13px;}
+    .appointment-device-choice svg{width:24px;height:24px;color:var(--accent);}
+    .appointment-device-choice small{color:var(--text-muted);}
+    .appointment-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4);}
+    .appointment-booking-actions{display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap;border-top:1px solid var(--border);padding-top:var(--space-4);margin-top:var(--space-4);}
+    .appointment-booking-actions>div{display:flex;gap:var(--space-2);}
+    .appointment-summary{position:sticky;top:var(--space-4);}
+    .appointment-summary dl,.appointment-review{margin:0;}
+    .appointment-summary dl>div,.appointment-review>div{display:grid;grid-template-columns:minmax(100px,1fr) minmax(0,1.5fr);gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--border);font-size:13px;}
+    .appointment-summary dt,.appointment-review dt{color:var(--text-muted);font-weight:500;}
+    .appointment-summary dd,.appointment-review dd{margin:0;text-align:right;overflow-wrap:anywhere;white-space:pre-wrap;}
+    .appointment-summary .appointment-note{margin-top:var(--space-5);}
+    .appointment-payment-options{display:flex;flex-wrap:wrap;gap:var(--space-3);margin:var(--space-3) 0;}
+    .appointment-qr{text-align:center;border:1px solid var(--border);border-radius:var(--radius-sm);padding:var(--space-4);margin:var(--space-4) 0;}
+    .appointment-qr img{max-width:220px;width:100%;height:auto;}
+    .appointment-detail-wrap{max-width:950px;margin:0 auto;}
+    @media(max-width:1150px){.appointment-stats{grid-template-columns:repeat(2,minmax(0,1fr));}.appointment-booking-grid{grid-template-columns:minmax(0,1fr);}.appointment-summary{position:static;}}
+    @media(max-width:768px){
+        .appointment-page>.sidebar{position:fixed;top:0;left:0;width:264px;height:100dvh;z-index:30;transform:translateX(-100%);transition:transform .18s ease;box-shadow:var(--shadow-md);}
+        .appointment-page.appointment-nav-open>.sidebar{transform:translateX(0);}
+        .appointment-page>.main{width:100%;}
+        .appointment-page .topbar{gap:var(--space-2);padding:0 var(--space-3);}
+        .appointment-page .user-text{display:none;}
+        .appointment-page .user-menu{gap:var(--space-1);}
+        .appointment-page .user-avatar{width:32px;height:32px;}
+        .appointment-page .search-box-wrap{flex:1;max-width:none;min-width:0;}
+        .appointment-page .search-box{padding:var(--space-2);}
+        .appointment-page .topbar-spacer{display:none;}
+    }
+    @media(max-width:640px){.appointment-content{padding:var(--space-3);}.appointment-stats,.appointment-fields,.appointment-device-options{grid-template-columns:minmax(0,1fr);}.appointment-stepper{grid-template-columns:repeat(2,minmax(0,1fr));padding:var(--space-4);}.appointment-stepper li::after{display:none;}}
+</style>
+<div th:fragment="receiptFeedback" class="modal fade" id="appointmentReceiptFeedback" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Receipt request</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body" id="appointmentReceiptFeedbackText" role="status">Request receipt message has been sent.</div>
+        <div class="modal-footer"><button type="button" class="btn-accent-sm" data-bs-dismiss="modal">OK</button></div>
+    </div></div>
+</div>
+<script th:fragment="script">
+document.addEventListener('DOMContentLoaded', function () {
+    // The desktop shell keeps its existing collapse behavior. On narrow appointment pages,
+    // overlay navigation instead of taking most of the form's available width.
+    const narrow = window.matchMedia('(max-width:768px)');
+    const sidebar = document.getElementById('sidebar');
+    const menu = document.getElementById('sidebarToggle');
+    function closeNavigation() {
+        document.body.classList.remove('appointment-nav-open');
+        if (narrow.matches) {
+            sidebar.inert = true;
+            menu.setAttribute('aria-expanded', 'false');
+        }
+    }
+    function sizeNavigation() {
+        closeNavigation();
+        sidebar.inert = narrow.matches;
+        sidebar.classList.toggle('icons-only', !narrow.matches && localStorage.getItem('rnSidebarIconsOnly') === 'true');
+        if (!narrow.matches) menu.removeAttribute('aria-expanded');
+    }
+    if (sidebar && menu) {
+        menu.setAttribute('aria-controls', 'sidebar');
+        sizeNavigation();
+        narrow.addEventListener('change', sizeNavigation);
+        menu.addEventListener('click', function (event) {
+            if (!narrow.matches) return;
+            event.stopImmediatePropagation();
+            const open = document.body.classList.toggle('appointment-nav-open');
+            sidebar.inert = !open;
+            menu.setAttribute('aria-expanded', String(open));
+            if (open) sidebar.querySelector('a,button').focus();
+        }, true);
+        document.addEventListener('click', function (event) {
+            if (narrow.matches && !sidebar.contains(event.target) && !menu.contains(event.target)) closeNavigation();
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && document.body.classList.contains('appointment-nav-open')) {
+                closeNavigation(); menu.focus();
+            }
+        });
+    }
+    const rows = Array.from(document.querySelectorAll('#appointmentsTable tbody tr'));
+    const filters = Array.from(document.querySelectorAll('.appt-filter-device'));
+    filters.forEach(function (input) {
+        input.addEventListener('change', function () {
+            const selected = filters.filter(function (item) { return item.checked; }).map(function (item) { return item.value; });
+            let visible = 0;
+            rows.forEach(function (row) {
+                row.hidden = selected.length > 0 && !selected.includes(row.dataset.device);
+                if (!row.hidden) visible++;
+            });
+            document.getElementById('appointmentFilterEmpty').hidden = rows.length === 0 || visible > 0;
+        });
+    });
+    const sortButton = document.getElementById('apptDateSortButton');
+    let ascending = false;
+    if (sortButton) sortButton.addEventListener('click', function () {
+        ascending = !ascending;
+        const tbody = document.querySelector('#appointmentsTable tbody');
+        rows.slice().sort(function (a, b) {
+            return ascending ? a.dataset.date.localeCompare(b.dataset.date) : b.dataset.date.localeCompare(a.dataset.date);
+        }).forEach(function (row) { tbody.appendChild(row); });
+        document.getElementById('apptDateSortHeader').setAttribute('aria-sort', ascending ? 'ascending' : 'descending');
+        document.getElementById('apptDateSortIcon').textContent = ascending ? '↑' : '↓';
+    });
+    // Detail HTML is fetched by layout-app's existing delegated modal handler.
+    document.addEventListener('click', function (event) {
+        const button = event.target.closest('.request-receipt-btn');
+        if (!button) return;
+        const url = button.getAttribute('data-request-receipt-url');
+        if (!url || !url.startsWith('/appointment/requestReceipt/')) return;
+        button.disabled = true;
+        fetch(url, { method: 'PUT' }).then(function (response) {
+            if (!response.ok) throw new Error('Receipt request failed');
+            showFeedback('Request receipt message has been sent.');
+        }).catch(function () {
+            showFeedback('The receipt request could not be sent. Please try again.');
+        }).finally(function () { button.disabled = false; });
+    });
+    function showFeedback(message) {
+        const feedback = document.getElementById('appointmentReceiptFeedback');
+        document.getElementById('appointmentReceiptFeedbackText').textContent = message;
+        const current = document.querySelector('.modal.show');
+        if (current && current !== feedback) {
+            current.addEventListener('hidden.bs.modal', function () {
+                bootstrap.Modal.getOrCreateInstance(feedback).show();
+            }, { once: true });
+            bootstrap.Modal.getOrCreateInstance(current).hide();
+        } else bootstrap.Modal.getOrCreateInstance(feedback).show();
+    }
+});
+</script>
+</body></html>

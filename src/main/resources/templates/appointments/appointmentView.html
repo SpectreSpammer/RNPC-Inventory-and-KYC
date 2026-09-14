@@ -1,82 +1,125 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-          crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Appointment Details - RNPC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/card :: card-styles}"></th:block>
+    <th:block th:replace="~{fragments/stat-card :: stat-card-styles}"></th:block>
+    <th:block th:replace="~{fragments/table-card :: table-card-styles}"></th:block>
+    <th:block th:replace="~{fragments/page-header :: page-header-styles}"></th:block>
+    <th:block th:replace="~{fragments/status-badge :: badge-styles}"></th:block>
+    <th:block th:replace="~{fragments/empty-state :: empty-state-styles}"></th:block>
+    <th:block th:replace="~{fragments/appointment-ui :: styles}"></th:block>
+
 </head>
-<body>
-<div class="container">
-        <h1 class="text-center my-4">Appointment Requested</h1>
+<body class="appointment-page">
+<div th:replace="~{fragments/layout-app :: sidebar(active='view-appointments', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+    <main class="content appointment-content">
+<div class="appointment-heading">
+    <div th:replace="~{fragments/page-header :: header(title='Appointment Details', subtitle='View the schedule, confirmation, payment and receipt details.', actions=null)}"></div>
+    <a class="table-action" href="/appointment"><i data-feather="arrow-left"></i>Back to Appointments</a>
 </div>
-
-<div class="content-wrapper">
-    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
-
-    <main class="main-content">
-    <div>
-        <a href="/appointment" class="btn btn-outline-secondary btn-sm mb-3">View Appointment</a>
-    </div>
-
-    <div class="row justify-content-center">
-        <div class="col-md-7">
-            <div class="card" th:fragment="appointmentCard">
+<div class="appointment-detail-wrap">
+<div class="card appointment-detail" th:fragment="appointmentCard">
+                <style>
+    .appointment-detail{background:var(--bg-card);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);}
+    .appointment-detail .card-body{padding:var(--space-5);}
+    #notifDetailModal:has(.appointment-detail)>.modal-dialog{max-width:860px;}
+    #notifDetailModal:has(.appointment-detail)>.modal-dialog>.modal-content>.modal-body{padding:0;}
+    #notifDetailModal:has(.appointment-detail) .appointment-detail{border:0;box-shadow:none;}
+    .appointment-detail-heading{display:flex;justify-content:space-between;align-items:start;gap:var(--space-4);margin-bottom:var(--space-5);}
+    .appointment-detail-eyebrow{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:var(--space-2);}
+    .appointment-detail-heading h2{font-size:24px;font-weight:700;margin:0 0 var(--space-2);}
+    .appointment-detail-heading p{font-size:14px;color:var(--text-muted);margin:0;}
+    .appointment-detail-schedule{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4);padding:var(--space-4);background:var(--blue-subtle);border-radius:var(--radius-sm);margin-bottom:var(--space-4);}
+    .appointment-detail-schedule>div{display:flex;align-items:center;gap:var(--space-3);}
+    .appointment-detail-schedule svg{width:24px;color:var(--blue);flex-shrink:0;}
+    .appointment-detail-schedule span,.appointment-detail-schedule strong{display:block;font-size:15px;}
+    .appointment-detail-schedule span{font-size:12px;color:var(--text-muted);margin-bottom:var(--space-1);}
+    .appointment-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4);margin-bottom:var(--space-4);}
+    .appointment-detail-section{border:1px solid var(--border);border-radius:var(--radius-sm);padding:var(--space-4);}
+    .appointment-detail-section h3{display:flex;align-items:center;gap:var(--space-3);font-size:15px;font-weight:700;margin:0 0 var(--space-3);}
+    .appointment-detail-section h3 svg{width:22px;height:22px;color:var(--blue);}
+    .appointment-detail-section dl{margin:0;}
+    .appointment-detail-section dl>div{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:var(--space-3);padding:var(--space-3) 0;border-top:1px solid var(--border);}
+    .appointment-detail-section dt{font-size:12px;font-weight:500;color:var(--text-muted);}
+    .appointment-detail-section dd{font-size:13px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;}
+    .appointment-detail-payment{border:1px solid var(--border);border-radius:var(--radius-sm);padding:var(--space-4);margin-bottom:var(--space-4);font-size:14px;overflow-wrap:anywhere;}
+    .appointment-payment-summary{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-4);}
+    .appointment-payment-summary>i,.appointment-payment-summary>svg{color:var(--blue);background:var(--blue-subtle);padding:var(--space-2);width:44px;height:44px;border-radius:var(--radius-sm);flex-shrink:0;}
+    .appointment-payment-info{flex:1;min-width:0;}
+    .appointment-payment-info h3{font-size:15px;font-weight:700;margin:0 0 var(--space-3);}
+    .appointment-payment-info dl{display:flex;gap:var(--space-5);flex-wrap:wrap;margin:0;}
+    .appointment-payment-info dt{font-size:12px;color:var(--text-muted);font-weight:500;}
+    .appointment-payment-info dd{margin:var(--space-1) 0 0;font-weight:600;}
+    .appointment-detail-close{display:none;border-top:1px solid var(--border);padding:var(--space-4) var(--space-5);justify-content:flex-end;}
+    #notifDetailModal .appointment-detail-close{display:flex;}
+    @media(max-width:600px){.appointment-detail-grid,.appointment-detail-schedule{grid-template-columns:minmax(0,1fr);}.appointment-detail .card-body{padding:var(--space-4);}.appointment-detail-heading h2{font-size:20px;}.appointment-payment-info dl{gap:var(--space-3);}}
+    .appointment-receipt-image{max-width:280px;max-height:150px;object-fit:contain;}
+    .appointment-detail-button{display:inline-flex;align-items:center;text-decoration:none;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);color:var(--text);padding:var(--space-2) var(--space-3);font-size:13px;font-weight:600;}
+    .appointment-detail-button:hover{border-color:var(--accent);color:var(--accent);}
+    .appointment-detail-primary{background:var(--accent);color:var(--bg-card);border-color:var(--accent);}
+    .appointment-detail-primary:hover{background:var(--accent-hover);color:var(--bg-card);}
+    .appointment-detail-status{display:inline-flex;padding:var(--space-1) var(--space-2);border-radius:var(--radius-sm);font-size:12px;font-weight:600;}
+    .appointment-status-pending{background:var(--amber-subtle);color:var(--amber);}
+    .appointment-status-confirmed{background:var(--green-subtle);color:var(--green);}
+    .appointment-status-cancelled{background:var(--red-subtle);color:var(--red);}
+    .appointment-detail-note{background:var(--blue-subtle);color:var(--blue);padding:var(--space-4);margin-bottom:var(--space-4);border-radius:var(--radius-sm);font-size:13px;}
+    .appointment-detail-confirmed{background:var(--green-subtle);color:var(--green);}
+    .appointment-detail .d-flex{flex-wrap:wrap;}
+</style>
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
-                            <h5 class="mb-0" th:text="${appointment.client.fullName}"></h5>
-                            <div class="text-muted small" th:text="${appointment.client.contactNumber}"></div>
-                            <div class="text-muted small" th:text="${appointment.client.email}"></div>
+                    <header class="appointment-detail-heading">
+                        <div><div class="appointment-detail-eyebrow" th:text="${'Appointment #' + appointment.appointmentId}"></div>
+                            <h2 th:text="${appointment.serviceLabel}"></h2>
+                            <p th:text="${appointment.deviceLabel}"></p>
                         </div>
-                        <span class="badge"
-                              th:classappend="${appointment.status.name() == 'CONFIRMED'} ? 'bg-success' : (${appointment.status.name() == 'CANCELLED'} ? 'bg-danger' : 'bg-warning text-dark')"
-                              th:text="${appointment.status}"></span>
+                        <span class="appointment-detail-status" th:classappend="${'appointment-status-' + #strings.toLowerCase(appointment.status.name())}" th:text="${#strings.capitalize(#strings.toLowerCase(appointment.status.name()))}"></span>
+                    </header>
+                    <div class="appointment-detail-schedule">
+                        <div><i data-feather="calendar"></i><div><span>Preferred Date</span><strong th:text="${#temporals.format(appointment.preferredDate, 'MMMM d, yyyy')}"></strong></div></div>
+                        <div><i data-feather="clock"></i><div><span>Preferred Time</span><strong th:text="${#temporals.format(appointment.preferredTime, 'h:mm a')}"></strong></div></div>
+                    </div>
+                    <div class="appointment-detail-grid">
+                        <section class="appointment-detail-section">
+                            <h3><i data-feather="user"></i>Customer Details</h3>
+                            <dl>
+                                <div><dt>Name</dt><dd th:text="${appointment.client.fullName}"></dd></div>
+                                <div><dt>Contact Number</dt><dd th:text="${appointment.client.contactNumber}"></dd></div>
+                                <div><dt>Email Address</dt><dd th:text="${appointment.client.email}"></dd></div>
+                            </dl>
+                        </section>
+                        <section class="appointment-detail-section">
+                            <h3><i data-feather="smartphone"></i>Device &amp; Concern</h3>
+                            <dl>
+                                <div th:if="${appointment.itemDescription != null and !#strings.isEmpty(appointment.itemDescription)}"><dt>Item Description</dt><dd th:text="${appointment.itemDescription}"></dd></div>
+                                <div th:if="${appointment.history != null and !#strings.isEmpty(appointment.history)}"><dt>Device History</dt><dd th:text="${appointment.history}"></dd></div>
+                                <div><dt>Concern</dt><dd th:text="${appointment.issueDescription}"></dd></div>
+                            </dl>
+                        </section>
                     </div>
 
-                    <table class="table table-sm">
-                        <tbody>
-                        <tr>
-                            <th>Device</th>
-                            <td th:text="${appointment.deviceType}"></td>
-                        </tr>
-                        <tr th:if="${appointment.itemDescription != null and !#strings.isEmpty(appointment.itemDescription)}">
-                            <th>Item Description</th>
-                            <td th:text="${appointment.itemDescription}"></td>
-                        </tr>
-                        <tr th:if="${appointment.history != null and !#strings.isEmpty(appointment.history)}">
-                            <th>History</th>
-                            <td th:text="${appointment.history}"></td>
-                        </tr>
-                        <tr>
-                            <th>Preferred Date</th>
-                            <td th:text="${#temporals.format(appointment.preferredDate, 'MMM dd, yyyy')}"></td>
-                        </tr>
-                        <tr>
-                            <th>Preferred Time</th>
-                            <td th:text="${#temporals.format(appointment.preferredTime, 'hh:mm a')}"></td>
-                        </tr>
-                        <tr>
-                            <th>Issue</th>
-                            <td th:text="${appointment.issueDescription}"></td>
-                        </tr>
-                        </tbody>
-                    </table>
-
-                    <div th:if="${appointment.status.name() == 'PENDING'}" class="alert alert-secondary">
-                        The shop will contact you to confirm this walk-in slot.
+                    <div th:if="${appointment.status.name() == 'PENDING'}" class="appointment-detail-note">
+                        Your request is awaiting confirmation from the shop.
                     </div>
 
-                    <div th:if="${appointment.paymentMethod != null}" class="text-center border rounded p-3 mb-3">
-                        <div class="fw-bold mb-2">Reservation Payment</div>
-                        <div>Paid via: <strong th:text="${#strings.capitalize(#strings.toLowerCase(appointment.paymentMethod.name()))}"></strong></div>
-                        <div>Reference Number: <strong th:text="${appointment.referenceNumber}"></strong></div>
-                        <button type="button" class="btn btn-outline-secondary btn-sm mt-2"
+                    <div th:if="${appointment.status.name() == 'CONFIRMED'}" class="appointment-detail-note appointment-detail-confirmed">Your appointment is confirmed for <strong th:text="${#temporals.format(appointment.preferredDate, 'MMM dd, yyyy') + ' at ' + #temporals.format(appointment.preferredTime, 'hh:mm a')}"></strong>.</div>
+                    <div th:if="${appointment.paymentMethod != null}" class="appointment-detail-payment appointment-payment-summary">
+                        <i data-feather="credit-card"></i>
+                        <div class="appointment-payment-info"><h3>Reservation Payment</h3>
+                            <dl><div><dt>Paid via</dt><dd th:text="${appointment.paymentMethod.name()}"></dd></div>
+                                <div><dt>Reference Number</dt><dd th:text="${appointment.referenceNumber}"></dd></div></dl>
+                        </div>
+                        <button type="button" class="appointment-detail-button appointment-detail-primary"
                                 th:if="${!navIsAdmin and appointment.status.name() == 'PENDING' and currentUsername != null and appointment.client.user != null and appointment.client.user.username == currentUsername}"
                                 data-bs-toggle="modal" data-bs-target="#uploadApptReceiptModal">Upload Receipt</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm mt-2 request-receipt-btn"
+                        <button type="button" class="appointment-detail-button mt-2 request-receipt-btn"
                                 th:if="${navIsAdmin and appointment.status.name() == 'PENDING'}"
                                 th:attr="data-request-receipt-url=@{/appointment/requestReceipt/{id}(id=${appointment.appointmentId})}">Request Receipt</button>
                     </div>
@@ -96,21 +139,21 @@
                                         <input type="file" name="receiptFile" id="apptReceiptFile" class="form-control" accept="image/*" required>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Upload</button>
+                                        <button type="button" class="appointment-detail-button" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="appointment-detail-button">Upload</button>
                                     </div>
                                 </form>
                             </div>
                         </div>
                     </div>
 
-                    <div th:if="${appointment.receiptFileName}" class="text-center border rounded p-3 mb-3">
+                    <div th:if="${appointment.receiptFileName}" class="appointment-detail-payment">
                         <div class="fw-bold mb-2">Uploaded Receipt</div>
                         <img th:src="@{/images/{f}(f=${appointment.receiptFileName})}" alt="Uploaded receipt"
-                             class="img-fluid" style="max-width:280px; max-height:150px; object-fit:contain;"/>
+                             class="img-fluid appointment-receipt-image"/>
                     </div>
 
-                    <div th:if="${appointment.verifiedByEmployeeId != null}" class="text-center border rounded p-3 mb-3">
+                    <div th:if="${appointment.verifiedByEmployeeId != null}" class="appointment-detail-payment">
                         <div class="fw-bold mb-2">Payment Confirmed</div>
                         <div class="text-muted small">
                             Payment validated by <strong th:text="${appointment.verifiedByEmployeeId}"></strong>
@@ -122,13 +165,13 @@
                         <form th:if="${appointment.status.name() == 'PENDING'}"
                               th:action="@{/appointment/confirm/{id}(id=${appointment.appointmentId})}" method="post">
                             <input type="hidden" name="_method" value="put"/>
-                            <button type="submit" class="btn btn-success btn-sm">Confirm Appointment</button>
+                            <button type="submit" class="appointment-detail-button appointment-detail-primary">Confirm Appointment</button>
                         </form>
                         <form th:action="@{/appointment/cancel/{id}(id=${appointment.appointmentId})}" method="post">
                             <input type="hidden" name="_method" value="put"/>
-                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Cancel this appointment?')">Cancel Appointment</button>
+                            <button type="submit" class="appointment-detail-button" onclick="return confirm('Cancel this appointment?')">Cancel Appointment</button>
                         </form>
-                        <button type="button" class="btn btn-outline-primary btn-sm"
+                        <button type="button" class="appointment-detail-button"
                                 data-bs-toggle="modal" data-bs-target="#rescheduleApptModal">Reschedule</button>
                     </div>
 
@@ -159,18 +202,18 @@
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Submit Reschedule</button>
+                                        <button type="button" class="appointment-detail-button" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="appointment-detail-button">Submit Reschedule</button>
                                     </div>
                                 </form>
                             </div>
                         </div>
                     </div>
 
-                    <div th:if="${appointment.refundStatus.name() != 'NOT_APPLICABLE'}" class="text-center border rounded p-3 mb-3">
+                    <div th:if="${appointment.refundStatus.name() != 'NOT_APPLICABLE'}" class="appointment-detail-payment">
                         <div class="fw-bold mb-2">Refund</div>
-                        <span class="badge"
-                              th:classappend="${appointment.refundStatus.name() == 'REFUNDED'} ? 'bg-success' : (${appointment.refundStatus.name() == 'NOT_REFUNDABLE'} ? 'bg-danger' : 'bg-warning text-dark')"
+                        <span class="appointment-detail-status"
+                              th:classappend="${appointment.refundStatus.name() == 'REFUNDED' ? 'appointment-status-confirmed' : (appointment.refundStatus.name() == 'NOT_REFUNDABLE' ? 'appointment-status-cancelled' : 'appointment-status-pending')}"
                               th:text="${appointment.refundStatus}"></span>
                         <div class="text-muted small mt-2" th:if="${appointment.refundStatus.name() == 'NOT_REFUNDABLE'}">
                             The reservation payment is not refundable - either the schedule was already confirmed
@@ -181,7 +224,7 @@
                             on <span th:text="${#dates.format(appointment.refundedAt, 'yyyy-MM-dd HH:mm')}"></span>
                         </div>
                         <button th:if="${navIsAdmin and appointment.refundStatus.name() == 'PENDING'}" type="button"
-                                class="btn btn-success btn-sm mt-2"
+                                class="appointment-detail-button appointment-detail-primary mt-2"
                                 data-bs-toggle="modal" data-bs-target="#markApptRefundedModal">Mark Refunded</button>
                     </div>
 
@@ -198,54 +241,26 @@
                                     Only confirm this once the money has actually been sent back to the customer.
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" class="appointment-detail-button" data-bs-dismiss="modal">Cancel</button>
                                     <form th:action="@{/appointment/markRefunded/{id}(id=${appointment.appointmentId})}" method="post">
                                         <input type="hidden" name="_method" value="put"/>
-                                        <button type="submit" class="btn btn-success">Yes, Mark as Refunded</button>
+                                        <button type="submit" class="appointment-detail-button appointment-detail-primary">Yes, Mark as Refunded</button>
                                     </form>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <footer class="appointment-detail-close"><button type="button" class="appointment-detail-button" data-bs-dismiss="modal">Close</button></footer>
             </div>
-        </div>
-    </div>
+</div>
 
-    <div class="modal fade" id="requestReceiptSentModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body text-center py-4">
-                    Request receipt message has been sent
-                </div>
-                <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-                </div>
-            </div>
-        </div>
-    </div>
     </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
-<script th:replace="~{fragments/nav :: sidebarScript}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const requestReceiptSentModalEl = document.getElementById('requestReceiptSentModal');
-        if (!requestReceiptSentModalEl) return;
-        const requestReceiptSentModal = new bootstrap.Modal(requestReceiptSentModalEl);
-        document.addEventListener('click', function (e) {
-            const btn = e.target.closest('.request-receipt-btn');
-            if (!btn) return;
-            fetch(btn.getAttribute('data-request-receipt-url'), { method: 'PUT' })
-                .then(function (res) {
-                    if (res.ok) {
-                        requestReceiptSentModal.show();
-                    }
-                });
-        });
-    });
-</script>
+<div th:replace="~{fragments/appointment-ui :: receiptFeedback}"></div>
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+<th:block th:replace="~{fragments/appointment-ui :: script}"></th:block>
+
 </body>
 </html>

@@ -65,19 +65,28 @@ public class AppointmentController {
         }
         model.addAttribute("appointments", appointments);
         model.addAttribute("isAdmin", admin);
-        return "appointments/appointmentIndex";
+        addLayoutAttributes(authentication, model);
+        model.addAttribute("confirmedCount", appointments.stream()
+                .filter(a -> a.getStatus() == Appointment.Status.CONFIRMED).count());
+        model.addAttribute("pendingCount", appointments.stream()
+                .filter(a -> a.getStatus() == Appointment.Status.PENDING).count());
+        model.addAttribute("cancelledCount", appointments.stream()
+                .filter(a -> a.getStatus() == Appointment.Status.CANCELLED).count());
+        return admin ? "appointments/adminAppointmentIndex" : "appointments/appointmentIndex";
     }
 
     @GetMapping("/create")
-    public String showCreatePage(Model model) {
+    public String showCreatePage(Authentication authentication, Model model) {
+        addLayoutAttributes(authentication, model);
         model.addAttribute("appointmentDto", new AppointmentDto());
         return "appointments/appointmentCreate";
     }
 
     @PostMapping("/create")
     public String createAppointment(@Valid @ModelAttribute AppointmentDto appointmentDto, BindingResult result,
-                                     Authentication authentication) {
+                                     Authentication authentication, Model model) {
         if (result.hasErrors()) {
+            addLayoutAttributes(authentication, model);
             return "appointments/appointmentCreate";
         }
 
@@ -99,7 +108,7 @@ public class AppointmentController {
         Appointment appointment = appointmentService.createAppointment(client, appointmentDto);
         repairRecordService.createFromAppointment(client, appointmentDto, appointment);
         notificationService.notifyAdmin(
-                client.getFullName() + " scheduled a " + appointmentDto.getDeviceType() + " repair appointment for "
+                client.getFullName() + " requested " + appointment.getServiceLabel() + " for "
                         + appointmentDto.getPreferredDate() + " " + appointmentDto.getPreferredTime(),
                 Notification.EntityType.APPOINTMENT, appointment.getAppointmentId());
         return "redirect:/appointment/" + appointment.getAppointmentId();
@@ -109,6 +118,7 @@ public class AppointmentController {
     public String showAppointment(@PathVariable("id") Long id, Authentication authentication, Model model) {
         model.addAttribute("appointment", appointmentService.getAppointmentById(id));
         model.addAttribute("currentUsername", isSignedIn(authentication) ? authentication.getName() : null);
+        addLayoutAttributes(authentication, model);
         return "appointments/appointmentView";
     }
 
@@ -174,7 +184,7 @@ public class AppointmentController {
             appointmentService.confirmAppointment(id, verifiedByEmployeeId);
             Appointment appointment = appointmentService.getAppointmentById(id);
             notificationService.notifyCustomer(appointment.getClient().getUser(),
-                    "Your " + appointment.getDeviceType() + " repair appointment on " + appointment.getPreferredDate()
+                    "Your " + appointment.getServiceLabel() + " appointment on " + appointment.getPreferredDate()
                             + " " + appointment.getPreferredTime() + " has been confirmed.",
                     Notification.EntityType.APPOINTMENT, appointment.getAppointmentId());
         }
@@ -271,6 +281,23 @@ public class AppointmentController {
         return "redirect:/appointment";
     }
 
+    // Shared app shell: the admin audience and the customer inbox follow OrderController.
+    // This supplies presentation data only, including the booking validation-error response.
+    private void addLayoutAttributes(Authentication authentication, Model model) {
+        model.addAttribute("deviceCategories", Appointment.DeviceCategory.values());
+        boolean signedIn = isSignedIn(authentication);
+        boolean admin = isAdmin(authentication);
+        String username = signedIn ? authentication.getName() : null;
+        model.addAttribute("currentUsername", username);
+        model.addAttribute("currentRole", admin ? "Admin" : (signedIn ? "Customer" : "Guest"));
+        model.addAttribute("unreadNotifications", !signedIn ? 0 : (admin
+                ? notificationService.getUnreadCountForAdmin()
+                : notificationService.getUnreadCountForUser(username)));
+        List<Notification> recent = !signedIn ? List.of() : (admin
+                ? notificationService.getForAdmin() : notificationService.getForUser(username));
+        model.addAttribute("recentNotifications", recent.stream().limit(15).toList());
+    }
+
     private boolean isAdmin(Authentication authentication) {
         return authentication != null && authentication.isAuthenticated()
                 && authentication.getAuthorities().stream()
@@ -285,7 +312,8 @@ public class AppointmentController {
     @GetMapping("/calendar")
     public String showCalendar(@RequestParam(value = "year", required = false) Integer year,
                                 @RequestParam(value = "month", required = false) Integer month,
-                                Model model) {
+                                Authentication authentication, Model model) {
+        addLayoutAttributes(authentication, model);
         LocalDate today = LocalDate.now();
         YearMonth current = (year != null && month != null)
                 ? YearMonth.of(year, month)

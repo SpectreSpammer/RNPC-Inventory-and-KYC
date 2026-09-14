@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>My Appointment - RNPC</title>
+    <title>Appointments - RNPC</title>
     <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
     <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
     <th:block th:replace="~{fragments/card :: card-styles}"></th:block>
@@ -21,11 +21,11 @@
     <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
     <main class="content appointment-content">
 <div class="appointment-heading">
-    <div th:replace="~{fragments/page-header :: header(title='My Appointment', subtitle='View and manage your repair appointments.', actions=null)}"></div>
+    <div th:replace="~{fragments/page-header :: header(title='Appointments', subtitle='Manage customer appointments and reservation payments.', actions=null)}"></div>
     <a class="btn-accent-sm" href="/appointment/create"><i data-feather="plus"></i>Schedule an Appointment</a>
 </div>
 <section class="appointment-stats" aria-label="Appointment totals">
-    <div th:replace="~{fragments/stat-card :: stat(icon='calendar', color='blue', label='Total Appointments', value=${#lists.size(appointments)}, footerIcon='calendar', footerText='Your appointments', href=null)}"></div>
+    <div th:replace="~{fragments/stat-card :: stat(icon='calendar', color='blue', label='Total Appointments', value=${#lists.size(appointments)}, footerIcon='calendar', footerText='All appointments', href=null)}"></div>
     <div th:replace="~{fragments/stat-card :: stat(icon='check-circle', color='green', label='Confirmed', value=${confirmedCount}, footerIcon='check-circle', footerText='Accepted by the shop', href=null)}"></div>
     <div th:replace="~{fragments/stat-card :: stat(icon='clock', color='orange', label='Pending', value=${pendingCount}, footerIcon='clock', footerText='Awaiting confirmation', href=null)}"></div>
     <div th:replace="~{fragments/stat-card :: stat(icon='x-circle', color='purple', label='Cancelled', value=${cancelledCount}, footerIcon='x-circle', footerText='Cancelled appointments', href=null)}"></div>
@@ -36,42 +36,43 @@
         <label class="appointment-filter-choice"><input type="checkbox" class="appt-filter-device" value="Desktop"/> Desktop</label>
         <label class="appointment-filter-choice"><input type="checkbox" class="appt-filter-device" value="Laptop"/> Laptop</label>
         <label class="appointment-filter-choice"><input type="checkbox" class="appt-filter-device" value="Cellphone"/> Cellphone</label>
+        <a href="/appointment/calendar" class="table-action"><i data-feather="calendar"></i>Calendar</a>
     </div>
     <th:block th:if="${#lists.isEmpty(appointments)}">
         <div th:replace="~{fragments/empty-state :: state(icon='calendar', message='No appointments yet', actions=null)}"></div>
     </th:block>
     <div class="appointment-table-scroll" th:unless="${#lists.isEmpty(appointments)}">
     <table class="rn-table" id="appointmentsTable">
-        <thead><tr><th>Appointment #</th><th>Service</th><th>Device</th>
+        <thead><tr><th>Appointment #</th><th>Customer</th><th>Service</th><th>Device</th>
             <th id="apptDateSortHeader" aria-sort="none"><button type="button" class="appointment-sort" id="apptDateSortButton">Date &amp; Time <span id="apptDateSortIcon" aria-hidden="true">↕</span></button></th>
-            <th>Issue</th><th>Status</th><th>Action</th></tr></thead>
+            <th>Issue</th><th>Status</th><th>Refund</th><th>Action</th></tr></thead>
         <tbody>
         <tr th:each="appointment : ${appointments}" th:attr="data-device=${appointment.deviceType}, data-date=${appointment.preferredDate + 'T' + appointment.preferredTime}">
             <td th:text="${appointment.appointmentId}"></td>
+            <td><strong th:text="${appointment.client.fullName}"></strong><div class="appointment-muted" th:text="${appointment.client.contactNumber}"></div></td>
             <td th:text="${appointment.serviceLabel}"></td>
             <td th:text="${appointment.deviceLabel}"></td>
             <td><div th:text="${#temporals.format(appointment.preferredDate, 'MMM dd, yyyy')}"></div><span class="appointment-muted" th:text="${#temporals.format(appointment.preferredTime, 'hh:mm a')}"></span></td>
             <td class="appointment-issue" th:text="${appointment.issueDescription}"></td>
             <td><span th:replace="~{fragments/status-badge :: badge(status=${appointment.status})}"></span></td>
+            <td><span class="appointment-muted" th:text="${appointment.refundStatus.name() == 'NOT_APPLICABLE' ? '-' : #strings.capitalize(#strings.toLowerCase(#strings.replace(appointment.refundStatus.name(), '_', ' ')))}"></span></td>
             <td><div class="appointment-actions">
                 <a class="table-action search-result-link" th:href="@{/appointment/{id}(id=${appointment.appointmentId})}" th:attr="data-entity-type='APPOINTMENT', data-entity-id=${appointment.appointmentId}"><i data-feather="eye"></i>View</a>
-
-                <!-- Customer self-cancel: a still-PENDING appointment (admin hasn't accepted it yet)
-                     just uses a plain confirm; once CONFIRMED, cancelling forfeits any reservation
-                     payment, so that path opens the warning modal below instead. -->
-                <form th:if="${appointment.status.name() == 'PENDING' and appointment.cancellableByCustomer}" th:action="@{/appointment/cancel/{id}(id=${appointment.appointmentId})}" method="post">
+                <form th:if="${appointment.status.name() == 'PENDING'}" th:action="@{/appointment/confirm/{id}(id=${appointment.appointmentId})}" method="post">
+                    <input type="hidden" name="_method" value="put"/>
+                    <button type="submit" class="btn-accent-sm">Confirm</button>
+                </form>
+                <form th:if="${appointment.status.name() != 'CANCELLED'}" th:action="@{/appointment/cancel/{id}(id=${appointment.appointmentId})}" method="post">
                     <input type="hidden" name="_method" value="put"/>
                     <button type="submit" class="table-action" onclick="return confirm('Cancel this appointment?')">Cancel</button>
                 </form>
                 <button type="button" class="table-action"
-                        th:if="${appointment.status.name() == 'CONFIRMED' and appointment.cancellableByCustomer}"
-                        data-bs-toggle="modal" th:attr="data-bs-target='#cancelConfirmedModal' + ${appointment.appointmentId}">Cancel</button>
-                <button type="button" class="table-action"
-                        th:if="${appointment.status.name() != 'CANCELLED' and appointment.cancellableByCustomer}"
+                        th:if="${appointment.status.name() != 'CANCELLED'}"
                         data-bs-toggle="modal" th:attr="data-bs-target='#rescheduleModal' + ${appointment.appointmentId}">Reschedule</button>
-                <span th:if="${appointment.status.name() != 'CANCELLED' and !appointment.cancellableByCustomer}"
-                      class="text-muted small">Cannot cancel (within 12h)</span>
 
+                <button type="button" class="btn-accent-sm"
+                        th:if="${appointment.refundStatus.name() == 'PENDING'}"
+                        data-bs-toggle="modal" th:attr="data-bs-target='#markApptRefundedModal' + ${appointment.appointmentId}">Mark Refunded</button>
             </div></td>
         </tr>
         </tbody>
@@ -81,31 +82,32 @@
     <div class="appointment-list-footer" th:unless="${#lists.isEmpty(appointments)}" th:text="${#lists.size(appointments) + ' appointment(s) total'}"></div>
 </div>
     <th:block th:each="appointment : ${appointments}">
-
-        <div th:if="${appointment.status.name() == 'CONFIRMED' and appointment.cancellableByCustomer}"
-             class="modal fade" th:id="'cancelConfirmedModal' + ${appointment.appointmentId}" tabindex="-1" aria-hidden="true">
+        <div th:if="${appointment.refundStatus.name() == 'PENDING'}"
+             class="modal fade" th:id="'markApptRefundedModal' + ${appointment.appointmentId}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Cancel Appointment</h5>
+                        <h5 class="modal-title">Confirm Mark as Refunded</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        This appointment is already confirmed - since the schedule has been accepted, cancelling it
-                        will NOT be refundable. Continue?
+                        Mark the reservation payment for
+                        <strong th:text="${appointment.client.fullName}"></strong>'s appointment on
+                        <strong th:text="${#temporals.format(appointment.preferredDate, 'MMM dd, yyyy')} + ' ' + ${#temporals.format(appointment.preferredTime, 'hh:mm a')}"></strong>
+                        as <strong>REFUNDED</strong>? Only confirm this once the money has actually been sent back to the customer.
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="table-action" data-bs-dismiss="modal">No</button>
-                        <form th:action="@{/appointment/cancel/{id}(id=${appointment.appointmentId})}" method="post">
+                        <button type="button" class="table-action" data-bs-dismiss="modal">Cancel</button>
+                        <form th:action="@{/appointment/markRefunded/{id}(id=${appointment.appointmentId})}" method="post">
                             <input type="hidden" name="_method" value="put"/>
-                            <button type="submit" class="table-action">Yes</button>
+                            <button type="submit" class="btn-accent-sm">Yes, Mark as Refunded</button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div th:if="${appointment.status.name() != 'CANCELLED' and appointment.cancellableByCustomer}"
+        <div th:if="${appointment.status.name() != 'CANCELLED'}"
              class="modal fade" th:id="'rescheduleModal' + ${appointment.appointmentId}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">

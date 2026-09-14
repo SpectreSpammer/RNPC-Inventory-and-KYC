@@ -114,13 +114,13 @@
             <button class="nav-toggle" type="button" data-toggle="appt"
                     th:attr="aria-expanded=${active == 'book-appointment' or active == 'view-appointments'}">
                 <span class="nav-icon-chip"><i data-feather="calendar"></i></span>
-                <span class="nav-label">Appointments</span>
+                <span class="nav-label">Appointment</span>
                 <i data-feather="chevron-down" class="nav-caret"></i>
             </button>
             <div class="collapse-panel" data-panel="appt" th:classappend="${active == 'book-appointment' or active == 'view-appointments'} ? 'show'">
                 <div class="accordion-body">
-                    <a href="/appointment/create" th:classappend="${active == 'book-appointment'} ? 'active'">Book Appointment</a>
-                    <a href="/appointment" th:classappend="${active == 'view-appointments'} ? 'active'">View Appointments</a>
+                    <a href="/appointment/create" th:classappend="${active == 'book-appointment'} ? 'active'">Schedule an Appointment</a>
+                    <a href="/appointment" th:classappend="${active == 'view-appointments'} ? 'active'">My Appointment</a>
                 </div>
             </div>
 
@@ -157,15 +157,16 @@
             </a>
 
             <button class="nav-toggle" type="button" data-toggle="admin-appt"
-                    th:attr="aria-expanded=${active == 'calendar' or active == 'view-appointments'}">
+                    th:attr="aria-expanded=${active == 'calendar' or active == 'view-appointments' or active == 'book-appointment'}">
                 <span class="nav-icon-chip"><i data-feather="calendar"></i></span>
                 <span class="nav-label">Appointments</span>
                 <i data-feather="chevron-down" class="nav-caret"></i>
             </button>
-            <div class="collapse-panel" data-panel="admin-appt" th:classappend="${active == 'calendar' or active == 'view-appointments'} ? 'show'">
+            <div class="collapse-panel" data-panel="admin-appt" th:classappend="${active == 'calendar' or active == 'view-appointments' or active == 'book-appointment'} ? 'show'">
                 <div class="accordion-body">
+                    <a href="/appointment/create" th:classappend="${active == 'book-appointment'} ? 'active'">Schedule an Appointment</a>
+                    <a href="/appointment" th:classappend="${active == 'view-appointments'} ? 'active'">All Appointments</a>
                     <a href="/appointment/calendar" th:classappend="${active == 'calendar'} ? 'active'">Calendar</a>
-                    <a href="/appointment" th:classappend="${active == 'view-appointments'} ? 'active'">View All</a>
                 </div>
             </div>
 
@@ -576,6 +577,7 @@
 
                 e.preventDefault();
                 notifDetailModalBody.innerHTML = '<div class="text-center text-muted py-4">Loading...</div>';
+                notifDetailModalEl.querySelector('.modal-title').textContent = type === 'APPOINTMENT' ? 'Appointment Details' : 'Details';
                 bootstrap.Modal.getOrCreateInstance(notifDetailModalEl).show();
                 fetch(base + id + '/modal')
                     .then(function (res) { return res.text(); })
