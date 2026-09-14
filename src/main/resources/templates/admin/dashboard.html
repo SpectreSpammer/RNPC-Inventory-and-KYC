@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Admin Dashboard - RNPC</title>
+<th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+<th:block th:replace="~{fragments/card :: card-styles}"></th:block>
+<th:block th:replace="~{fragments/stat-card :: stat-card-styles}"></th:block>
+<th:block th:replace="~{fragments/table-card :: table-card-styles}"></th:block>
+<th:block th:replace="~{fragments/status-badge :: badge-styles}"></th:block>
+<th:block th:replace="~{fragments/empty-state :: empty-state-styles}"></th:block>
+<style>
+.admin-dashboard .content{padding:var(--space-5);}
+.admin-dashboard .modal-content{background:var(--bg-card);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);}
+.admin-dashboard [hidden]{display:none!important;}
+.admin-stats .stat-top{position:absolute;top:var(--space-4);left:var(--space-4);margin:0;}
+.admin-stats .stat-chevron{display:none;}
+.admin-stats .stat-label,.admin-stats .stat-value{margin-left:64px;}
+.admin-stats .stat-footer{margin-top:var(--space-4);}
+.admin-banner h1{overflow-wrap:anywhere;}
+@media(max-width:768px){
+.admin-dashboard>.sidebar{position:fixed;top:0;left:0;width:264px;height:100dvh;z-index:30;transform:translateX(-100%);box-shadow:var(--shadow-md);}
+.admin-dashboard.appointment-nav-open>.sidebar{transform:translateX(0);}
+.admin-dashboard>.main{width:100%;}
+.admin-dashboard .topbar{gap:var(--space-2);padding:0 var(--space-3);}
+.admin-dashboard .user-text{display:none;}
+.admin-dashboard .user-menu{gap:var(--space-1);}
+.admin-dashboard .user-avatar{width:32px;height:32px;}
+.admin-dashboard .search-box-wrap{flex:1;max-width:none;min-width:0;}
+.admin-dashboard .search-box{padding:var(--space-2);}
+.admin-dashboard .topbar-spacer{display:none;}
+}
+.admin-banner{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);position:relative;overflow:hidden;min-height:140px;padding:var(--space-5);margin-bottom:var(--space-4);border:1px solid var(--border);border-radius:var(--radius);background:linear-gradient(110deg,var(--blue-subtle),var(--accent-subtle));}
+.admin-banner h1{font-size:26px;font-weight:800;margin:var(--space-1) 0;}
+.admin-banner p{font-size:13px;color:var(--text-muted);margin:0;}
+.admin-banner-copy{position:relative;z-index:1;}
+.admin-banner img{height:128px;width:auto;position:absolute;right:300px;bottom:0;pointer-events:none;}
+.admin-clock{position:relative;display:flex;gap:var(--space-4);background:var(--bg-card);padding:var(--space-4);border-radius:var(--radius-sm);flex-shrink:0;}
+.admin-clock>div{display:flex;align-items:center;gap:var(--space-2);}
+.admin-clock svg{color:var(--blue);width:22px;}
+.admin-clock strong,.admin-clock small{display:block;font-size:13px;}
+.admin-clock small{color:var(--text-muted);font-size:11px;}
+.admin-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-4);margin-bottom:var(--space-4);}
+.admin-upper{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:var(--space-4);}
+.admin-lower{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4);}
+.admin-dashboard .card{min-width:0;}
+.admin-dashboard .card-head{gap:var(--space-3);flex-wrap:wrap;}
+.admin-table-scroll{overflow:auto;max-height:330px;}
+.admin-dashboard .rn-table{width:100%;}
+.admin-dashboard .rn-table td{font-size:12px;}
+.admin-dashboard .rn-table th{font-size:10px;}
+.admin-dashboard .rn-table td.wrap{white-space:normal;min-width:100px;max-width:180px;overflow-wrap:anywhere;}
+.admin-note{font-size:12px;color:var(--text-muted);margin:var(--space-2) 0;}
+.admin-stock-status{color:var(--red);background:var(--red-subtle);border-radius:var(--radius-sm);padding:var(--space-1) var(--space-2);font-size:11px;white-space:nowrap;}
+.admin-stock-links{display:flex;gap:var(--space-3);flex-wrap:wrap;margin-top:var(--space-3);}
+.admin-range{display:flex;align-items:center;gap:var(--space-2);font-size:12px;}
+.admin-range select{padding:var(--space-2);color:var(--text);border:1px solid var(--border);background:var(--bg-card);border-radius:var(--radius-sm);}
+.admin-chart{width:100%;height:250px;display:block;}
+.admin-chart .chart-grid{stroke:var(--border);stroke-width:1;}
+.admin-chart .chart-area{fill:var(--blue-subtle);}
+.admin-chart .chart-line{stroke:var(--blue);stroke-width:3;fill:none;}
+.admin-chart .chart-dot{fill:var(--blue);}
+.admin-chart text{fill:var(--text-muted);font-size:12px;}
+.admin-chart-data{margin-top:var(--space-3);font-size:12px;color:var(--text-muted);}
+.admin-chart-data summary{cursor:pointer;}
+@media(max-width:1200px){.admin-banner img{display:none;}.admin-upper{grid-template-columns:minmax(0,1fr);}.admin-lower{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:800px){.admin-stats,.admin-lower{grid-template-columns:repeat(2,minmax(0,1fr));}.admin-banner{flex-wrap:wrap;}.admin-dashboard .content{padding:var(--space-3);}}
+@media(max-width:600px){.admin-stats,.admin-lower{grid-template-columns:minmax(0,1fr);}.admin-banner h1{font-size:22px;}.admin-clock{flex-wrap:wrap;}}
+</style></head><body class="admin-dashboard">
+<div th:replace="~{fragments/layout-app :: sidebar(active='dashboard', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+<div class="main">
+<div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+<div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+<main class="content">
+<section class="admin-banner">
+<div class="admin-banner-copy"><p th:text="${greeting}"></p><h1 th:text="${'Welcome back, ' + currentUsername + '!'}"></h1><p>Here's what's happening in your repair shop today.</p></div>
+<img th:src="@{/img/banner-pc.png}" alt="" aria-hidden="true"/>
+<div class="admin-clock"><div><i data-feather="calendar"></i><span><strong th:text="${todayLabel}"></strong><small th:text="${todayDay}"></small></span></div><div><i data-feather="clock"></i><strong th:text="${timeLabel}"></strong></div></div>
+</section>
+<div class="admin-stats">
+<div th:replace="~{fragments/stat-card :: stat(icon='shopping-cart', color='blue', label='Total Orders', value=${totalOrders}, footerIcon='arrow-right', footerText='View Orders', href='/order')}"></div>
+<div th:replace="~{fragments/stat-card :: stat(icon='calendar', color='green', label='Appointments Today', value=${appointmentsToday}, footerIcon='arrow-right', footerText='View Appointments', href='/appointment')}"></div>
+<div th:replace="~{fragments/stat-card :: stat(icon='tool', color='orange', label='Active Repairs', value=${activeRepairCount}, footerIcon='arrow-right', footerText='View Repairs', href='/repair?status=IN_PROGRESS')}"></div>
+<div th:replace="~{fragments/stat-card :: stat(icon='file-text', color='purple', label='Open Tickets', value=${openTicketCount}, footerIcon='arrow-right', footerText='View Tickets', href='/ticket/view?status=PENDING')}"></div>
+</div><div class="admin-upper">
+<section class="card"><div class="card-head"><div class="card-head-left"><span class="card-icon card-icon-blue"><i data-feather="bar-chart-2"></i></span><h2 class="card-title">Orders Overview</h2></div>
+<form class="admin-range" action="/admin/dashboard" method="get"><label for="chartDays">Period</label><select name="days" id="chartDays"><option value="7" th:selected="${chartDays == 7}">Last 7 Days</option><option value="30" th:selected="${chartDays == 30}">Last 30 Days</option></select><button class="table-action" type="submit">Apply</button></form></div>
+<p class="admin-note" th:text="${chartTotal + ' orders placed in the last ' + chartDays + ' days'}"></p>
+<svg id="ordersChart" class="admin-chart" viewBox="0 0 600 260" role="img" aria-label="Daily orders placed in the selected period"></svg>
+<details class="admin-chart-data"><summary>View daily counts</summary><table class="rn-table"><thead><tr><th>Date</th><th>Orders</th></tr></thead><tbody><tr th:each="point : ${chartData}"><td th:text="${point.label}"></td><td th:text="${point.count}"></td></tr></tbody></table></details>
+</section>
+<section class="card"><div class="card-head"><div class="card-head-left"><span class="card-icon card-icon-blue"><i data-feather="shopping-cart"></i></span><h2 class="card-title">Recent Orders</h2></div><a href="/order" class="card-link">View All</a></div>
+<th:block th:if="${#lists.isEmpty(recentOrders)}"><div th:replace="~{fragments/empty-state :: state(icon='shopping-cart', message='No orders yet', actions=null)}"></div></th:block>
+<div class="admin-table-scroll" th:unless="${#lists.isEmpty(recentOrders)}"><table class="rn-table"><thead><tr><th>Order #</th><th>Customer</th><th>Status</th><th>Total</th><th>Date</th><th>Action</th></tr></thead>
+<tbody><tr th:each="order : ${recentOrders}"><td th:text="${order.orderNumber}"></td><td class="wrap" th:text="${order.client.fullName}"></td><td><span th:replace="~{fragments/status-badge :: badge(status=${order.status})}"></span></td><td><span th:replace="~{fragments/money :: amount(amount=${order.totalAmount})}"></span></td><td th:text="${order.createdAt == null ? '—' : #dates.format(order.createdAt, 'MMM d, yyyy')}"></td><td><a href="/order" class="table-action search-result-link" data-entity-type="ORDER" th:attr="data-entity-id=${order.orderId}"><i data-feather="eye"></i>View</a></td></tr></tbody></table></div></section>
+</div><div class="admin-lower">
+<section class="card"><div class="card-head"><div class="card-head-left"><span class="card-icon card-icon-blue"><i data-feather="calendar"></i></span><h2 class="card-title">Upcoming Appointments</h2></div><a href="/appointment" class="card-link">View All</a></div>
+<th:block th:if="${#lists.isEmpty(upcomingAppointments)}"><div th:replace="~{fragments/empty-state :: state(icon='calendar', message='No upcoming appointments', actions=null)}"></div></th:block>
+<div class="admin-table-scroll" th:unless="${#lists.isEmpty(upcomingAppointments)}"><table class="rn-table"><thead><tr><th>Client</th><th>Service</th><th>Date &amp; Time</th><th>Status</th></tr></thead><tbody>
+<tr th:each="appt : ${upcomingAppointments}"><td class="wrap"><a href="/appointment" class="card-link search-result-link" data-entity-type="APPOINTMENT" th:attr="data-entity-id=${appt.appointmentId}" th:text="${appt.client.fullName}"></a></td><td class="wrap" th:text="${appt.serviceLabel}"></td><td><span th:text="${#temporals.format(appt.preferredDate, 'MMM d, yyyy')}"></span><br/><span th:text="${#temporals.format(appt.preferredTime, 'h:mm a')}"></span></td><td><span th:replace="~{fragments/status-badge :: badge(status=${appt.status})}"></span></td></tr>
+</tbody></table></div></section>
+<section class="card"><div class="card-head"><div class="card-head-left"><span class="card-icon card-icon-blue"><i data-feather="tool"></i></span><h2 class="card-title">Active Repairs</h2></div><a href="/repair?status=IN_PROGRESS" class="card-link">View All</a></div>
+<th:block th:if="${#lists.isEmpty(activeRepairs)}"><div th:replace="~{fragments/empty-state :: state(icon='tool', message='No active repairs', actions=null)}"></div></th:block>
+<div class="admin-table-scroll" th:unless="${#lists.isEmpty(activeRepairs)}"><table class="rn-table"><thead><tr><th>Ticket #</th><th>Device</th><th>Issue</th><th>Status</th></tr></thead><tbody>
+<tr th:each="repair : ${activeRepairs}"><td><a href="/repair" class="card-link search-result-link" data-entity-type="REPAIR" th:attr="data-entity-id=${repair.repairId}" th:text="${repair.jobOrderNumber}"></a></td><td class="wrap" th:text="${repair.deviceType}"></td><td class="wrap" th:text="${repair.issueDescription}"></td><td><span th:replace="~{fragments/status-badge :: badge(status=${repair.status})}"></span></td></tr></tbody></table></div></section>
+<section class="card"><div class="card-head"><div class="card-head-left"><span class="card-icon card-icon-blue"><i data-feather="box"></i></span><h2 class="card-title">Low Stock Parts</h2></div><button type="button" class="table-action" data-bs-toggle="modal" data-bs-target="#lowStockModal">View All</button></div>
+<th:block th:if="${#lists.isEmpty(lowStockParts)}"><div th:replace="~{fragments/empty-state :: state(icon='box', message='No low-stock parts', actions=null)}"></div></th:block>
+<p class="admin-note" th:text="${lowStockCount + ' parts with ' + lowStockLimit + ' or fewer units'}"></p>
+<div class="admin-table-scroll" th:unless="${#lists.isEmpty(lowStockParts)}"><table class="rn-table"><thead><tr><th>Item</th><th>Current Stock</th><th>Status</th></tr></thead><tbody>
+<tr th:each="part : ${lowStockParts}"><td class="wrap"><a class="card-link" th:href="${part.url}" th:text="${part.name}"></a><p class="admin-note" th:text="${part.category}"></p></td><td th:text="${part.stocks}"></td><td><span class="admin-stock-status" th:text="${part.status}"></span></td></tr></tbody></table></div>
+<nav id="stockCatalogs" class="admin-stock-links" aria-label="All stock catalogs"><a href="/computer" class="card-link">PC Parts</a><a href="/laptop" class="card-link">Laptop Parts</a><a href="/cellphone" class="card-link">Cellphone Parts</a></nav>
+</section></div></main></div>
+<div class="modal fade" id="lowStockModal" tabindex="-1" aria-labelledby="lowStockTitle" aria-hidden="true">
+<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
+<div class="modal-header"><h2 class="modal-title fs-5" id="lowStockTitle">Low Stock Parts</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+<div class="modal-body">
+<p th:if="${#lists.isEmpty(allLowStockParts)}">No low-stock parts.</p>
+<table class="rn-table" th:unless="${#lists.isEmpty(allLowStockParts)}"><thead><tr><th>Item</th><th>Category</th><th>Stock</th><th>Status</th></tr></thead><tbody>
+<tr th:each="part : ${allLowStockParts}"><td class="wrap"><a class="card-link" th:href="${part.url}" th:text="${part.name}"></a></td><td th:text="${part.category}"></td><td th:text="${part.stocks}"></td><td><span class="admin-stock-status" th:text="${part.status}"></span></td></tr>
+</tbody></table></div><div class="modal-footer"><button type="button" class="table-action" data-bs-dismiss="modal">Close</button></div>
+</div></div></div>
+<div th:replace="~{fragments/appointment-ui :: receiptFeedback}"></div>
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+<th:block th:replace="~{fragments/appointment-ui :: script}"></th:block>
+<script th:inline="javascript">
+document.addEventListener('DOMContentLoaded', function () {
+    const points = /*[[${chartData}]]*/ [];
+    const svg = document.getElementById('ordersChart');
+    const ns = 'http://www.w3.org/2000/svg';
+    function add(tag, attrs, text) {
+        const element = document.createElementNS(ns, tag);
+        Object.keys(attrs).forEach(key => element.setAttribute(key, attrs[key]));
+        if (text !== undefined) element.textContent = text;
+        svg.appendChild(element); return element;
+    }
+    const max = Math.max(4, ...points.map(p => p.count));
+    const top = Math.ceil(max / 4) * 4;
+    for (let i=0; i<=4; i++) {
+        const y=220-i*48;
+        add('line',{x1:40,x2:580,y1:y,y2:y,class:'chart-grid'});
+        add('text',{x:30,y:y+4,'text-anchor':'end'},String(i*top/4));
+    }
+    const coordinates=points.map((p,i)=>[40+i*540/Math.max(1,points.length-1),220-p.count/top*192]);
+    if (coordinates.length) {
+        add('polygon',{points:'40,220 '+coordinates.map(p=>p.join(',')).join(' ')+' 580,220',class:'chart-area'});
+        add('polyline',{points:coordinates.map(p=>p.join(',')).join(' '),class:'chart-line'});
+    }
+    points.forEach((point,i)=>{
+        const [x,y]=coordinates[i];
+        const dot=add('circle',{cx:x,cy:y,r:4,class:'chart-dot'});
+        const title=document.createElementNS(ns,'title');title.textContent=point.label+': '+point.count+' orders';dot.appendChild(title);
+        if(points.length<=7 || i%5===0 || i===points.length-1) add('text',{x,y:246,'text-anchor':i===0?'start':i===points.length-1?'end':'middle'},point.label);
+    });
+    document.getElementById('chartDays').addEventListener('change',function(){this.form.requestSubmit();});
+});
+</script></body></html>
