@@ -35,11 +35,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-// Renders the customer dashboard (converted from the approved gpt-preview.html mockup - see
-// fragments/layout-app.html) at the app's root, replacing static/index.html for signed-in
-// customers only. Admins and anonymous visitors still get exactly today's existing experience
-// (static/index.html) - only the CUSTOMER home page is being converted this round; nothing about
-// the admin/anonymous path changes.
+// Root dispatches admins to their dashboard and retains the customer/anonymous home behavior.
 @Controller
 public class DashboardController {
 
@@ -67,9 +63,11 @@ public class DashboardController {
 
     @GetMapping({"", "/"})
     public String showHome(Authentication authentication, Model model) {
-        if (!isSignedIn(authentication) || isAdmin(authentication)) {
+        if (!isSignedIn(authentication)) {
             return "forward:/index.html";
         }
+
+        if (isAdmin(authentication)) return "redirect:/admin/dashboard";
 
         String username = authentication.getName();
         LocalDateTime now = LocalDateTime.now();
