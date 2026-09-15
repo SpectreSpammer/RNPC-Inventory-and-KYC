@@ -93,6 +93,10 @@ public class DashboardController {
         // Stat cards: real counts only - no invented week-over-week trend percentages (this app
         // has no such metric anywhere yet), so trend is omitted rather than fabricated.
         model.addAttribute("totalOrders", orders.size());
+        model.addAttribute("pendingOrders", orders.stream()
+                .filter(o -> o.getStatus() == Order.OrderStatus.AWAITING_PAYMENT).count());
+        model.addAttribute("readyOrders", orders.stream()
+                .filter(o -> o.getStatus() == Order.OrderStatus.PAID && o.getBuildStage() == Order.BuildStage.READY).count());
 
         // Total Orders footer - not CANCELLED/CANCELLATION_REQUESTED, from the same already-scoped
         // `orders` list above, no new repository call.
@@ -105,7 +109,8 @@ public class DashboardController {
         // filtered identically) - no second count computed for it.
         long scheduledAppointments = appointments.stream()
                 .filter(a -> a.getStatus() != Appointment.Status.CANCELLED)
-                .filter(a -> !a.getPreferredDate().isBefore(today))
+                .filter(a -> a.getPreferredDate() != null && a.getPreferredTime() != null)
+                .filter(a -> !LocalDateTime.of(a.getPreferredDate(), a.getPreferredTime()).isBefore(now))
                 .count();
         model.addAttribute("scheduledAppointments", scheduledAppointments);
 
@@ -125,7 +130,8 @@ public class DashboardController {
         // Upcoming Appointments: not cancelled, today or later, soonest first, capped at 5 rows.
         List<Appointment> upcoming = appointments.stream()
                 .filter(a -> a.getStatus() != Appointment.Status.CANCELLED)
-                .filter(a -> !a.getPreferredDate().isBefore(today))
+                .filter(a -> a.getPreferredDate() != null && a.getPreferredTime() != null)
+                .filter(a -> !LocalDateTime.of(a.getPreferredDate(), a.getPreferredTime()).isBefore(now))
                 .sorted(Comparator.comparing(Appointment::getPreferredDate).thenComparing(Appointment::getPreferredTime))
                 .limit(5)
                 .collect(Collectors.toList());
@@ -150,6 +156,12 @@ public class DashboardController {
                 .limit(5)
                 .collect(Collectors.toList());
         model.addAttribute("warrantyRepairs", withWarranty);
+        Map<Long, Map<String, Object>> warrantyMetrics = new LinkedHashMap<>();
+        for (RepairRecord repair : withWarranty) {
+            warrantyMetrics.put(repair.getRepairId(), Map.of("urgency", warrantyUrgency(repair),
+                    "remainingPercent", warrantyRemainingPercent(repair), "daysLeft", warrantyDaysRemaining(repair)));
+        }
+        model.addAttribute("warrantyMetrics", warrantyMetrics);
 
         // Build Progress: the user's most recently saved build (SavedBuildRepository.java:10-11 -
         // findByUser_UsernameOrderBySavedBuildIdDesc - already DESC by id, so index 0 is newest),
@@ -188,6 +200,7 @@ public class DashboardController {
         // as one attribute, so dashboard.html branches once via th:switch instead of testing
         // latestSavedBuild/activeBuildOrder nulls itself.
         Order activeBuildOrder = orders.stream()
+                .filter(o -> o.getStatus() == Order.OrderStatus.PAID)
                 .filter(o -> o.getBuildStage() != null && o.getBuildStage() != Order.BuildStage.COMPLETED)
                 .findFirst()
                 .orElse(null);
@@ -234,7 +247,7 @@ public class DashboardController {
     // name (unused by the template today, kept for parity with how every other stage identifier
     // in this codebase is carried), label is already resolved via OrderService.buildStageLabel,
     // status is one of COMPLETED/IN_PROGRESS/PENDING.
-    private record BuildStageRow(String stageName, String label, String status) {
+    public record BuildStageRow(String stageName, String label, String status) {
     }
 
     // Warranty urgency + bar percentage - both derived from real RepairRecord.repairDate
