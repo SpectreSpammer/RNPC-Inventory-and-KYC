@@ -164,13 +164,75 @@ stored (`users.password` remains in the schema but is unused).
   `UserService.ensureAdminEmail`, so that email gets ADMIN on its first Google sign-in instead of
   defaulting to CUSTOMER. It also seeds the eight PC-component catalogs.
 
-**Authorization is hand-rolled in application code, not in the filter chain.** `SecurityConfig` sets
-`anyRequest().permitAll()` and disables CSRF app-wide (no form in the app carries a CSRF token).
-Every controller re-implements its own `isSignedIn`/`isAdmin` pair checking for `ROLE_ADMIN`, and
-`GlobalNavAttributes` (a `@ControllerAdvice`) exposes `navAuthenticated`/`navIsAdmin` to every
-template. **This is the single most important thing to know before touching any page: adding a
-controller does not make it protected.** There's no `thymeleaf-extras-springsecurity6` dependency,
-so `sec:authorize` is not available in templates - use `${navIsAdmin}`.
+**Authorization is hand-rolled in application code, with one exception in the filter chain.**
+`SecurityConfig` still ends in `anyRequest().permitAll()` and disables CSRF app-wide (no form in
+the app carries a CSRF token). Every controller re-implements its own `isSignedIn`/`isAdmin` pair
+checking for `ROLE_ADMIN`, and `GlobalNavAttributes` (a `@ControllerAdvice`) exposes
+`navAuthenticated`/`navIsAdmin` to every template. **This is the single most important thing to
+know before touching any page: adding a new controller does NOT make it protected.** There's no
+`thymeleaf-extras-springsecurity6` dependency, so `sec:authorize` is not available in templates -
+use `${navIsAdmin}`.
+
+### The parts routes are the filter-chain exception
+
+The eleven parts controllers had no admin check of their own, which left every route on them open
+to anonymous users - not only the list pages but `POST /cpu/create`, `PUT /cpu/update/{id}` and
+`DELETE /cpu/delete/{id}`. They are now denied in the filter chain instead, via
+`ADMIN_ONLY_PARTS_PATHS` in `SecurityConfig`:
+
+```
+/computer, /computer/**, /cpu/**, /motherboard/**, /gpu/**, /ram/**, /storage/**,
+/psu/**, /case/**, /cooler/**, /laptop/**, /cellphone/**        -> hasRole("ADMIN")
+```
+
+That rule is ordered **before** the catch-all `permitAll` - Spring matches in order, so moving it
+after would silently disable it. `hasRole("ADMIN")` matches the `ROLE_ADMIN` authority
+`CustomOidcUserService` already grants; Spring adds the `ROLE_` prefix itself. Enforcing here
+rather than per method covers every HTTP verb and every handler added to those controllers later,
+without depending on roughly seventy individual guards.
+
+These controllers still have **no** `isAdmin` method of their own - the filter chain is the only
+thing protecting them, so don't remove or narrow that rule on the assumption a controller check
+exists behind it.
+
+**Where a blocked request goes.** `exceptionHandling` supplies both halves, and the two cases are
+genuinely different:
+
+- **Anonymous** (an `AuthenticationException`) -> the authentication entry point redirects to
+  `/login`.
+- **Signed in but not an admin** (an `AccessDeniedException`) -> the access denied handler
+  redirects to `/`.
+
+Without those handlers both cases render Spring's default 403 page.
+
+**Scripted-request carve-out.** Both handlers consult one shared `wantsMachineResponse(request)`
+predicate; when it returns true they send `401`/`403` instead of redirecting, so a `fetch` never
+receives an HTML sign-in page it would render into the DOM or follow and report as success. It is
+one predicate rather than a `DelegatingAuthenticationEntryPoint` because there is no delegating
+equivalent for the denied side, and the two paths must not disagree about what counts as scripted.
+
+It returns true for either:
+
+- `X-Requested-With: XMLHttpRequest`, or
+- an `Accept` header that mentions `application/json` **and** does not mention `text/html` (a
+  browser navigation sends `text/html`, so it never matches).
+
+⚠️ **A bare `fetch(url)` gets neither** - its default `Accept` is `*/*` and `X-Requested-With` is
+an explicit opt-in. A fetch that wants a status code back has to ask:
+
+```js
+fetch(url, { method: 'DELETE', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+```
+
+The `removePhoto` handler in all ten `*EditParts.html` templates does exactly this and checks
+`res.ok`. Before that it sent no header, so an expired session returned a 302 that `fetch` followed
+into a 200 plus login-page HTML, and the handler called `window.location.reload()` as though the
+delete had succeeded.
+
+**These handlers only see Spring Security's own exceptions.** `SupportController` throws
+`ResponseStatusException(UNAUTHORIZED / FORBIDDEN)` from inside the controller. That is a Spring
+**MVC** exception, resolved by `DispatcherServlet`, and it never reaches `ExceptionTranslationFilter`
+- so those routes still return bare 401/403 and are unaffected by the redirects above.
 
 ## Architecture
 
@@ -197,6 +259,10 @@ Each has the identical route set: `GET /` (list), `GET /create` + `POST /create`
 **When adding a parts category, copy the controller/service/dto/entity/repository quintet rather
 than generalizing it** - the codebase intentionally duplicates this pattern per category instead of
 sharing a generic CRUD layer.
+
+⚠️ **A new category also needs its path added to `ADMIN_ONLY_PARTS_PATHS` in `SecurityConfig`.**
+These controllers carry no admin check of their own, so a new one is world-writable until that
+entry exists - see the filter-chain exception under Sign-in and authorization.
 
 DTOs carry the Bean Validation (`@NotEmpty`, `@Pattern` allow-lists for dropdowns, `@Min`, `@Size`)
 plus a `MultipartFile imageFile`. Controllers validate with `@Valid` + `BindingResult`; the
