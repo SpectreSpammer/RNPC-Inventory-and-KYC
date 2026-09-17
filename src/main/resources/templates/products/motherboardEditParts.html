@@ -143,8 +143,14 @@
         document.querySelectorAll('.remove-photo-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 if (!confirm('Remove the current photo?')) return;
-                fetch(btn.dataset.removeUrl, { method: 'DELETE' })
-                    .then(function() { window.location.reload(); });
+                fetch(btn.dataset.removeUrl, { method: 'DELETE', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function(res) {
+                        if (res.ok) { window.location.reload(); return; }
+                        alert(res.status === 401 || res.status === 403
+                            ? 'Your session has expired. Please sign in again to remove this photo.'
+                            : 'The photo could not be removed. Please try again.');
+                    })
+                    .catch(function() { alert('The photo could not be removed. Please try again.'); });
             });
         });
     });
