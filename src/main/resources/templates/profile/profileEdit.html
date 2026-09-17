@@ -1,99 +1,53 @@
-<!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-          crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-</head>
-<body>
-<div class="container">
-        <h1 class="text-center my-4">Edit Profile</h1>
-</div>
-
-<div class="content-wrapper">
-    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
-
-    <main class="main-content">
-    <div th:replace="~{fragments/nav :: back}"></div>
-
-    <div class="row justify-content-center">
-        <div class="col-md-7">
-            <div th:if="${saved}" class="alert alert-success">Profile updated.</div>
-
-            <form action="#" th:action="@{/profile/edit}" th:object="${profileDto}" method="post">
-
-                <div class="mb-3" th:if="${isAdmin}">
-                    <label class="form-label">Employee ID</label>
-                    <input type="text" class="form-control" th:value="${employeeId}" readonly disabled>
-                </div>
-
-                <div class="mb-3">
-                    <label for="fullName" class="form-label">Name</label>
-                    <input type="text" th:field="*{fullName}" class="form-control" id="fullName" placeholder="Enter your full name">
-                    <div class="text-danger" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
-                    <div class="form-text">Shown as your greeting on the home page.</div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="address" class="form-label">Address</label>
-                    <textarea th:field="*{address}" class="form-control" id="address" rows="2"></textarea>
-                    <div class="text-danger" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="contactNumber" class="form-label">Contact Number</label>
-                    <div class="input-group">
-                        <input type="text" th:field="*{contactNumber}" class="form-control" id="contactNumber" placeholder="e.g. 0917 234 5678" autocomplete="off">
-                        <button type="button" class="btn btn-outline-secondary" id="toggleContactNumber" tabindex="-1">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                    <div class="text-danger" th:if="${#fields.hasErrors('contactNumber')}" th:errors="*{contactNumber}"></div>
-                    <div class="form-text">Digits 5-9 are hidden until you click the eye icon.</div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="email" class="form-label">Email Address</label>
-                    <div class="input-group">
-                        <input type="text" th:field="*{email}" class="form-control" id="email" autocomplete="off">
-                        <button type="button" class="btn btn-outline-secondary" id="toggleEmail" tabindex="-1">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                    <div class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
-                    <div class="form-text">The middle of the address is hidden until you click the eye icon.</div>
-                </div>
-
-                <div class="row">
-                    <div class="offset-sm-4 col-sm-4 d-grid">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
-                    <div class="col-sm-4 d-grid">
-                        <a class="btn btn-outline-primary" href="/" role="button">Cancel</a>
-                    </div>
-                </div>
-
-            </form>
-        </div>
-    </div>
-    </main>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
-<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>My Profile - RNPC</title>
+<th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+<th:block th:replace="~{fragments/page-header :: page-header-styles}"></th:block>
+<th:block th:replace="~{fragments/appointment-ui :: styles}"></th:block>
+<link rel="stylesheet" th:href="@{/css/profile.css}"/>
+</head><body class="appointment-page profile-page">
+<div th:replace="~{fragments/layout-app :: sidebar(active='profile', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+<div class="main">
+<div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+<div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+<main class="content">
+<div th:replace="~{fragments/page-header :: header(title='My Profile', subtitle='Manage your personal information and account details.', actions=null)}"></div>
+<div class="profile-grid">
+<aside class="profile-card profile-summary">
+<div class="profile-avatar"><img id="profilePhoto" alt="Your profile picture" th:src="${hasProfilePhoto} ? @{/profile/photo} : null" th:hidden="${!hasProfilePhoto}"/>
+<span id="profileInitial" th:hidden="${hasProfilePhoto}" th:text="${#strings.isEmpty(profileDto.fullName) ? 'U' : #strings.substring(profileDto.fullName,0,1)}">U</span>
+<label for="photo" class="profile-camera" title="Choose a profile picture"><i data-feather="camera"></i><span class="profile-sr">Choose a profile picture</span></label></div>
+<h2 th:text="${profileDto.fullName}"></h2><p th:text="${currentRole}"></p>
+<ul class="profile-contact"><li><i data-feather="phone"></i><span id="contactNumberSummary">Not provided</span></li><li><i data-feather="mail"></i><span id="emailSummary">Not provided</span></li><li><i data-feather="map-pin"></i><span th:text="${#strings.isEmpty(profileDto.address) ? 'Not provided' : profileDto.address}"></span></li></ul>
+<div class="profile-note"><i data-feather="info"></i><p>Keep your information up to date to receive important updates about your orders, appointments, and repairs.</p></div>
+</aside>
+<section class="profile-card profile-account"><h2><span class="profile-icon"><i data-feather="user"></i></span>Account Information</h2>
+<form th:action="@{/profile/edit}" th:object="${profileDto}" method="post" enctype="multipart/form-data" id="profileForm">
+<div class="profile-error" role="alert" th:if="${#fields.hasGlobalErrors()}"><p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p><p>Please select your photo again before saving.</p></div>
+<div class="profile-field" th:if="${isAdmin}"><label for="employeeId">Employee ID</label><input id="employeeId" th:value="${employeeId}" readonly/></div>
+<div class="profile-field"><label for="fullName">Name</label><input id="fullName" th:field="*{fullName}" required/><small>Shown as your greeting on the home page.</small><p class="profile-error" th:errors="*{fullName}"></p></div>
+<div class="profile-field"><label for="address">Address</label><textarea id="address" th:field="*{address}" rows="3" maxlength="500" required></textarea><p class="profile-error" th:errors="*{address}"></p></div>
+<div class="profile-field"><label for="contactNumber">Contact Number</label><div class="profile-input-group"><input type="text" id="contactNumber" th:field="*{contactNumber}" autocomplete="off" required/><button type="button" id="toggleContactNumber" aria-label="Show Contact Number" aria-pressed="false"><i data-feather="eye"></i></button></div><small>Digits 5-9 are hidden until you click the eye icon.</small><p class="profile-error" th:errors="*{contactNumber}"></p></div>
+<div class="profile-field"><label for="email">Email Address</label><div class="profile-input-group"><input type="text" id="email" th:field="*{email}" autocomplete="off" required/><button type="button" id="toggleEmail" aria-label="Show Email Address" aria-pressed="false"><i data-feather="eye"></i></button></div><small>The middle of the address is hidden until you click the eye icon.</small><p class="profile-error" th:errors="*{email}"></p></div>
+<div class="profile-field"><label for="photo">Upload a Profile Picture</label><div class="profile-upload"><i data-feather="upload"></i><div><strong>Choose an image</strong><small>JPG, PNG (Max 5 MB)</small></div><input type="file" id="photo" name="photo" accept="image/jpeg,image/png"/></div>
+<div id="photoSelection" class="profile-file" hidden><img id="photoThumbnail" alt="Selected photo preview"/><div><strong id="photoFilename"></strong><small id="photoSize"></small></div><button id="clearPhoto" type="button" aria-label="Remove selected photo">&times;</button></div><p id="photoError" class="profile-error" role="alert" hidden></p></div>
+<div class="profile-actions"><button class="profile-save" type="submit">Save Changes</button><a href="/">Cancel</a></div>
+</form></section></div>
+<div th:if="${saved}" class="profile-success" role="status"><i data-feather="check-circle"></i><div><strong>Profile updated successfully!</strong><p>Your profile information has been saved.</p></div><button type="button" aria-label="Dismiss notification" id="dismissProfileSuccess">&times;</button></div>
+</main></div>
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+<th:block th:replace="~{fragments/appointment-ui :: script}"></th:block>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Masks characters 5-9 (1-indexed) of a phone number, e.g. "09171234567" -> "0917•••••67".
+        // Masks characters 5-9 (1-indexed) of a phone number, e.g. "09171234567" -> "0917\u2022\u2022\u2022\u2022\u202267".
         function maskPhone(value) {
             if (!value) return value;
             var chars = value.split('');
             for (var i = 4; i <= 8 && i < chars.length; i++) {
-                if (chars[i] !== ' ') chars[i] = '•';
+                if (chars[i] !== ' ') chars[i] = '\u2022';
             }
             return chars.join('');
         }
@@ -106,18 +60,18 @@
             var local = value.substring(0, atIndex);
             var domain = value.substring(atIndex);
             if (local.length <= 5) {
-                return local.charAt(0) + '•'.repeat(Math.max(local.length - 1, 0)) + domain;
+                return local.charAt(0) + '\u2022'.repeat(Math.max(local.length - 1, 0)) + domain;
             }
             var first = local.charAt(0);
             var last4 = local.substring(local.length - 4);
             var middleLength = local.length - 1 - 4;
-            return first + '•'.repeat(middleLength) + last4 + domain;
+            return first + '\u2022'.repeat(middleLength) + last4 + domain;
         }
 
         function setupMaskedField(inputId, toggleId, maskFn) {
             var input = document.getElementById(inputId);
             var toggle = document.getElementById(toggleId);
-            var icon = toggle.querySelector('i');
+
             var realValue = input.value;
             var revealed = false;
 
@@ -126,9 +80,11 @@
             function render() {
                 input.value = revealed ? realValue : maskFn(realValue);
                 input.readOnly = !revealed;
-                icon.className = revealed ? 'fas fa-eye-slash' : 'fas fa-eye';
+                toggle.setAttribute('aria-pressed', String(revealed));
+                toggle.setAttribute('aria-label', (revealed ? 'Hide ' : 'Show ') + inputId);
             }
             render();
+            document.getElementById(inputId + 'Summary').textContent = maskFn(realValue) || 'Not provided';
 
             input.addEventListener('input', function () {
                 if (revealed) realValue = input.value;
@@ -152,5 +108,37 @@
         setupMaskedField('email', 'toggleEmail', maskEmail);
     });
 </script>
-</body>
-</html>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const file = document.getElementById('photo'), image = document.getElementById('profilePhoto');
+    const initial = document.getElementById('profileInitial'), row = document.getElementById('photoSelection');
+    const error = document.getElementById('photoError');
+    const original = image.getAttribute('src'), hadPhoto = !image.hidden;
+    let preview;
+    function reset() {
+        if (preview) URL.revokeObjectURL(preview);
+        preview = null; file.value = ''; file.setCustomValidity(''); row.hidden = true;
+        image.hidden = !hadPhoto; initial.hidden = hadPhoto;
+        if (original) image.src = original; else image.removeAttribute('src');
+        error.hidden = true;
+    }
+    file.addEventListener('change', function () {
+        const selected = file.files[0];
+        if (!selected) { reset(); return; }
+        if (!['image/jpeg','image/png'].includes(selected.type) || selected.size > 5 * 1024 * 1024) {
+            reset(); error.textContent = 'Choose a JPG or PNG no larger than 5 MB.'; error.hidden = false; return;
+        }
+        if (preview) URL.revokeObjectURL(preview);
+        preview = URL.createObjectURL(selected);
+        image.src = preview; image.hidden = false; initial.hidden = true;
+        document.getElementById('photoThumbnail').src = preview;
+        document.getElementById('photoFilename').textContent = selected.name;
+        document.getElementById('photoSize').textContent = Math.ceil(selected.size / 1024) + ' KB';
+        row.hidden = false; error.hidden = true;
+    });
+    document.getElementById('clearPhoto').addEventListener('click', reset);
+    const dismiss = document.getElementById('dismissProfileSuccess');
+    if (dismiss) dismiss.addEventListener('click', function () { dismiss.parentElement.hidden = true; });
+});
+</script>
+</body></html>

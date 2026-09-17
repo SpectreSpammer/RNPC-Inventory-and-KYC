@@ -48,3 +48,6 @@ logs from railway/
 
 ### Claude Code's own local session/tool state for this project - not project source ###
 .claude/
+
+# Private account profile uploads
+/private/profile-photos/

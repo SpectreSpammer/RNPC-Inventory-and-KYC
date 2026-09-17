@@ -17,18 +17,29 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Optional;
+import java.io.IOException;
+import com.rnpc.inventory.service.NotificationService;
+import com.rnpc.inventory.service.ProfilePhotoService;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
 
 @Controller
 public class ProfileController {
 
     private final UserService userService;
+    private final NotificationService notifications;
+    private final ProfilePhotoService photos;
 
     @Autowired
-    public ProfileController(UserService userService) {
+    public ProfileController(UserService userService, NotificationService notifications, ProfilePhotoService photos) {
         this.userService = userService;
+        this.notifications = notifications;
+        this.photos = photos;
     }
 
-    @GetMapping("/profile/edit")
+    @GetMapping({"/profile", "/profile/edit"})
     public String showEditPage(Authentication authentication, Model model,
                                 @RequestParam(value = "saved", required = false) String saved) {
         if (!isSignedIn(authentication)) {
@@ -67,6 +78,7 @@ public class ProfileController {
         dto.setEmail(user.getEmail());
 
         model.addAttribute("profileDto", dto);
+        profileModel(authentication, user, model);
         // The employee id is just this account's own numeric User.id - there's no separate
         // HR/employee table, and it's what Order.verifiedByEmployeeId records against.
         model.addAttribute("isAdmin", user.getRole() == User.Role.ADMIN);
@@ -81,6 +93,7 @@ public class ProfileController {
     public String updateProfile(Authentication authentication,
                                  @Valid @ModelAttribute ProfileDto profileDto,
                                  BindingResult result,
+                                 @RequestParam(value = "photo", required = false) MultipartFile photo,
                                  Model model) {
         if (!isSignedIn(authentication)) {
             // An idle session that's since expired should never bounce someone to the standalone
@@ -102,13 +115,39 @@ public class ProfileController {
             result.rejectValue("email", "duplicate", "That email is already in use by another account.");
         }
 
+        if (!result.hasErrors() && photo != null && !photo.isEmpty()) {
+            try { photos.save(user.getId(), photo); }
+            catch (IllegalArgumentException e) { result.reject("photo", e.getMessage()); }
+            catch (IOException e) { result.reject("photo", "The photo could not be saved. Please choose a valid image and try again."); }
+        }
         if (result.hasErrors()) {
+            profileModel(authentication, user, model);
             return "profile/profileEdit";
         }
 
         userService.updateProfile(user.getUsername(), profileDto.getFullName(), profileDto.getAddress(),
                 profileDto.getContactNumber(), profileDto.getEmail());
         return "redirect:/profile/edit?saved";
+    }
+
+    private void profileModel(Authentication auth, User user, Model model) {
+        boolean admin = user.getRole() == User.Role.ADMIN;
+        model.addAttribute("isAdmin", admin);
+        model.addAttribute("employeeId", user.getEmployeeId());
+        model.addAttribute("currentUsername", user.getFullName() != null && !user.getFullName().isBlank() ? user.getFullName() : user.getUsername());
+        model.addAttribute("currentRole", admin ? "Admin" : "Customer");
+        model.addAttribute("hasProfilePhoto", photos.exists(user.getId()));
+        model.addAttribute("unreadNotifications", admin ? notifications.getUnreadCountForAdmin() : notifications.getUnreadCountForUser(auth.getName()));
+        model.addAttribute("recentNotifications", (admin ? notifications.getForAdmin() : notifications.getForUser(auth.getName())).stream().limit(15).toList());
+    }
+
+    @GetMapping("/profile/photo")
+    public ResponseEntity<byte[]> photo(Authentication authentication) throws IOException {
+        if (!isSignedIn(authentication)) return ResponseEntity.status(401).build();
+        Optional<User> user = currentUser(authentication);
+        if (user.isEmpty() || !photos.exists(user.get().getId())) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).header("X-Content-Type-Options", "nosniff")
+                .contentType(MediaType.IMAGE_PNG).body(photos.read(user.get().getId()));
     }
 
     private boolean isSignedIn(Authentication authentication) {
