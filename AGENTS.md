@@ -27,8 +27,8 @@ This has already broken twice, both times a single cp1252 byte written where UTF
 - `templates/support/detail.html` - four bare `0xB7` (cp1252 `·` MIDDLE DOT), which rendered the
   ticket header as `SUP-00003 � Appointment`. **Fixed** by re-encoding to `0xC2 0xB7`.
 - `templates/admin/dashboard.html` - one bare `0x97` (cp1252 `—` EM DASH) used as the null-date
-  placeholder in the recent-orders table. **Still unfixed**; any order with a null `createdAt`
-  renders `�`.
+  placeholder in the recent-orders table, which rendered `�` for any order with a null
+  `createdAt`. **Fixed** by re-encoding to `0xE2 0x80 0x94`.
 
 A lone high byte like this is *not valid UTF-8 at all*, so the decoder substitutes U+FFFD. Correctly
 encoded punctuation is fine and already used elsewhere - `sales/salesReport.html` contains `—`, `–`,
