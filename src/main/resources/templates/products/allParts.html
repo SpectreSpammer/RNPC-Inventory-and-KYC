@@ -1,566 +1,677 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-          crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <style>
-        .filter-menu, .sort-menu { min-width: 220px; padding: 0.75rem; }
-        .filter-menu { max-height: 70vh; overflow-y: auto; }
-        #partsTableBody tr.out-of-stock { opacity: 0.6; }
-        .price-badge { font-size: 1rem; }
-        .filter-section-list { max-height: 180px; overflow-y: auto; }
-        .filter-accordion-item { border-bottom: 1px solid #e9ecef; }
-        .filter-accordion-item:last-of-type { border-bottom: none; }
-        .filter-accordion-toggle {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: none;
-            border: none;
-            padding: 0.5rem 0;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: #495057;
-        }
-        .filter-accordion-toggle .chevron { transition: transform 0.2s ease; color: #6c757d; }
-        .filter-accordion-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
-        .filter-badge { font-size: 0.7rem; }
-        .filter-accordion-body { padding-bottom: 0.5rem; }
-    </style>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Parts inventory - RN PC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/card :: card-styles}"></th:block>
+    <th:block th:replace="~{fragments/page-header :: page-header-styles}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/parts.css}"/>
 </head>
-<body>
-<div class="container">
-        <h1 class="text-center my-4">PC Parts</h1>
-</div>
+<body class="parts-page">
 
-<div class="content-wrapper">
-    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+<!--
+  Converted from products/allParts.html's old Bootstrap page to the shared layout-app shell,
+  matching gpt/admin/computer.png. First of the parts pages to be converted; the per-category list
+  pages (/cpu, /gpu, ...) and the create/edit forms are later phases.
 
-    <main class="main-content">
-    <div th:replace="~{fragments/nav :: back}"></div>
+  Still entirely client-side, as before: PartsController serializes the whole catalog into
+  ALL_PARTS and this page filters, sorts and paginates it in the browser. No new query was added.
+  The stat-card counts and the category chip counts are both derived from ALL_PARTS rather than
+  passed in, so they cannot drift from the rows actually rendered.
 
-    <div class="row mb-3 g-2 align-items-center">
-        <div class="col-md-6">
-            <div class="input-group rounded">
-                <input type="search" class="form-control rounded" id="brandSearch" placeholder="Search by brand or model" aria-label="Search" aria-describedby="search-addon" />
-                <span class="input-group-text border-0" id="search-addon">
-                    <i class="fas fa-search"></i>
+  The old Filter dropdown was an 8-section accordion, one section per category, filtering a single
+  attribute within it. That accordion is gone, but the filtering it did is not: the same facet map,
+  the same cooler socket-string parser, the same Storage and Case value groupings and the same GPU
+  brand exclusion now drive one select beside the chips, shown only once a category is picked. It
+  composes with the chips, the stock cards, search and sort.
+-->
+
+<div th:replace="~{fragments/layout-app :: sidebar(active='pc-parts', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+
+    <main class="content">
+        <div class="rn-page-header">
+            <div class="rn-page-header-text">
+                <h1 class="rn-page-header-title">Parts inventory</h1>
+                <p class="rn-page-header-subtitle">Stock and pricing for every component customers can order or add to a build.</p>
+            </div>
+            <div class="rn-page-header-actions">
+                <div class="dropdown">
+                    <button class="parts-add" type="button" id="addPartBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i data-feather="plus"></i>Add part<i data-feather="chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end parts-add-menu" aria-labelledby="addPartBtn">
+                        <li><a class="dropdown-item" href="/cpu/create">CPU</a></li>
+                        <li><a class="dropdown-item" href="/motherboard/create">Motherboard</a></li>
+                        <li><a class="dropdown-item" href="/gpu/create">GPU</a></li>
+                        <li><a class="dropdown-item" href="/ram/create">RAM</a></li>
+                        <li><a class="dropdown-item" href="/storage/create">Storage</a></li>
+                        <li><a class="dropdown-item" href="/psu/create">PSU</a></li>
+                        <li><a class="dropdown-item" href="/case/create">Case</a></li>
+                        <li><a class="dropdown-item" href="/cooler/create">CPU Cooler</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock-status filter. aria-pressed carries the active state; the label flips between
+             "Showing" and "Show" to match the mockup. -->
+        <section class="parts-stats" aria-label="Filter by stock status">
+            <button type="button" class="parts-stat" data-stock="all" aria-pressed="true">
+                <span class="parts-stat-icon blue">#</span>
+                <span class="parts-stat-body">
+                    <span class="parts-stat-label">All parts</span>
+                    <span class="parts-stat-value" id="statAll">0</span>
+                    <span class="parts-stat-note" id="statAllNote">Across 8 categories</span>
                 </span>
-            </div>
-        </div>
-        <div class="col-md-6 d-flex justify-content-end gap-2">
-            <div class="dropdown hover-dropdown">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterBtn" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" data-bs-auto-close="outside">
-                    Filter
-                </button>
-                <div class="dropdown-menu filter-menu dropdown-menu-end" aria-labelledby="filterBtn">
-                    <div id="partsFilterAccordion">
-                        <div class="filter-accordion-item">
-                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_CPU" aria-expanded="false">
-                                <span>CPU <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_CPU" style="display:none;"></span></span>
-                                <i class="fas fa-chevron-down chevron"></i>
-                            </button>
-                            <div class="collapse" id="filterCollapse_CPU" data-bs-parent="#partsFilterAccordion">
-                                <div class="filter-accordion-body">
-                                    <div class="filter-section-list" id="filterOptions_CPU"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="filter-accordion-item">
-                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_CPUCooler" aria-expanded="false">
-                                <span>CPU Cooler <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_CPUCooler" style="display:none;"></span></span>
-                                <i class="fas fa-chevron-down chevron"></i>
-                            </button>
-                            <div class="collapse" id="filterCollapse_CPUCooler" data-bs-parent="#partsFilterAccordion">
-                                <div class="filter-accordion-body">
-                                    <div class="filter-section-list" id="filterOptions_CPUCooler"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="filter-accordion-item">
-                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_Case" aria-expanded="false">
-                                <span>Case <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_Case" style="display:none;"></span></span>
-                                <i class="fas fa-chevron-down chevron"></i>
-                            </button>
-                            <div class="collapse" id="filterCollapse_Case" data-bs-parent="#partsFilterAccordion">
-                                <div class="filter-accordion-body">
-                                    <div class="filter-section-list" id="filterOptions_Case"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="filter-accordion-item">
-                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_GPU" aria-expanded="false">
-                                <span>GPU <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_GPU" style="display:none;"></span></span>
-                                <i class="fas fa-chevron-down chevron"></i>
-                            </button>
-                            <div class="collapse" id="filterCollapse_GPU" data-bs-parent="#partsFilterAccordion">
-                                <div class="filter-accordion-body">
-                                    <div class="filter-section-list" id="filterOptions_GPU"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="filter-accordion-item">
-                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_Motherboard" aria-expanded="false">
-                                <span>Motherboard <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_Motherboard" style="display:none;"></span></span>
-                                <i class="fas fa-chevron-down chevron"></i>
-                            </button>
-                            <div class="collapse" id="filterCollapse_Motherboard" data-bs-parent="#partsFilterAccordion">
-                                <div class="filter-accordion-body">
-                                    <div class="filter-section-list" id="filterOptions_Motherboard"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="filter-accordion-item">
-                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_PSU" aria-expanded="false">
-                                <span>PSU <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_PSU" style="display:none;"></span></span>
-                                <i class="fas fa-chevron-down chevron"></i>
-                            </button>
-                            <div class="collapse" id="filterCollapse_PSU" data-bs-parent="#partsFilterAccordion">
-                                <div class="filter-accordion-body">
-                                    <div class="filter-section-list" id="filterOptions_PSU"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="filter-accordion-item">
-                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_RAM" aria-expanded="false">
-                                <span>RAM <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_RAM" style="display:none;"></span></span>
-                                <i class="fas fa-chevron-down chevron"></i>
-                            </button>
-                            <div class="collapse" id="filterCollapse_RAM" data-bs-parent="#partsFilterAccordion">
-                                <div class="filter-accordion-body">
-                                    <div class="filter-section-list" id="filterOptions_RAM"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="filter-accordion-item">
-                            <button type="button" class="filter-accordion-toggle" data-bs-toggle="collapse" data-bs-target="#filterCollapse_Storage" aria-expanded="false">
-                                <span>Storage <span class="badge bg-primary rounded-pill filter-badge" id="filterBadge_Storage" style="display:none;"></span></span>
-                                <i class="fas fa-chevron-down chevron"></i>
-                            </button>
-                            <div class="collapse" id="filterCollapse_Storage" data-bs-parent="#partsFilterAccordion">
-                                <div class="filter-accordion-body">
-                                    <div class="filter-section-list" id="filterOptions_Storage"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="d-flex gap-2 mt-3">
-                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" id="resetFilterBtn">Reset</button>
-                        <button type="button" class="btn btn-primary btn-sm flex-fill" id="applyFilterBtn">Apply</button>
-                    </div>
-                </div>
-            </div>
-            <div class="dropdown hover-dropdown">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortBtn" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" data-bs-auto-close="outside">
-                    Sort by
-                </button>
-                <div class="dropdown-menu sort-menu dropdown-menu-end" aria-labelledby="sortBtn">
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="sortOption" id="sortRelevance" value="relevance" checked>
-                        <label class="form-check-label" for="sortRelevance">Relevance</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="sortOption" id="sortPriceLow" value="priceLow">
-                        <label class="form-check-label" for="sortPriceLow">Price: Low to High</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="sortOption" id="sortPriceHigh" value="priceHigh">
-                        <label class="form-check-label" for="sortPriceHigh">Price: High to Low</label>
-                    </div>
-                </div>
-            </div>
-            <div class="dropdown hover-dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" id="addComponentBtn" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
-                    Add Component
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="addComponentBtn">
-                    <li><a class="dropdown-item" href="/case/create">Case</a></li>
-                    <li><a class="dropdown-item" href="/cpu/create">CPU</a></li>
-                    <li><a class="dropdown-item" href="/cooler/create">CPU Cooler</a></li>
-                    <li><a class="dropdown-item" href="/gpu/create">GPU</a></li>
-                    <li><a class="dropdown-item" href="/motherboard/create">Motherboard</a></li>
-                    <li><a class="dropdown-item" href="/psu/create">PSU</a></li>
-                    <li><a class="dropdown-item" href="/ram/create">RAM</a></li>
-                    <li><a class="dropdown-item" href="/storage/create">Storage</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
+                <span class="parts-stat-action" data-stock-action>Showing</span>
+            </button>
+            <button type="button" class="parts-stat" data-stock="low" aria-pressed="false">
+                <span class="parts-stat-icon amber"><i data-feather="alert-triangle"></i></span>
+                <span class="parts-stat-body">
+                    <span class="parts-stat-label">Low stock</span>
+                    <span class="parts-stat-value" id="statLow">0</span>
+                    <span class="parts-stat-note" id="statLowNote">1 to 5 units left</span>
+                </span>
+                <span class="parts-stat-action" data-stock-action>Show</span>
+            </button>
+            <button type="button" class="parts-stat" data-stock="out" aria-pressed="false">
+                <span class="parts-stat-icon red">0</span>
+                <span class="parts-stat-body">
+                    <span class="parts-stat-label">Out of stock</span>
+                    <span class="parts-stat-value" id="statOut">0</span>
+                    <span class="parts-stat-note">No units left</span>
+                </span>
+                <span class="parts-stat-action" data-stock-action>Show</span>
+            </button>
+        </section>
 
-    <table class="table" id="partsTable">
-        <thead>
-        <tr>
-            <th>Category</th>
-            <th>Brand</th>
-            <th>Model</th>
-            <th>Socket / Type / Tower Class / Memory Type / Modularity / Form Factor</th>
-            <th>Stocks</th>
-            <th>Price</th>
-            <th>Action</th>
-        </tr>
-        </thead>
-        <tbody id="partsTableBody"></tbody>
-    </table>
+        <section class="card">
+            <div class="parts-toolbar">
+                <div class="parts-search">
+                    <i data-feather="search"></i>
+                    <input type="search" id="partsSearch" placeholder="Search by brand or model" aria-label="Search parts by brand or model"/>
+                </div>
+                <label class="parts-sort-label" for="partsSort">Sort</label>
+                <select id="partsSort">
+                    <option value="category">Category</option>
+                    <option value="name">Name (A-Z)</option>
+                    <option value="priceLow">Price: Low to High</option>
+                    <option value="priceHigh">Price: High to Low</option>
+                    <option value="stockLow">Stock: Low to High</option>
+                </select>
+            </div>
+
+            <div class="parts-filters">
+                <div class="parts-chips" id="partsChips" role="group" aria-label="Filter by category"></div>
+                <!-- Per-category attribute filter. Hidden until a category chip is picked, because
+                     the facet is category-specific (CPU brand, motherboard socket, PSU wattage,
+                     ...). Replaces the old 8-section accordion; the facet logic behind it is
+                     unchanged. -->
+                <div class="parts-facet" id="partsFacetWrap" hidden>
+                    <label class="parts-sort-label" for="partsFacet" id="partsFacetLabel">Filter</label>
+                    <select id="partsFacet"></select>
+                </div>
+            </div>
+
+            <div class="parts-table-scroll">
+                <table class="parts-table">
+                    <thead>
+                    <tr>
+                        <th scope="col">Part</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Key spec</th>
+                        <th scope="col">Stock</th>
+                        <th scope="col" class="num">Price</th>
+                        <th scope="col" class="act">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="partsTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="parts-foot">
+                <span class="parts-count" id="partsCount"></span>
+                <nav class="parts-pager" id="partsPager" aria-label="Parts pages"></nav>
+            </div>
+        </section>
     </main>
 </div>
 
-<!-- View modal -->
-<div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+<!-- One shared view modal, filled on click - the rows are rendered by JS, so a per-row modal
+     (the pattern the order pages use for server-rendered rows) would mean building one per part. -->
+<div class="modal fade" id="partsViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="viewDetailsModalTitle">Details</h5>
+                <h5 class="modal-title" id="partsViewTitle">Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <img id="viewDetailsImg" src="" class="img-fluid d-block mb-3" style="display:none; max-height: 260px; margin: 0 auto;" alt="Component image"/>
-                <span class="badge bg-success price-badge mb-3" id="viewDetailsPrice"></span>
-                <table class="table table-sm" id="viewDetailsTable">
-                    <tbody></tbody>
-                </table>
+                <img id="partsViewImg" class="parts-view-img" alt="" hidden/>
+                <table class="parts-view-table"><tbody id="partsViewSpecs"></tbody></table>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
-<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+<!-- Shared delete confirmation, replacing the old inline confirm(). The form action is rewritten
+     per part when the modal opens; _method=delete because the route is @DeleteMapping. -->
+<div class="modal fade" id="partsDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete part</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Delete <strong id="partsDeleteName"></strong>? This also removes its photo and cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="table-action" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" id="partsDeleteForm">
+                    <input type="hidden" name="_method" value="delete"/>
+                    <button type="submit" class="btn-accent-sm">Yes, delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-<script th:inline="javascript">
-/*<![CDATA[*/
-const ALL_PARTS = /*[[${parts}]]*/ [];
-const ALL_CATEGORIES = (/*[[${categories}]]*/ []).slice().sort();
-/*]]>*/
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
 
-let activeCategories = ALL_CATEGORIES.slice();
-let activeAttributeValue = null;
-let currentSort = 'relevance';
-let searchTerm = '';
+<script th:inline="javascript">/*<![CDATA[*/
+var ALL_PARTS = /*[[${parts}]]*/ [];
+var LOW_STOCK_LIMIT = /*[[${lowStockLimit}]]*/ 5;
+/*]]>*/</script>
 
-// The one attribute filtered on per category, matching the /build picker's per-category filters.
-// Keyed by the display names PartsController sends as each part's "category" (e.g. "CPU Cooler",
-// not the raw "COOLER" code /build uses internally) since that's what p.category holds here.
-const CATEGORY_FIELD_MAP = {
-    CPU: 'Brand',
-    GPU: 'Brand',
-    Motherboard: 'Socket',
-    RAM: 'Type',
-    Storage: 'Category',
-    PSU: 'Wattage',
-    Case: 'Tower Class',
-    'CPU Cooler': 'Socket Support'
-};
+<script th:inline="none">
+(function () {
+    'use strict';
 
-// Storage's raw Category values ("NVMe SSD", "SATA SSD", "HDD 7200 RPM", ...) collapse down
-// to the three groupings requested for the filter: SSD, HDD, NVMe.
-function storageCategoryLabel(raw) {
-    if (!raw) return raw;
-    if (raw.indexOf('NVMe') > -1) return 'NVMe';
-    if (raw.indexOf('HDD') > -1) return 'HDD';
-    return 'SSD';
-}
+    var PAGE_SIZE = 25;
 
-// Case's raw Tower Class values ("Mid Tower", "Mid Tower (compact)", "Full Tower",
-// "Super / Full Tower") collapse down to: Mid, Mid(Compact), Full, Super Full.
-function caseTowerClassLabel(raw) {
-    if (!raw) return raw;
-    if (raw.indexOf('Super') > -1) return 'Super Full';
-    if (raw.toLowerCase().indexOf('compact') > -1) return 'Mid(Compact)';
-    if (raw.indexOf('Mid') > -1) return 'Mid';
-    if (raw.indexOf('Full') > -1) return 'Full';
-    return raw;
-}
+    // Short badge shown in the Part cell, keyed by the display names PartsController sends.
+    var CODES = {
+        'CPU': 'CPU', 'Motherboard': 'MB', 'GPU': 'GPU', 'RAM': 'RAM',
+        'Storage': 'STO', 'PSU': 'PSU', 'Case': 'CASE', 'CPU Cooler': 'CLR'
+    };
+    // Chip order, matching the mockup rather than alphabetical.
+    var ORDER = ['CPU', 'Motherboard', 'GPU', 'RAM', 'Storage', 'PSU', 'Case', 'CPU Cooler'];
 
-const CANONICAL_SOCKETS = ['AM4', 'AM5', 'LGA1200', 'LGA1700', 'LGA1851'];
+    // Which of a part's own spec fields is worth showing as "Key spec". Carried over unchanged
+    // from the previous version of this page.
+    var KEY_SPEC = {
+        'CPU': 'Socket', 'Motherboard': 'Socket', 'CPU Cooler': 'Socket Support', 'RAM': 'Type',
+        'Case': 'Tower Class', 'GPU': 'Memory Type', 'PSU': 'Modularity', 'Storage': 'Form Factor'
+    };
 
-// Cooler Socket Support is a compound string like "LGA1700/1200, AM5/AM4" or
-// "LGA1851/1700/1200, AM5/AM4" meaning that one cooler supports several sockets.
-// Each comma-separated group shares one letter prefix (LGA/AM) that carries over to
-// the bare numbers after each "/" (so "LGA1700/1200" means LGA1700 AND LGA1200).
-// Returns which of the canonical sockets that string covers.
-function coolerSupportedSockets(raw) {
-    if (!raw) return [];
-    const supported = new Set();
+    // ---- Attribute facets -------------------------------------------------------------------
+    // The one attribute filtered on per category, matching the /build picker's per-category
+    // filters. Keyed by the display names PartsController sends as each part's "category"
+    // (e.g. "CPU Cooler", not the raw "COOLER" code /build uses internally).
+    var CATEGORY_FIELD_MAP = {
+        CPU: 'Brand',
+        GPU: 'Brand',
+        Motherboard: 'Socket',
+        RAM: 'Type',
+        Storage: 'Category',
+        PSU: 'Wattage',
+        Case: 'Tower Class',
+        'CPU Cooler': 'Socket Support'
+    };
 
-    raw.split(',').forEach(function (group) {
-        let prefix = '';
-        group.trim().split('/').forEach(function (token) {
-            token = token.trim();
-            const letterMatch = token.match(/^([A-Za-z]+)/);
-            if (letterMatch) {
-                prefix = letterMatch[1];
-                supported.add(token);
-            } else if (prefix) {
-                supported.add(prefix + token);
+    // Storage's raw Category values ("NVMe SSD", "SATA SSD", "HDD 7200 RPM", ...) collapse down
+    // to the three groupings requested for the filter: SSD, HDD, NVMe.
+    function storageCategoryLabel(raw) {
+        if (!raw) return raw;
+        if (raw.indexOf('NVMe') > -1) return 'NVMe';
+        if (raw.indexOf('HDD') > -1) return 'HDD';
+        return 'SSD';
+    }
+
+    // Case's raw Tower Class values ("Mid Tower", "Mid Tower (compact)", "Full Tower",
+    // "Super / Full Tower") collapse down to: Mid, Mid(Compact), Full, Super Full.
+    function caseTowerClassLabel(raw) {
+        if (!raw) return raw;
+        if (raw.indexOf('Super') > -1) return 'Super Full';
+        if (raw.toLowerCase().indexOf('compact') > -1) return 'Mid(Compact)';
+        if (raw.indexOf('Mid') > -1) return 'Mid';
+        if (raw.indexOf('Full') > -1) return 'Full';
+        return raw;
+    }
+
+    var CANONICAL_SOCKETS = ['AM4', 'AM5', 'LGA1200', 'LGA1700', 'LGA1851'];
+
+    // Cooler Socket Support is a compound string like "LGA1700/1200, AM5/AM4" or
+    // "LGA1851/1700/1200, AM5/AM4" meaning that one cooler supports several sockets.
+    // Each comma-separated group shares one letter prefix (LGA/AM) that carries over to
+    // the bare numbers after each "/" (so "LGA1700/1200" means LGA1700 AND LGA1200).
+    // Returns which of the canonical sockets that string covers.
+    function coolerSupportedSockets(raw) {
+        if (!raw) return [];
+        var supported = {};
+        raw.split(',').forEach(function (group) {
+            var prefix = '';
+            group.trim().split('/').forEach(function (token) {
+                token = token.trim();
+                var letterMatch = token.match(/^([A-Za-z]+)/);
+                if (letterMatch) {
+                    prefix = letterMatch[1];
+                    supported[token] = true;
+                } else if (prefix) {
+                    supported[prefix + token] = true;
+                }
+            });
+        });
+        return CANONICAL_SOCKETS.filter(function (socket) { return supported[socket] === true; });
+    }
+
+    // Most categories filter on a single value per part; Cooler can match several sockets
+    // at once, so this always returns an array (single-value categories return a 1-item array).
+    function getAttributeValues(part, category) {
+        if (category === 'CPU Cooler') {
+            return coolerSupportedSockets((part.fields || {})['Socket Support']);
+        }
+        var fieldKey = CATEGORY_FIELD_MAP[category];
+        if (!fieldKey) return [];
+        var raw = (part.fields || {})[fieldKey];
+        if (raw === undefined || raw === null || raw === '') return [];
+        if (category === 'Storage') return [storageCategoryLabel(raw)];
+        if (category === 'Case') return [caseTowerClassLabel(raw)];
+        return [raw];
+    }
+
+    // Values present in the catalog but deliberately left out of the filter's option list.
+    var ATTRIBUTE_VALUE_EXCLUSIONS = { GPU: ['Intel'] };
+
+    // Label shown beside the facet select. Storage and Cooler get friendlier wording than their
+    // raw field keys ("Category" would read as a second category filter next to the chips).
+    var FACET_LABEL = {
+        Storage: 'Drive type', 'CPU Cooler': 'Socket', PSU: 'Wattage', Case: 'Tower class'
+    };
+    function facetLabel(category) {
+        return FACET_LABEL[category] || CATEGORY_FIELD_MAP[category] || 'Filter';
+    }
+    function facetDisplay(category, value) {
+        return category === 'PSU' ? value + 'W' : value;
+    }
+
+    var state = { stock: 'all', category: null, facet: null, search: '', sort: 'category', page: 1 };
+    var el = function (id) { return document.getElementById(id); };
+    var money = function (n) { return 'Php ' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+
+    function stockState(p) {
+        if (p.stocks <= 0) return 'out';
+        return p.stocks <= LOW_STOCK_LIMIT ? 'low' : 'in';
+    }
+    function keySpec(p) {
+        var k = KEY_SPEC[p.category];
+        return (k && p.fields && p.fields[k]) || '';
+    }
+
+    function matches(p) {
+        if (state.stock !== 'all' && stockState(p) !== state.stock) return false;
+        if (state.category && p.category !== state.category) return false;
+        // The facet only applies inside a chosen category, which is the only context where it is
+        // offered - so it composes with the chips, the stock cards, search and sort.
+        if (state.category && state.facet !== null) {
+            if (getAttributeValues(p, state.category).indexOf(state.facet) === -1) return false;
+        }
+        if (state.search) {
+            var t = state.search.toLowerCase();
+            if ((p.brand || '').toLowerCase().indexOf(t) === -1 &&
+                (p.modelName || '').toLowerCase().indexOf(t) === -1) return false;
+        }
+        return true;
+    }
+
+    function anyFilterActive() {
+        return state.stock !== 'all' || state.category !== null || state.facet !== null || state.search !== '';
+    }
+
+    function clearFilters() {
+        state.stock = 'all';
+        state.category = null;
+        state.facet = null;
+        state.search = '';
+        state.page = 1;
+        el('partsSearch').value = '';
+        render();
+    }
+
+    function sorted(rows) {
+        var out = rows.slice();
+        if (state.sort === 'priceLow') out.sort(function (a, b) { return a.price - b.price; });
+        else if (state.sort === 'priceHigh') out.sort(function (a, b) { return b.price - a.price; });
+        else if (state.sort === 'stockLow') out.sort(function (a, b) { return a.stocks - b.stocks; });
+        else if (state.sort === 'name') out.sort(function (a, b) { return (a.modelName || '').localeCompare(b.modelName || ''); });
+        else out.sort(function (a, b) {
+            var d = ORDER.indexOf(a.category) - ORDER.indexOf(b.category);
+            return d !== 0 ? d : (a.modelName || '').localeCompare(b.modelName || '');
+        });
+        return out;
+    }
+
+    function node(tag, cls, text) {
+        var n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text !== undefined && text !== null) n.textContent = text;
+        return n;
+    }
+    function icon(name) {
+        var i = document.createElement('i');
+        i.setAttribute('data-feather', name);
+        return i;
+    }
+
+    function renderStats() {
+        var low = 0, out = 0;
+        ALL_PARTS.forEach(function (p) {
+            var s = stockState(p);
+            if (s === 'low') low++; else if (s === 'out') out++;
+        });
+        el('statAll').textContent = ALL_PARTS.length;
+        el('statLow').textContent = low;
+        el('statOut').textContent = out;
+        var cats = {};
+        ALL_PARTS.forEach(function (p) { cats[p.category] = true; });
+        el('statAllNote').textContent = 'Across ' + Object.keys(cats).length + ' categories';
+        el('statLowNote').textContent = '1 to ' + LOW_STOCK_LIMIT + ' units left';
+
+        document.querySelectorAll('.parts-stat').forEach(function (btn) {
+            var on = btn.dataset.stock === state.stock;
+            btn.setAttribute('aria-pressed', String(on));
+            btn.querySelector('[data-stock-action]').textContent = on ? 'Showing' : 'Show';
+        });
+    }
+
+    function renderChips() {
+        var counts = {};
+        ALL_PARTS.forEach(function (p) {
+            if (state.stock === 'all' || stockState(p) === state.stock) {
+                counts[p.category] = (counts[p.category] || 0) + 1;
             }
         });
-    });
+        var total = Object.keys(counts).reduce(function (s, k) { return s + counts[k]; }, 0);
+        var wrap = el('partsChips');
+        wrap.replaceChildren();
 
-    return CANONICAL_SOCKETS.filter(function (socket) { return supported.has(socket); });
-}
-
-// Most categories filter on a single value per part; Cooler can match several sockets
-// at once, so this always returns an array (single-value categories return a 1-item array).
-function getAttributeValues(part, category) {
-    if (category === 'CPU Cooler') {
-        return coolerSupportedSockets((part.fields || {})['Socket Support']);
-    }
-    const fieldKey = CATEGORY_FIELD_MAP[category];
-    if (!fieldKey) return [];
-    const raw = (part.fields || {})[fieldKey];
-    if (raw === undefined || raw === null || raw === '') return [];
-    if (category === 'Storage') return [storageCategoryLabel(raw)];
-    if (category === 'Case') return [caseTowerClassLabel(raw)];
-    return [raw];
-}
-
-// Values present in the catalog but deliberately left out of the filter's option list.
-const ATTRIBUTE_VALUE_EXCLUSIONS = {
-    GPU: ['Intel']
-};
-
-function escapeHtml(str) {
-    if (str === null || str === undefined) return '';
-    return String(str)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;');
-}
-
-function formatPrice(value) {
-    return 'Php ' + Number(value).toFixed(2);
-}
-
-// Each component is its own accordion section; picking a value inside one implicitly
-// means "show only this component, filtered to this value" (there's no separate
-// category picker anymore). Only one section can be the active filter at a time.
-const FILTER_SECTIONS = ['CPU', 'CPU Cooler', 'Case', 'GPU', 'Motherboard', 'PSU', 'RAM', 'Storage'];
-
-function sectionId(category) {
-    return category.replace(/[^A-Za-z0-9]/g, '');
-}
-
-function renderAllFilterSections() {
-    FILTER_SECTIONS.forEach(renderFilterSection);
-}
-
-function renderFilterSection(category) {
-    const id = sectionId(category);
-    const container = document.getElementById('filterOptions_' + id);
-    if (!container) return;
-
-    const radioName = 'filterRadio_' + id;
-    const isActiveSection = activeCategories.length === 1 && activeCategories[0] === category;
-
-    const excluded = ATTRIBUTE_VALUE_EXCLUSIONS[category] || [];
-    const partsInCategory = ALL_PARTS.filter(function (p) { return p.category === category; });
-    const values = Array.from(new Set(
-        partsInCategory.reduce(function (acc, p) { return acc.concat(getAttributeValues(p, category)); }, [])
-    ))
-        .filter(function (val) { return excluded.indexOf(val) === -1; })
-        .sort(category === 'PSU' ? function (a, b) { return Number(a) - Number(b); } : undefined);
-
-    const selectedValue = isActiveSection ? activeAttributeValue : undefined;
-
-    container.innerHTML = '<div class="form-check">' +
-        '<input class="form-check-input filter-option-radio" type="radio" name="' + radioName + '" data-category="' + escapeHtml(category) + '" value="__ALL__" id="' + radioName + '_all" ' + (isActiveSection && selectedValue === null ? 'checked' : '') + '>' +
-        '<label class="form-check-label" for="' + radioName + '_all">All</label>' +
-        '</div>' +
-        values.map(function (val, i) {
-            const checked = isActiveSection && selectedValue === val ? 'checked' : '';
-            const displayLabel = category === 'PSU' ? val + 'W' : val;
-            const optId = radioName + '_' + i;
-            return '<div class="form-check">' +
-                '<input class="form-check-input filter-option-radio" type="radio" name="' + radioName + '" data-category="' + escapeHtml(category) + '" value="' + escapeHtml(val) + '" id="' + optId + '" ' + checked + '>' +
-                '<label class="form-check-label" for="' + optId + '">' + escapeHtml(displayLabel) + '</label>' +
-                '</div>';
-        }).join('');
-
-    updateSectionBadge(category);
-}
-
-function updateSectionBadge(category) {
-    const id = sectionId(category);
-    const badge = document.getElementById('filterBadge_' + id);
-    if (!badge) return;
-
-    const isActiveSection = activeCategories.length === 1 && activeCategories[0] === category;
-    if (isActiveSection) {
-        badge.textContent = '1';
-        badge.style.display = '';
-    } else {
-        badge.style.display = 'none';
-    }
-}
-
-// Selecting a radio in one component's section clears any selection in the others,
-// since only one component can be the active filter at a time.
-function selectFilterOption(category, value) {
-    activeCategories = [category];
-    activeAttributeValue = (value === '__ALL__') ? null : value;
-    renderAllFilterSections();
-}
-
-function getFilteredSortedParts() {
-    let parts = ALL_PARTS.filter(function (p) { return activeCategories.indexOf(p.category) > -1; });
-
-    if (activeAttributeValue !== null && activeCategories.length === 1) {
-        const category = activeCategories[0];
-        parts = parts.filter(function (p) { return getAttributeValues(p, category).indexOf(activeAttributeValue) > -1; });
+        function chip(label, value, count) {
+            var b = node('button', 'parts-chip');
+            b.type = 'button';
+            b.setAttribute('aria-pressed', String(state.category === value));
+            b.append(document.createTextNode(label), node('span', 'parts-chip-count', count));
+            b.addEventListener('click', function () {
+                // Switching category invalidates the facet - it belongs to the old category.
+                if (state.category !== value) state.facet = null;
+                state.category = value;
+                state.page = 1;
+                render();
+            });
+            wrap.append(b);
+        }
+        chip('All', null, total);
+        ORDER.forEach(function (c) { if (counts[c]) chip(c, c, counts[c]); });
     }
 
-    if (searchTerm) {
-        const term = searchTerm.toLowerCase();
-        parts = parts.filter(function (p) {
-            return (p.brand || '').toLowerCase().indexOf(term) > -1 ||
-                   (p.modelName || '').toLowerCase().indexOf(term) > -1;
+    // Facet options are drawn from the chosen category under the current stock filter - the same
+    // basis the chip counts use - so the select never offers a value that yields nothing. Search
+    // is deliberately excluded from that basis: it is a text refinement, not a facet.
+    function renderFacet() {
+        var wrap = el('partsFacetWrap');
+        if (!state.category) {
+            wrap.hidden = true;
+            state.facet = null;
+            return;
+        }
+        var excluded = ATTRIBUTE_VALUE_EXCLUSIONS[state.category] || [];
+        var seen = {};
+        ALL_PARTS.forEach(function (p) {
+            if (p.category !== state.category) return;
+            if (state.stock !== 'all' && stockState(p) !== state.stock) return;
+            getAttributeValues(p, state.category).forEach(function (v) {
+                if (v !== '' && v !== null && v !== undefined && excluded.indexOf(v) === -1) seen[v] = true;
+            });
         });
-    }
+        var values = Object.keys(seen);
+        values.sort(state.category === 'PSU'
+            ? function (a, b) { return Number(a) - Number(b); }
+            : function (a, b) { return a.localeCompare(b); });
 
-    if (currentSort === 'priceLow') {
-        parts = parts.slice().sort(function (a, b) { return a.price - b.price; });
-    } else if (currentSort === 'priceHigh') {
-        parts = parts.slice().sort(function (a, b) { return b.price - a.price; });
-    }
+        // A facet carried over from a previous stock filter may no longer exist.
+        if (state.facet !== null && values.indexOf(state.facet) === -1) state.facet = null;
 
-    return parts;
-}
+        wrap.hidden = values.length === 0;
+        el('partsFacetLabel').textContent = facetLabel(state.category);
 
-const SOCKET_OR_TYPE_FIELD = {
-    CPU: 'Socket',
-    Motherboard: 'Socket',
-    'CPU Cooler': 'Socket Support',
-    RAM: 'Type',
-    Case: 'Tower Class',
-    GPU: 'Memory Type',
-    PSU: 'Modularity',
-    Storage: 'Form Factor'
-};
-
-function socketOrType(part) {
-    const fieldKey = SOCKET_OR_TYPE_FIELD[part.category];
-    if (!fieldKey) return '';
-    return (part.fields || {})[fieldKey] || '';
-}
-
-function renderTable() {
-    const tbody = document.getElementById('partsTableBody');
-    const parts = getFilteredSortedParts();
-
-    if (parts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No matching parts found.</td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = parts.map(function (p) {
-        const outOfStock = p.stocks <= 0;
-
-        return '<tr class="' + (outOfStock ? 'out-of-stock' : '') + '">' +
-            '<td>' + escapeHtml(p.category) + '</td>' +
-            '<td>' + escapeHtml(p.brand) + '</td>' +
-            '<td>' + escapeHtml(p.modelName) + '</td>' +
-            '<td>' + escapeHtml(socketOrType(p)) + '</td>' +
-            '<td>' + (outOfStock ? 'Out of stock' : p.stocks) + '</td>' +
-            '<td>' + formatPrice(p.price) + '</td>' +
-            '<td style="white-space:nowrap">' +
-            '<button type="button" class="btn btn-outline-secondary btn-sm" onclick="viewDetails(' + p.componentId + ', \'' + p.category + '\')">View</button>' +
-            ' <a class="btn btn-primary btn-sm" href="/' + p.routePrefix + '/edit/' + p.componentId + '">Edit</a>' +
-            ' <form action="/' + p.routePrefix + '/delete/' + p.componentId + '" method="post" style="display:inline;">' +
-            '<input type="hidden" name="_method" value="delete"/>' +
-            '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Are you sure?\')">Delete</button>' +
-            '</form>' +
-            '</td>' +
-            '</tr>';
-    }).join('');
-}
-
-function findPart(componentId, category) {
-    return ALL_PARTS.find(function (p) { return p.componentId === componentId && p.category === category; });
-}
-
-function viewDetails(componentId, category) {
-    const part = findPart(componentId, category);
-    if (!part) return;
-
-    document.getElementById('viewDetailsModalTitle').textContent = part.brand + ' ' + part.modelName;
-    document.getElementById('viewDetailsPrice').textContent = formatPrice(part.price);
-
-    const img = document.getElementById('viewDetailsImg');
-    if (part.imageFileName) {
-        img.src = '/images/' + part.imageFileName;
-        img.style.display = '';
-    } else {
-        img.removeAttribute('src');
-        img.style.display = 'none';
-    }
-
-    const fields = part.fields || {};
-    const rows = Object.keys(fields).map(function (key) {
-        return '<tr><th class="text-muted" style="width:45%">' + escapeHtml(key) + '</th><td>' + escapeHtml(fields[key]) + '</td></tr>';
-    }).join('');
-
-    document.querySelector('#viewDetailsTable tbody').innerHTML = rows +
-        '<tr><th class="text-muted">Stocks</th><td>' + part.stocks + '</td></tr>';
-
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('viewDetailsModal')).show();
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    // Lets Cancel/Save on a category's create-edit form send the admin back to that same
-    // filtered view instead of the unfiltered list (which visually looks like it "jumped to
-    // CPU" since CPU sorts first alphabetically).
-    const requestedCategory = new URLSearchParams(window.location.search).get('category');
-    if (requestedCategory && ALL_CATEGORIES.indexOf(requestedCategory) > -1) {
-        activeCategories = [requestedCategory];
-        activeAttributeValue = null;
-    }
-
-    renderAllFilterSections();
-    renderTable();
-
-    document.getElementById('brandSearch').addEventListener('input', function () {
-        searchTerm = this.value;
-        renderTable();
-    });
-
-    document.getElementById('partsFilterAccordion').addEventListener('change', function (e) {
-        if (!e.target.classList.contains('filter-option-radio')) return;
-        selectFilterOption(e.target.getAttribute('data-category'), e.target.value);
-    });
-
-    document.getElementById('applyFilterBtn').addEventListener('click', function () {
-        renderTable();
-        bootstrap.Dropdown.getOrCreateInstance(document.getElementById('filterBtn')).hide();
-    });
-
-    document.getElementById('resetFilterBtn').addEventListener('click', function () {
-        activeCategories = ALL_CATEGORIES.slice();
-        activeAttributeValue = null;
-
-        renderAllFilterSections();
-        renderTable();
-
-        bootstrap.Dropdown.getOrCreateInstance(document.getElementById('filterBtn')).hide();
-    });
-
-    document.querySelectorAll('input[name="sortOption"]').forEach(function (radio) {
-        radio.addEventListener('change', function () {
-            currentSort = this.value;
-            renderTable();
-            bootstrap.Dropdown.getOrCreateInstance(document.getElementById('sortBtn')).hide();
+        var sel = el('partsFacet');
+        sel.replaceChildren();
+        var all = document.createElement('option');
+        all.value = '';
+        all.textContent = 'All';
+        sel.append(all);
+        values.forEach(function (v) {
+            var o = document.createElement('option');
+            o.value = v;
+            o.textContent = facetDisplay(state.category, v);
+            sel.append(o);
         });
+        sel.value = state.facet === null ? '' : state.facet;
+    }
+
+    function renderRow(p) {
+        var tr = document.createElement('tr');
+        var s = stockState(p);
+
+        var nameTd = node('td');
+        var name = node('div', 'parts-name');
+        name.append(node('span', 'parts-code', CODES[p.category] || '?'));
+        var txt = node('div', 'parts-name-text');
+        txt.append(node('span', 'parts-model', p.modelName), node('span', 'parts-brand', p.brand));
+        name.append(txt);
+        nameTd.append(name);
+        tr.append(nameTd);
+
+        tr.append(node('td', null, p.category));
+        tr.append(node('td', null, keySpec(p)));
+
+        var stockTd = node('td', 'parts-stock');
+        var top = node('div', 'parts-stock-top');
+        top.append(node('span', 'parts-stock-qty', p.stocks));
+        top.append(node('span', 'parts-badge ' + s, s === 'in' ? 'In stock' : s === 'low' ? 'Low stock' : 'Out of stock'));
+        stockTd.append(top);
+        var bar = node('progress', 'parts-stock-bar ' + s);
+        bar.max = 20;
+        bar.value = Math.min(p.stocks, 20);
+        bar.setAttribute('aria-hidden', 'true');
+        stockTd.append(bar);
+        tr.append(stockTd);
+
+        tr.append(node('td', 'num', money(p.price)));
+
+        var actTd = node('td', 'act');
+        var acts = node('div', 'parts-actions');
+
+        var view = node('button', 'parts-icon-btn');
+        view.type = 'button';
+        view.title = 'View details';
+        view.setAttribute('aria-label', 'View ' + p.modelName);
+        view.append(icon('eye'));
+        view.addEventListener('click', function () { openView(p); });
+
+        var edit = node('a', 'parts-icon-btn');
+        edit.href = '/' + p.routePrefix + '/edit/' + p.componentId;
+        edit.title = 'Edit';
+        edit.setAttribute('aria-label', 'Edit ' + p.modelName);
+        edit.append(icon('edit-2'));
+
+        var del = node('button', 'parts-icon-btn danger');
+        del.type = 'button';
+        del.title = 'Delete';
+        del.setAttribute('aria-label', 'Delete ' + p.modelName);
+        del.append(icon('trash-2'));
+        del.addEventListener('click', function () { openDelete(p); });
+
+        acts.append(view, edit, del);
+        actTd.append(acts);
+        tr.append(actTd);
+        return tr;
+    }
+
+    function renderPager(totalRows, totalPages) {
+        var pager = el('partsPager');
+        pager.replaceChildren();
+        if (totalPages <= 1) return;
+
+        function pageBtn(label, target, opts) {
+            var b = node('button', null);
+            b.type = 'button';
+            if (opts && opts.icon) b.append(icon(opts.icon)); else b.textContent = label;
+            if (opts && opts.current) b.setAttribute('aria-current', 'page');
+            if (opts && opts.disabled) b.disabled = true;
+            if (opts && opts.label) b.setAttribute('aria-label', opts.label);
+            b.addEventListener('click', function () {
+                if (b.disabled) return;
+                state.page = target;
+                render();
+            });
+            pager.append(b);
+        }
+        // Condensed: first, last, and a window around the current page, with gaps elided. 609
+        // parts at 25 a page is 25 pages - rendering them all would wrap the footer.
+        function pageNumbers() {
+            var span = 1, want = {}, i;
+            want[1] = true;
+            want[totalPages] = true;
+            for (i = state.page - span; i <= state.page + span; i++) {
+                if (i >= 1 && i <= totalPages) want[i] = true;
+            }
+            return Object.keys(want).map(Number).sort(function (a, b) { return a - b; });
+        }
+
+        pageBtn('', state.page - 1, { icon: 'chevron-left', disabled: state.page === 1, label: 'Previous page' });
+        var nums = pageNumbers(), prev = 0;
+        nums.forEach(function (n) {
+            if (n - prev > 1) pager.append(node('span', 'parts-gap', '\u2026'));
+            pageBtn(String(n), n, { current: n === state.page });
+            prev = n;
+        });
+        pageBtn('', state.page + 1, { icon: 'chevron-right', disabled: state.page === totalPages, label: 'Next page' });
+    }
+
+    function render() {
+        renderStats();
+        renderChips();
+        renderFacet();
+
+        var rows = sorted(ALL_PARTS.filter(matches));
+        var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+        if (state.page > totalPages) state.page = totalPages;
+        var start = (state.page - 1) * PAGE_SIZE;
+        var slice = rows.slice(start, start + PAGE_SIZE);
+
+        var body = el('partsTableBody');
+        body.replaceChildren();
+        if (!rows.length) {
+            var tr = document.createElement('tr');
+            var td = node('td', 'parts-empty');
+            td.colSpan = 6;
+            td.append(icon('package'));
+            td.append(node('p', 'parts-empty-title', ALL_PARTS.length
+                ? 'No parts match these filters.'
+                : 'No parts in the catalog yet.'));
+            if (anyFilterActive()) {
+                var clear = node('button', 'parts-clear', 'Clear filters');
+                clear.type = 'button';
+                clear.addEventListener('click', clearFilters);
+                td.append(clear);
+            }
+            tr.append(td);
+            body.append(tr);
+        } else {
+            slice.forEach(function (p) { body.append(renderRow(p)); });
+        }
+
+        el('partsCount').textContent = rows.length
+            ? 'Showing ' + (start + 1) + ' to ' + (start + slice.length) + ' of ' + rows.length + ' part' + (rows.length === 1 ? '' : 's')
+            : 'No parts to show';
+        renderPager(rows.length, totalPages);
+
+        if (window.feather) window.feather.replace();
+    }
+
+    function openView(p) {
+        el('partsViewTitle').textContent = (p.brand ? p.brand + ' ' : '') + p.modelName;
+        var img = el('partsViewImg');
+        if (p.imageFileName) {
+            img.src = '/images/' + p.imageFileName;
+            img.alt = p.modelName;
+            img.hidden = false;
+        } else {
+            img.removeAttribute('src');
+            img.hidden = true;
+        }
+        var body = el('partsViewSpecs');
+        body.replaceChildren();
+        function row(k, v) {
+            var tr = document.createElement('tr');
+            tr.append(node('th', null, k), node('td', null, v));
+            body.append(tr);
+        }
+        row('Category', p.category);
+        var fields = p.fields || {};
+        Object.keys(fields).forEach(function (k) { row(k, fields[k]); });
+        row('Stocks', p.stocks);
+        row('Price', money(p.price));
+        bootstrap.Modal.getOrCreateInstance(el('partsViewModal')).show();
+    }
+
+    function openDelete(p) {
+        el('partsDeleteName').textContent = (p.brand ? p.brand + ' ' : '') + p.modelName;
+        el('partsDeleteForm').action = '/' + p.routePrefix + '/delete/' + p.componentId;
+        bootstrap.Modal.getOrCreateInstance(el('partsDeleteModal')).show();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Kept from the previous version: a category create/edit form sends the admin back here
+        // with ?category=, so the list reopens on the category they were working in.
+        var requested = new URLSearchParams(window.location.search).get('category');
+        if (requested && ORDER.indexOf(requested) > -1) state.category = requested;
+
+        document.querySelectorAll('.parts-stat').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                state.stock = btn.dataset.stock;
+                state.page = 1;
+                render();
+            });
+        });
+        el('partsSearch').addEventListener('input', function () {
+            state.search = this.value.trim();
+            state.page = 1;
+            render();
+        });
+        el('partsSort').addEventListener('change', function () {
+            state.sort = this.value;
+            state.page = 1;
+            render();
+        });
+        el('partsFacet').addEventListener('change', function () {
+            state.facet = this.value === '' ? null : this.value;
+            state.page = 1;
+            render();
+        });
+
+        render();
     });
-});
+})();
 </script>
 </body>
 </html>
