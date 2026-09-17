@@ -47,7 +47,7 @@ public class Notification {
     }
 
     public enum EntityType {
-        ORDER, REPAIR, APPOINTMENT
+        ORDER, REPAIR, APPOINTMENT, SUPPORT_TICKET
     }
 
     public Long getNotificationId() {

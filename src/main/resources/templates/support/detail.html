@@ -1,0 +1,27 @@
+<!DOCTYPE html><html xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Support Ticket - RNPC</title><th:block th:replace="~{fragments/layout-app :: assets}"></th:block><th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block><th:block th:replace="~{fragments/card :: card-styles}"></th:block><th:block th:replace="~{fragments/table-card :: table-card-styles}"></th:block><th:block th:replace="~{fragments/empty-state :: empty-state-styles}"></th:block><th:block th:replace="~{fragments/appointment-ui :: styles}"></th:block><link rel="stylesheet" th:href="@{/css/support.css}"/></head><body class="appointment-page support-page">
+<div th:replace="~{fragments/layout-app :: sidebar(active='support', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+<div class="main"><div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+<div th:replace="~{fragments/layout-app :: notifDetailModal}"></div><main class="content">
+<a class="card-link" th:href="${navIsAdmin ? '/admin/support' : '/support'}">Back to Support Tickets</a>
+<div th:if="${success}" class="support-success" role="status" th:text="${success}"></div>
+<section class="support-ticket-detail card" th:fragment="ticketDetail">
+<link rel="stylesheet" th:href="@{/css/support.css}"/>
+<div class="card-head"><h2 th:text="${ticket.reference + ' · ' + ticket.topic.label}"></h2><span class="support-status" th:classappend="${ticket.status.name()}" th:text="${ticket.status.label}"></span></div>
+<p class="support-meta"><span th:if="${navIsAdmin}" th:text="${ticket.user.username + ' · '}"></span><span th:text="${#temporals.format(ticket.createdAt,'MMM d, yyyy · h:mm a')}"></span></p>
+<p class="support-message" th:text="${ticket.message}"></p>
+<th:block th:unless="${#lists.isEmpty(attachments)}"><h3>Attachments</h3><ul class="support-files"><li th:each="file : ${attachments}"><a th:href="@{/support/tickets/{ticketId}/attachments/{id}(ticketId=${ticket.id},id=${file.id})}" th:text="${file.filename}"></a></li></ul></th:block>
+<h3>Replies</h3><p class="support-meta" th:if="${#lists.isEmpty(replies)}">No reply yet. The shop will review your ticket.</p>
+<article class="support-reply" th:each="reply : ${replies}"><strong>RNPC Support</strong><p class="support-meta" th:text="${#temporals.format(reply.createdAt,'MMM d, yyyy · h:mm a')}"></p><p class="support-message" th:text="${reply.message}"></p></article>
+<form th:if="${navIsAdmin}" th:action="@{/support/tickets/{id}/reply(id=${ticket.id})}" th:object="${replyForm}" method="post" class="support-reply">
+<h3>Reply / Update Ticket</h3>
+<div class="support-errors" role="alert" th:if="${#fields.hasAnyErrors()}"><p th:each="error : ${#fields.allErrors()}" th:text="${error}"></p></div>
+<input type="hidden" th:field="*{version}"/>
+<label for="supportReply" class="support-label">Reply</label><textarea id="supportReply" class="form-control" th:field="*{message}" rows="4" maxlength="5000" placeholder="Write a reply to the customer..."></textarea>
+<label for="supportStatus" class="support-label">Status</label><select id="supportStatus" class="form-select" th:field="*{status}" required><option th:each="status : ${statuses}" th:value="${status}" th:text="${status.label}"></option></select>
+<p class="support-meta">Updating this ticket notifies the customer. Answered requires a reply.</p>
+<div class="support-actions"><button class="btn-accent-sm" type="submit">Update Ticket</button></div>
+</form></section>
+</main></div><div th:replace="~{fragments/appointment-ui :: receiptFeedback}"></div>
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block><th:block th:replace="~{fragments/layout-app :: app-script}"></th:block><th:block th:replace="~{fragments/appointment-ui :: script}"></th:block>
+</body></html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html><html xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Contact Support - RNPC</title><th:block th:replace="~{fragments/layout-app :: assets}"></th:block><th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block><th:block th:replace="~{fragments/card :: card-styles}"></th:block><th:block th:replace="~{fragments/table-card :: table-card-styles}"></th:block><th:block th:replace="~{fragments/empty-state :: empty-state-styles}"></th:block><th:block th:replace="~{fragments/appointment-ui :: styles}"></th:block><link rel="stylesheet" th:href="@{/css/support.css}"/></head><body class="appointment-page support-page">
+<div th:replace="~{fragments/layout-app :: sidebar(active='support', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+<div class="main"><div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+<div th:replace="~{fragments/layout-app :: notifDetailModal}"></div><main class="content">
+<a href="/" class="card-link"><i data-feather="arrow-left"></i>Back to Dashboard</a>
+<header class="support-heading"><span><i data-feather="headphones"></i></span><div><h1>Contact Support</h1><p>Need help? We're here to assist with your orders, repairs, appointments, or questions.</p></div></header>
+<div th:if="${success}" class="support-success" role="status" th:text="${success}"></div>
+<div th:if="${uploadError}" class="support-errors" role="alert" th:text="${uploadError}"></div>
+<div class="support-grid"><div><section class="card"><div class="card-head"><div class="card-head-left"><span class="card-icon card-icon-blue"><i data-feather="file-text"></i></span><h2 class="card-title">Submit a Ticket</h2></div></div>
+<p class="support-sub">Describe your concern. Your ticket will appear below after submission.</p>
+<form th:action="@{/support}" th:object="${ticketForm}" method="post" enctype="multipart/form-data" id="supportForm">
+<div th:if="${#fields.hasAnyErrors()}" class="support-errors" role="alert"><p th:each="error : ${#fields.allErrors()}" th:text="${error}"></p><p>If you attached files, please select them again.</p></div>
+<label for="topic" class="support-label">Subject <span class="support-required">*</span></label>
+<select id="topic" th:field="*{topic}" class="form-select" required><option value="">Select a topic</option><option th:each="topic : ${topics}" th:value="${topic}" th:text="${topic.label}"></option></select>
+<label for="message" class="support-label">Message <span class="support-required">*</span></label>
+<textarea id="message" th:field="*{message}" rows="6" maxlength="5000" class="form-control" placeholder="Describe your concern in detail..." required></textarea>
+<div class="support-upload"><i data-feather="paperclip"></i><div><label for="supportFiles" class="support-label">Attach Files (Optional)</label><p class="support-sub">Images, documents, or screenshots to help explain your concern.</p><small>Up to 5 files (PNG, JPG, PDF), 10 MB each.</small></div><input id="supportFiles" name="files" type="file" accept=".png,.jpg,.jpeg,.pdf" multiple/></div>
+<p id="fileError" class="support-errors" role="alert" hidden></p>
+<div class="support-actions"><button type="submit" class="btn-accent-sm"><i data-feather="send"></i>Submit a Ticket</button></div>
+</form></section><section class="card" id="recentTickets">
+<div class="card-head"><div class="card-head-left"><span class="card-icon card-icon-blue"><i data-feather="clipboard"></i></span><h2 class="card-title" th:text="${showAll ? 'Your Support Tickets' : 'Recent Support Tickets'}"></h2></div><a th:unless="${showAll}" href="/support?all=true#recentTickets" class="card-link">View All</a></div>
+<div class="support-table"><table class="rn-table" th:unless="${#lists.isEmpty(tickets)}"><thead><tr><th>Ticket #</th><th th:if="${navIsAdmin}">Customer</th><th>Subject</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>
+<tr th:each="ticket : ${tickets}"><td th:text="${ticket.reference}"></td><td th:if="${navIsAdmin}" th:text="${ticket.user.username}"></td><td th:text="${ticket.topic.label}"></td><td><span class="support-status" th:classappend="${ticket.status.name()}" th:text="${ticket.status.label}"></span></td><td th:text="${#temporals.format(ticket.createdAt,'MMM d, yyyy')}"></td><td><a class="table-action search-result-link" data-entity-type="SUPPORT_TICKET" th:attr="data-entity-id=${ticket.id}" th:href="@{/support/tickets/{id}(id=${ticket.id})}"><i data-feather="eye"></i>View</a></td></tr>
+</tbody></table></div><th:block th:if="${#lists.isEmpty(tickets)}"><div th:replace="~{fragments/empty-state :: state(icon='file-text',message='No support tickets yet',actions=null)}"></div></th:block></section></div><div><section class="card"><div class="card-head"><div class="card-head-left"><span class="card-icon card-icon-blue"><i data-feather="phone"></i></span><h2 class="card-title">Other Ways to Reach Us</h2></div></div>
+<p class="support-sub">Prefer to contact us directly? Here are other ways to get in touch.</p>
+<div class="support-contact"><span class="contact-icon contact-call"><i data-feather="phone"></i></span><div><strong>Call Us</strong><span>0920 912 0221</span></div><a class="table-action" href="tel:+639209120221">Call Now</a></div>
+<div class="support-contact"><span class="contact-icon contact-email"><i data-feather="mail"></i></span><div><strong>Email Us</strong><span>rnpcandcellphonerepairshop@gmail.com</span></div><a class="table-action" href="mailto:rnpcandcellphonerepairshop@gmail.com">Send Email</a></div>
+<div class="support-contact"><span class="contact-icon contact-social"><i data-feather="message-circle"></i></span><div><strong>Message Us</strong><span>RNPC Repair Shop</span></div><a class="table-action" href="https://www.facebook.com/rnpcrepairshop/" target="_blank" rel="noopener noreferrer">Open Facebook</a></div>
+</section><section class="card"><div class="card-head"><div class="card-head-left"><span class="card-icon card-icon-blue"><i data-feather="help-circle"></i></span><h2 class="card-title">Frequently Asked Questions</h2></div></div>
+<p class="support-sub">Find answers to common questions.</p>
+<details class="support-faq"><summary>How long does a typical repair take?</summary><p>Timing depends on the issue and the parts needed. Submit a ticket with your device and concern so the shop can advise you.</p></details>
+<details class="support-faq"><summary>Do you offer a warranty for repairs?</summary><p>If your repair has a warranty, its end date appears in the dashboard Warranty Tracker. Contact the shop to confirm coverage for your repair.</p></details>
+<details class="support-faq"><summary>Can I track my order or repair status?</summary><p>Yes. Open <a href="/order">Orders</a> or <a href="/repair">Repairs</a> to see your records and their current status.</p></details>
+<details class="support-faq"><summary>What payment methods do you accept?</summary><p>The current checkout offers GCash, Maribank, BPI, and RCBC. Keep your payment reference and receipt for verification.</p></details>
+<details class="support-faq"><summary>Do you offer home service or pickup/delivery?</summary><p>Order checkout offers pickup or delivery. For home service or other arrangements, submit a ticket or contact the shop before booking.</p></details>
+</section></div></div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+ const form=document.getElementById('supportForm'),files=document.getElementById('supportFiles'),error=document.getElementById('fileError');
+ function validateFiles(){
+  const list=Array.from(files.files);
+  const message=list.length>5?'Attach up to five files.':list.some(f=>f.size>10*1024*1024)?'Each file must be 10 MB or smaller.':'';
+  files.setCustomValidity(message);error.textContent=message;error.hidden=!message;return !message;
+ }
+ files.addEventListener('change',validateFiles);
+ form.addEventListener('submit',function(event){
+  if(!validateFiles()){event.preventDefault();files.reportValidity();return;}
+  form.querySelector('button[type=submit]').disabled=true;
+ });
+});
+</script>
+</main></div><div th:replace="~{fragments/appointment-ui :: receiptFeedback}"></div>
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block><th:block th:replace="~{fragments/layout-app :: app-script}"></th:block><th:block th:replace="~{fragments/appointment-ui :: script}"></th:block>
+</body></html>
