@@ -74,9 +74,9 @@
 -->
 <nav th:fragment="sidebar(active, currentUsername, currentRole)" class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <div class="brand-mark">RN</div>
+        <div class="brand-mark"><img th:src="@{/img/rn-pc-logo.png}" alt="RN PC logo" width="44" height="44"/></div>
         <div class="brand-text">
-            <span class="brand-title">RNPC</span>
+            <span class="brand-title">RN PC</span>
             <span class="brand-tagline">PC &amp; Cellphone Repair Shop</span>
         </div>
     </div>
@@ -128,12 +128,9 @@
                 <span class="nav-icon-chip"><i data-feather="tool"></i></span>
                 <span class="nav-label">Repairs</span>
             </a>
-            <a href="/notification" class="nav-item" th:classappend="${active == 'notifications'} ? 'active'">
-                <span class="nav-icon-chip"><i data-feather="bell"></i></span>
-                <span class="nav-label">Notifications</span>
-                <span th:if="${unreadNotifications != null and unreadNotifications > 0}" class="nav-badge">
-                    <span class="nav-badge-text" th:text="${unreadNotifications}"></span>
-                </span>
+            <a href="/support" class="nav-item" th:classappend="${active == 'support'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="headphones"></i></span>
+                <span class="nav-label">Contact Support</span>
             </a>
             <a href="/profile/edit" class="nav-item" th:classappend="${active == 'profile'} ? 'active'">
                 <span class="nav-icon-chip"><i data-feather="user"></i></span>
@@ -176,15 +173,16 @@
             </a>
 
             <button class="nav-toggle" type="button" data-toggle="ticket"
-                    th:attr="aria-expanded=${active == 'new-ticket' or active == 'view-ticket'}">
+                    th:attr="aria-expanded=${active == 'new-ticket' or active == 'view-ticket' or active == 'support'}">
                 <span class="nav-icon-chip"><i data-feather="file-text"></i></span>
                 <span class="nav-label">Tickets</span>
                 <i data-feather="chevron-down" class="nav-caret"></i>
             </button>
-            <div class="collapse-panel" data-panel="ticket" th:classappend="${active == 'new-ticket' or active == 'view-ticket'} ? 'show'">
+            <div class="collapse-panel" data-panel="ticket" th:classappend="${active == 'new-ticket' or active == 'view-ticket' or active == 'support'} ? 'show'">
                 <div class="accordion-body">
                     <a href="/ticket/create" th:classappend="${active == 'new-ticket'} ? 'active'">New Ticket</a>
                     <a href="/ticket/view" th:classappend="${active == 'view-ticket'} ? 'active'">View Tickets</a>
+                    <a href="/admin/support" th:classappend="${active == 'support'} ? 'active'">Support Tickets</a>
                 </div>
             </div>
 
@@ -228,12 +226,9 @@
             </a>
 
             <p class="nav-section-label">System</p>
-            <a href="/notification" class="nav-item" th:classappend="${active == 'notifications'} ? 'active'">
-                <span class="nav-icon-chip"><i data-feather="bell"></i></span>
-                <span class="nav-label">Notifications</span>
-                <span th:if="${unreadNotifications != null and unreadNotifications > 0}" class="nav-badge">
-                    <span class="nav-badge-text" th:text="${unreadNotifications}"></span>
-                </span>
+            <a href="/profile/edit" class="nav-item" th:classappend="${active == 'profile'} ? 'active'">
+                <span class="nav-icon-chip"><i data-feather="user"></i></span>
+                <span class="nav-label">My Profile</span>
             </a>
         </th:block>
     </div>
@@ -243,7 +238,7 @@
     <div class="status-block">
         <span class="status-dot"></span>
         <span class="status-text">
-            <span class="status-shop">RNPC Repair Shop</span>
+            <span class="status-shop">RN PC Repair Shop</span>
             <span class="status-online">&#9679; Online</span>
         </span>
     </div>
@@ -309,7 +304,7 @@
 
     <div class="dropdown" th:if="${currentUsername != null and !#strings.isEmpty(currentUsername)}">
         <button class="user-menu" type="button" data-bs-toggle="dropdown">
-            <span class="user-avatar" th:text="${#strings.substring(currentUsername,0,1)}"></span>
+            <span class="user-avatar"><img th:if="${hasProfilePhoto == true}" th:src="@{/profile/photo}" alt=""/><span th:unless="${hasProfilePhoto == true}" th:text="${#strings.substring(currentUsername,0,1)}"></span></span>
             <span class="user-text">
                 <span class="user-name" th:text="${currentUsername}"></span>
                 <span class="user-role" th:text="${currentRole != null} ? ${currentRole} : 'User'"></span>
@@ -365,8 +360,9 @@
     .sidebar-brand{ display:flex; align-items:center; gap:var(--space-3); padding:var(--space-5) var(--space-4) var(--space-4); }
     .brand-mark{
         width:44px; height:44px; border-radius:12px; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center;
-        flex-shrink:0; background:rgba(0,152,200,.08); color:#fff; font-weight:800; font-size:13px; letter-spacing:.02em;
+        flex-shrink:0; background:var(--bg-card); overflow:hidden;
     }
+    .brand-mark img{ display:block; width:100%; height:100%; object-fit:contain; }
     .brand-text{ display:flex; flex-direction:column; line-height:1.25; }
     .brand-title{ color:#fff; font-weight:800; font-size:15px; }
     .brand-tagline{ color:var(--sidebar-text); font-size:11px; }
@@ -564,7 +560,7 @@
         var notifDetailModalEl = document.getElementById('notifDetailModal');
         if (notifDetailModalEl && window.bootstrap) {
             var notifDetailModalBody = document.getElementById('notifDetailModalBody');
-            var notifFragmentUrls = { ORDER: '/order/', REPAIR: '/repair/', APPOINTMENT: '/appointment/' };
+            var notifFragmentUrls = { ORDER: '/order/', REPAIR: '/repair/', APPOINTMENT: '/appointment/', SUPPORT_TICKET: '/support/tickets/' };
 
             document.addEventListener('click', function (e) {
                 var item = e.target.closest('.notif-dropdown-item, .search-result-link');
@@ -577,7 +573,7 @@
 
                 e.preventDefault();
                 notifDetailModalBody.innerHTML = '<div class="text-center text-muted py-4">Loading...</div>';
-                notifDetailModalEl.querySelector('.modal-title').textContent = type === 'APPOINTMENT' ? 'Appointment Details' : 'Details';
+                notifDetailModalEl.querySelector('.modal-title').textContent = type === 'APPOINTMENT' ? 'Appointment Details' : type === 'SUPPORT_TICKET' ? 'Support Ticket' : 'Details';
                 bootstrap.Modal.getOrCreateInstance(notifDetailModalEl).show();
                 fetch(base + id + '/modal')
                     .then(function (res) { return res.text(); })
