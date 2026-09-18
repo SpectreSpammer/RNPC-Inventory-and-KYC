@@ -271,6 +271,74 @@ image-required check is done manually in the controller (`imageFile.isEmpty()`),
 `PartsController` is separate and owns just `GET /computer`, a read-only combined view of all eight
 PC-component catalogs. There is no `ComputerPartsController` and no `Computers` entity.
 
+### The parts inventory page (`/computer`)
+
+`products/allParts.html` is converted to `fragments/layout-app.html` (sidebar keyed
+`active='pc-parts'`), matching `gpt/admin/computer.png`. Styling is in `static/css/parts.css`.
+
+`PartsController.showPartsList` supplies, beyond the existing `parts` and `categories`:
+`currentUsername`, `currentRole`, `unreadNotifications` and `recentNotifications` for the shared
+topbar, plus `lowStockLimit`, which **reuses `AdminDashboardService.LOW_STOCK_LIMIT`** rather than
+restating "5 or fewer" - keep it that way so the page and the admin dashboard can't disagree. The
+route is admin-only via the filter chain, so the controller populates the admin inbox
+unconditionally and carries no `isAdmin` check of its own.
+
+**The page is still entirely client-side.** The whole catalog is inlined into the page as
+`ALL_PARTS` and filtered, sorted and paginated in the browser; the conversion added **no new query
+and no new repository call**. Every count on the page is derived from `ALL_PARTS` rather than
+passed in, so the stat cards and chip counts cannot drift from the rows actually rendered.
+
+What the page offers:
+
+- **Stock-filter cards** - All parts / Low stock / Out of stock, which double as the stock filter.
+  They are `<button aria-pressed>` with a Showing/Show label, written as bespoke markup because
+  `stat-card.html` renders only a static card or a link, neither of which can toggle.
+- **Category chips with counts**, which recount whenever the stock filter changes, so a chip never
+  offers a category with nothing behind it.
+- **Attribute filter** - one select beside the chips, shown only once a category is picked. It
+  replaced an 8-section accordion, but **the facet logic is unchanged and lives in the template's
+  own script**: `CATEGORY_FIELD_MAP` (the one facet per category), `coolerSupportedSockets` (parses
+  a compound string like `"LGA1851/1700/1200, AM5/AM4"` into individual sockets against
+  `CANONICAL_SOCKETS`), `caseTowerClassLabel`, `storageCategoryLabel`, and
+  `ATTRIBUTE_VALUE_EXCLUSIONS` (Intel is excluded from the GPU brand list). Options come from the
+  chosen category under the current stock filter, and a selection invalidated by a category or
+  stock change resets rather than sticking.
+- **Search** on brand or model, **sort** by Category, Name, Price (both directions) or Stock, and
+  **pagination at 25 rows per page** with a condensed pager (first, last and a window around the
+  current page) - 609 parts is 25 pages, and rendering them all wraps the footer.
+- **Empty state** with a Clear filters button resetting category, stock, search and facet.
+
+`?category=` is honoured on load, which is how the create and edit pages' Cancel buttons return to
+a filtered view (`@{/computer(category='CPU Cooler')}`). Don't break it.
+
+#### The view modal
+
+Matches `gpt/admin/View part - centred modal@1x.png`. One shared modal populated on click, since
+the rows are rendered by JS; it reads the part from `ALL_PARTS` and fetches nothing.
+
+- **Key specs** are three tinted tiles chosen per category via `KEY_SPECS_BY_CATEGORY`. CPU pairs
+  cores and threads into one synthetic tile. A designated key that is missing or empty is replaced
+  by the next available field rather than rendering an empty tile; `Brand` and `Model` are excluded
+  from that fallback because they are already the modal's title and subtitle.
+- **Unit suffixes are display-only** - no entity or stored value changes. Most field keys already
+  declare their unit (`Base Clock(Ghz)`, `Max GPU Length(mm)`, `Seq. Read(MB/s)`, `Speed(MT/s)`),
+  so the unit is taken from the key, the parenthetical is stripped off the label, and `Ghz` is
+  normalised to `GHz`. Only three bare-number keys need `EXPLICIT_UNITS`: PSU `Wattage` and GPU
+  `Recommended PSU` take `W`, PSU `Warranty` takes `years`.
+  ⚠️ **`Warranty` means two different things.** `PsuParts.warrantyYears` is an `int` and renders
+  "3 years", but `StorageParts.warranty` is a **String already reading "5 years"** - it is
+  deliberately absent from `EXPLICIT_UNITS`, and `withUnit` only appends to a value that is
+  actually numeric. That double guard is what stops "5 years years" and "16GB GB".
+- Empty and null values render as **"Not set"** in muted grey, not a blank cell.
+- `Notes` and `Notable Features` render as a **paragraph block**, not a grid cell - they're prose.
+- The photo area shows the image, or a labelled placeholder tile carrying the category.
+- The footer's **Edit part** links to the existing `/{cat}/edit/{id}`, and **Delete** reuses the
+  shared confirmation modal (which posts `_method=delete`, replacing the old inline `confirm()`).
+  ⚠️ That handoff hides the view modal and opens the confirmation on its `hidden.bs.modal` event
+  **deferred by a `setTimeout(..., 0)`**. Without the deferral Bootstrap's own hidden-cleanup runs
+  last and strips `.modal-open` from `<body>`, leaving the page behind scrollable while the
+  confirmation is open.
+
 ### Feature slices
 
 - **PC builder** - `BuildController` (`/build`), `SavedBuildController` (`/build/my-builds`, with
@@ -442,19 +510,27 @@ Current nav layout, which is not symmetric between the two menus:
 **The migration to it is roughly half done.** Converted: `dashboard.html`, `admin/dashboard.html`,
 all five `appointments/`, both `orders/` index pages, `build/`, `repairs/repairIndex.html`,
 `sales/salesReport.html`, `search/searchResults.html`, `profile/profileEdit.html`, all three
-`support/`. Still unconverted: all **31** `products/` pages, `orders/orderCheckout.html` and
+`support/`, and **`products/allParts.html`** (see the parts inventory page below). Still
+unconverted: **30 of the 31** `products/` pages, `orders/orderCheckout.html` and
 `orderConfirmation.html`, the three other `repairs/` pages, all three `clients/`, both `tickets/`,
 `login/login.html`, and `notifications/notificationIndex.html`.
 When converting a page, follow one that's already done rather than inventing a new structure.
 
-Note that the unconverted pages are not all in the same state: 21 of the `products/` templates use
-the old `fragments/nav.html` shell, but the **10 `*EditParts.html` templates have no shell at all**
-- no sidebar, no topbar, just a centered Bootstrap form. Zero `products/` templates use
-`layout-app`.
+`products/` breaks down as 31 templates: `allParts.html` plus ten categories with a list, a create
+and an edit page each. **`allParts.html` is the only one converted.** Still old Bootstrap:
+
+- the **10 per-category list pages** (`cpuParts.html` at `/cpu`, `gpuParts.html` at `/gpu`, and so
+  on - note this is ten, not eight: `laptopParts.html` and `cellphoneParts.html` are list pages
+  too), and
+- **all 20 create and edit pages**.
+
+They are not in the same state either: the list and create pages use the old `fragments/nav.html`
+shell, but the **10 `*EditParts.html` templates have no shell at all** - no sidebar, no topbar,
+just a centered Bootstrap form. So the edit pages are a bigger visual jump than the create pages.
 
 Page-specific CSS goes in `static/css/<page>.css` (see `profile.css`, `sales-report.css`,
-`support.css`); shared tokens live in `theme.css`. **No inline `style` attributes** - the converted
-pages use modifier classes, and SVG/`progress` attributes for genuinely dynamic bars.
+`support.css`, `parts.css`); shared tokens live in `theme.css`. **No inline `style` attributes** -
+the converted pages use modifier classes, and SVG/`progress` attributes for genuinely dynamic bars.
 
 `/order` is one controller method returning two templates: `orders/orderIndex.html` for customers
 and `orders/adminOrderIndex.html` for admins. They share the shell, stat-card row, search box and
