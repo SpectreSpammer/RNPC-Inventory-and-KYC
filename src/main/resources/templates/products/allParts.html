@@ -145,17 +145,67 @@
 </div>
 
 <!-- One shared view modal, filled on click - the rows are rendered by JS, so a per-row modal
-     (the pattern the order pages use for server-rendered rows) would mean building one per part. -->
-<div class="modal fade" id="partsViewModal" tabindex="-1" aria-hidden="true">
+     (the pattern the order pages use for server-rendered rows) would mean building one per part.
+     Laid out to match gpt/admin/View part - centred modal@1x.png. Everything in it comes from the
+     part's own entry in ALL_PARTS; nothing is fetched. -->
+<div class="modal fade" id="partsViewModal" tabindex="-1" aria-hidden="true" aria-labelledby="partsViewTitle">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="partsViewTitle">Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content parts-view">
+
+            <div class="modal-header parts-view-head">
+                <div class="parts-view-headings">
+                    <div class="parts-view-tags">
+                        <span class="parts-view-cat" id="partsViewCat"></span>
+                        <span class="parts-badge" id="partsViewStatus"></span>
+                    </div>
+                    <h5 class="parts-view-model" id="partsViewTitle"></h5>
+                    <p class="parts-view-brand" id="partsViewBrand"></p>
+                    <div class="parts-view-figures">
+                        <div class="parts-view-price">
+                            <span class="parts-view-key">Price</span>
+                            <strong id="partsViewPrice"></strong>
+                        </div>
+                        <div class="parts-view-stock">
+                            <span class="parts-view-key" id="partsViewStockLabel"></span>
+                            <div class="parts-view-stockrow">
+                                <strong id="partsViewStockQty"></strong>
+                                <progress class="parts-stock-bar" id="partsViewStockBar" max="20" value="0" aria-hidden="true"></progress>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="parts-view-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i data-feather="x"></i>
+                </button>
             </div>
-            <div class="modal-body">
+
+            <div class="modal-body parts-view-body">
                 <img id="partsViewImg" class="parts-view-img" alt="" hidden/>
-                <table class="parts-view-table"><tbody id="partsViewSpecs"></tbody></table>
+                <div class="parts-view-photo" id="partsViewNoPhoto" hidden>
+                    <span class="parts-view-photo-cat" id="partsViewPhotoCat"></span>
+                    <span class="parts-view-photo-note">No photo uploaded</span>
+                </div>
+
+                <h6 class="parts-view-section">Key specs</h6>
+                <div class="parts-view-tiles" id="partsViewTiles"></div>
+
+                <h6 class="parts-view-section">All specifications</h6>
+                <div class="parts-view-grid" id="partsViewGrid"></div>
+
+                <div class="parts-view-notes" id="partsViewNotes" hidden>
+                    <span class="parts-view-key" id="partsViewNotesLabel"></span>
+                    <p id="partsViewNotesText"></p>
+                </div>
+            </div>
+
+            <div class="modal-footer parts-view-foot">
+                <a class="parts-view-edit" id="partsViewEdit" href="#">
+                    <i data-feather="edit-2"></i>Edit part
+                </a>
+                <button type="button" class="parts-icon-btn danger" id="partsViewDelete" aria-label="Delete this part">
+                    <i data-feather="trash-2"></i>
+                </button>
+                <button type="button" class="parts-view-closebtn" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -302,6 +352,109 @@ var LOW_STOCK_LIMIT = /*[[${lowStockLimit}]]*/ 5;
     }
     function facetDisplay(category, value) {
         return category === 'PSU' ? value + 'W' : value;
+    }
+
+    // ---- View modal display helpers ---------------------------------------------------------
+    // Units are a DISPLAY concern only - the entities keep storing bare numbers. Most keys already
+    // declare their unit in the key itself ("Base Clock(Ghz)", "Max GPU Length(mm)",
+    // "Seq. Read(MB/s)", "Speed(MT/s)"), so the unit is taken from there and the parenthetical is
+    // stripped off the label. EXPLICIT_UNITS covers the few bare-number keys that declare nothing.
+    var EXPLICIT_UNITS = {
+        'PSU|Wattage': 'W',
+        'PSU|Warranty': 'years',      // PsuParts.warrantyYears is an int
+        'GPU|Recommended PSU': 'W'
+    };
+    // Storage's "Warranty" is a String that already reads like "5 years", so it is deliberately
+    // absent above - appending to it would produce "5 years years".
+
+    var UNIT_FIXES = { 'Ghz': 'GHz', 'GHZ': 'GHz', 'mhz': 'MHz', 'Mhz': 'MHz' };
+
+    function splitUnit(category, key) {
+        var m = key.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+        if (m) {
+            var u = m[2].trim();
+            return { label: m[1].trim(), unit: UNIT_FIXES[u] || u };
+        }
+        return { label: key, unit: EXPLICIT_UNITS[category + '|' + key] || null };
+    }
+
+    function isBlank(v) {
+        return v === null || v === undefined || String(v).trim() === '';
+    }
+
+    // Appends the unit only to a value that is actually numeric and does not already carry it -
+    // so a String field that already reads "16GB" or "5 years" is left alone.
+    function withUnit(value, unit) {
+        if (!unit || isBlank(value)) return value;
+        var s = String(value).trim();
+        if (!/^-?\d+(\.\d+)?$/.test(s)) return s;
+        return s + (unit === 'years' ? ' years' : ' ' + unit);
+    }
+
+    // One display-ready { label, value, blank } for a field key.
+    function spec(part, category, key) {
+        var parts = splitUnit(category, key);
+        var raw = (part.fields || {})[key];
+        return {
+            label: parts.label,
+            value: isBlank(raw) ? 'Not set' : withUnit(raw, parts.unit),
+            blank: isBlank(raw)
+        };
+    }
+
+    // The three tiles per category. 'Cores' is synthetic - it pairs two keys into "4 / 8".
+    var KEY_SPECS_BY_CATEGORY = {
+        'PSU':         ['Wattage', '80 PLUS Rating', 'Modularity'],
+        'CPU':         ['Socket', '@cores', 'Boost Clock(Ghz)'],
+        'GPU':         ['VRAM', 'Memory Type', 'Recommended PSU'],
+        'Motherboard': ['Socket', 'Form Factor', 'Memory Type'],
+        'RAM':         ['Type', 'Kit Capacity', 'Speed(MT/s)'],
+        'Storage':     ['Category', 'Capacities', 'Form Factor'],
+        'Case':        ['Tower Class', 'Motherboard Support', 'Max GPU Length(mm)'],
+        'CPU Cooler':  ['Type', 'Socket Support', 'Radiator Height(mm)']
+    };
+
+    // Rendered as a paragraph rather than a grid cell - these are prose, not a value.
+    var PROSE_KEYS = ['Notes', 'Notable Features'];
+
+    function coresTile(part) {
+        var f = part.fields || {};
+        var c = f['Cores'], t = f['Thread'];
+        if (isBlank(c) && isBlank(t)) return { label: 'Cores / threads', value: 'Not set', blank: true };
+        return {
+            label: 'Cores / threads',
+            value: (isBlank(c) ? '?' : c) + ' / ' + (isBlank(t) ? '?' : t),
+            blank: false
+        };
+    }
+
+    // Three tiles, in order. A designated key that is missing or empty is replaced by the next
+    // available non-blank field rather than rendering an empty tile.
+    function keySpecTiles(part) {
+        var wanted = KEY_SPECS_BY_CATEGORY[part.category] || [];
+        var used = {}, tiles = [];
+        wanted.forEach(function (key) {
+            var t = key === '@cores' ? coresTile(part) : spec(part, part.category, key);
+            if (key === '@cores') { used['Cores'] = true; used['Thread'] = true; }
+            else used[key] = true;
+            tiles.push(t);
+        });
+        // Fill any blank tile from the first unused, non-blank, non-prose field. Brand and Model
+        // are excluded: they are already the modal's subtitle and title, so promoting them to a
+        // key spec would just repeat the header.
+        var HEADER_KEYS = ['Brand', 'Model'];
+        var spare = Object.keys(part.fields || {}).filter(function (k) {
+            return !used[k] && PROSE_KEYS.indexOf(k) === -1 && HEADER_KEYS.indexOf(k) === -1
+                && !isBlank(part.fields[k]);
+        });
+        for (var i = 0; i < tiles.length; i++) {
+            if (tiles[i].blank && spare.length) {
+                var k = spare.shift();
+                used[k] = true;
+                tiles[i] = spec(part, part.category, k);
+            }
+        }
+        return { tiles: tiles.slice(0, 3), used: used };
     }
 
     var state = { stock: 'all', category: null, facet: null, search: '', sort: 'category', page: 1 };
@@ -609,29 +762,92 @@ var LOW_STOCK_LIMIT = /*[[${lowStockLimit}]]*/ 5;
     }
 
     function openView(p) {
-        el('partsViewTitle').textContent = (p.brand ? p.brand + ' ' : '') + p.modelName;
+        var s = stockState(p);
+        var statusText = s === 'in' ? 'In stock' : s === 'low' ? 'Low stock' : 'Out of stock';
+
+        el('partsViewCat').textContent = p.category;
+        var status = el('partsViewStatus');
+        status.className = 'parts-badge ' + s;
+        status.textContent = statusText;
+        el('partsViewTitle').textContent = p.modelName;
+        el('partsViewBrand').textContent = isBlank(p.brand) ? 'Not set' : p.brand;
+        el('partsViewPrice').textContent = money(p.price);
+        el('partsViewStockLabel').textContent = statusText;
+        el('partsViewStockQty').textContent = p.stocks;
+        var bar = el('partsViewStockBar');
+        bar.className = 'parts-stock-bar ' + s;
+        bar.value = Math.min(p.stocks, 20);
+
+        // Photo, or the labelled placeholder tile from the mockup.
         var img = el('partsViewImg');
+        var placeholder = el('partsViewNoPhoto');
         if (p.imageFileName) {
             img.src = '/images/' + p.imageFileName;
             img.alt = p.modelName;
             img.hidden = false;
+            placeholder.hidden = true;
         } else {
             img.removeAttribute('src');
             img.hidden = true;
+            el('partsViewPhotoCat').textContent = p.category;
+            placeholder.hidden = false;
         }
-        var body = el('partsViewSpecs');
-        body.replaceChildren();
-        function row(k, v) {
-            var tr = document.createElement('tr');
-            tr.append(node('th', null, k), node('td', null, v));
-            body.append(tr);
-        }
-        row('Category', p.category);
+
+        // Key specs.
+        var picked = keySpecTiles(p);
+        var tiles = el('partsViewTiles');
+        tiles.replaceChildren();
+        picked.tiles.forEach(function (t) {
+            var tile = node('div', 'parts-view-tile');
+            tile.append(node('span', 'parts-view-key', t.label));
+            tile.append(node('strong', t.blank ? 'parts-view-unset' : null, t.value));
+            tiles.append(tile);
+        });
+
+        // All specifications: everything not already shown as a tile, minus the prose fields.
+        var grid = el('partsViewGrid');
+        grid.replaceChildren();
         var fields = p.fields || {};
-        Object.keys(fields).forEach(function (k) { row(k, fields[k]); });
-        row('Stocks', p.stocks);
-        row('Price', money(p.price));
+        Object.keys(fields).forEach(function (k) {
+            if (picked.used[k] || PROSE_KEYS.indexOf(k) > -1) return;
+            var d = spec(p, p.category, k);
+            var cell = node('div', 'parts-view-cell');
+            cell.append(node('span', 'parts-view-key', d.label));
+            cell.append(node('strong', d.blank ? 'parts-view-unset' : null, d.value));
+            grid.append(cell);
+        });
+
+        // Notes / Notable Features as a paragraph block.
+        var proseKey = PROSE_KEYS.filter(function (k) { return k in fields; })[0];
+        var notes = el('partsViewNotes');
+        if (proseKey && !isBlank(fields[proseKey])) {
+            el('partsViewNotesLabel').textContent = proseKey;
+            el('partsViewNotesText').textContent = fields[proseKey];
+            notes.hidden = false;
+        } else {
+            notes.hidden = true;
+        }
+
+        el('partsViewEdit').href = '/' + p.routePrefix + '/edit/' + p.componentId;
+
+        // Delete from the footer reuses the existing confirmation modal. The view modal is closed
+        // first and the second one opened on its hidden event - two Bootstrap modals open at once
+        // stack their backdrops and leave one behind.
+        var del = el('partsViewDelete');
+        del.onclick = function () {
+            var viewEl = el('partsViewModal');
+            viewEl.addEventListener('hidden.bs.modal', function once() {
+                viewEl.removeEventListener('hidden.bs.modal', once);
+                // Deferred a tick: Bootstrap's own hidden-cleanup strips .modal-open from <body>,
+                // and opening the next modal inside the same task lets that cleanup run last,
+                // leaving the page behind scrollable.
+                setTimeout(function () { openDelete(p); }, 0);
+            });
+            bootstrap.Modal.getOrCreateInstance(viewEl).hide();
+        };
+
         bootstrap.Modal.getOrCreateInstance(el('partsViewModal')).show();
+        if (window.feather) window.feather.replace();
     }
 
     function openDelete(p) {
