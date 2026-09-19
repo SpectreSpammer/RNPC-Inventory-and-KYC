@@ -1,0 +1,78 @@
+/* Shared styling for the parts create/edit forms - see fragments/parts-form.html.
+   Kept separate from parts.css, which styles the /computer list page: the two share no selectors
+   (no table, chips, pager, stat cards or view modal here), and this file is loaded by 20 pages. */
+
+.pf-page [hidden]{display:none!important}
+.pf-wrap{max-width:900px}
+
+/* Header */
+.pf-back{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;margin-bottom:var(--space-4)}
+.pf-back:hover{text-decoration:underline;color:var(--accent)}
+.pf-back svg{width:15px;height:15px}
+.pf-title-row{display:flex;align-items:center;gap:var(--space-4);margin-bottom:var(--space-5)}
+.pf-code{display:grid;place-items:center;width:52px;height:52px;flex-shrink:0;border:1px solid var(--border);border-radius:14px;background:var(--bg-card);color:var(--blue);font-size:12px;font-weight:800;letter-spacing:.02em}
+.pf-title{font-size:26px;font-weight:800;margin:0;letter-spacing:-.02em}
+.pf-subtitle{font-size:13px;color:var(--text-muted);margin:2px 0 0}
+
+/* Card + sections */
+.pf-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
+.pf-section{padding:var(--space-5);border-bottom:1px solid var(--border)}
+.pf-section:last-of-type{border-bottom:0}
+.pf-section h2{font-size:15px;font-weight:700;margin:0 0 var(--space-4)}
+.pf-optional{font-size:12.5px;font-weight:500;color:var(--text-muted)}
+
+/* Two-column field grid */
+.pf-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4) var(--space-5)}
+.pf-field{min-width:0}
+.pf-field.pf-full{grid-column:1/-1}
+.pf-field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px}
+.pf-field input[type=text],.pf-field input[type=number],.pf-field select,.pf-field textarea{
+    width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-card);
+    color:var(--text);font:inherit;font-size:13.5px;padding:9px 12px}
+.pf-field input:focus,.pf-field select:focus,.pf-field textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+.pf-hint{display:block;font-size:11.5px;color:var(--text-muted);margin-top:5px}
+
+/* Php prefix on price */
+.pf-prefix{display:flex;align-items:stretch}
+.pf-prefix span{display:grid;place-items:center;padding:0 12px;border:1px solid var(--border);border-right:0;border-radius:var(--radius-sm) 0 0 var(--radius-sm);background:var(--bg-page);color:var(--text-muted);font-size:12.5px;font-weight:600}
+.pf-prefix input{border-radius:0 var(--radius-sm) var(--radius-sm) 0!important}
+
+/* Errors */
+.pf-error{display:block;font-size:12px;color:var(--red);margin-top:5px}
+.pf-errors{display:flex;align-items:flex-start;gap:var(--space-3);background:var(--red-subtle,rgba(220,53,69,.1));border:1px solid var(--red);border-radius:var(--radius-sm);padding:var(--space-4);margin-bottom:var(--space-5)}
+.pf-errors svg{width:18px;height:18px;color:var(--red);flex-shrink:0;margin-top:1px}
+.pf-errors strong{display:block;font-size:13.5px;color:var(--red);margin-bottom:4px}
+.pf-errors ul{margin:0;padding-left:var(--space-4);font-size:12.5px;color:var(--text)}
+.pf-errors li{margin-top:2px}
+
+/* Photo */
+.pf-upload{display:flex;align-items:center;gap:var(--space-4);border:1px dashed var(--border-strong,var(--border));border-radius:var(--radius-sm);background:var(--bg-page);padding:var(--space-4)}
+.pf-upload-icon{display:grid;place-items:center;width:46px;height:46px;flex-shrink:0;border-radius:12px;background:var(--bg-card);color:var(--text-muted)}
+.pf-upload-icon svg{width:20px;height:20px}
+.pf-upload-text{flex:1;min-width:0}
+.pf-upload-text strong{display:block;font-size:13.5px}
+.pf-upload input[type=file]{margin-top:6px;font-size:12.5px;max-width:100%}
+
+.pf-current{display:flex;align-items:center;gap:var(--space-4);margin-top:var(--space-4);border:1px solid var(--border);border-radius:var(--radius-sm);padding:var(--space-3)}
+.pf-current img{width:110px;height:82px;object-fit:contain;border-radius:var(--radius-sm);background:var(--bg-page);flex-shrink:0}
+.pf-current-text strong{display:block;font-size:13px;margin-bottom:6px}
+.pf-remove{display:inline-flex;align-items:center;gap:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--red);font:inherit;font-size:12.5px;font-weight:600;padding:6px 12px;cursor:pointer}
+.pf-remove:hover{border-color:var(--red)}
+.pf-remove svg{width:14px;height:14px}
+
+/* Footer */
+.pf-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-3);padding:var(--space-4) var(--space-5);background:var(--bg-page);border-top:1px solid var(--border)}
+.pf-cancel{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13.5px;font-weight:700;padding:10px var(--space-5);text-decoration:none}
+.pf-cancel:hover{border-color:var(--accent);color:var(--accent)}
+.pf-save{background:var(--accent);border:1px solid var(--accent);border-radius:var(--radius-sm);color:#fff;font:inherit;font-size:13.5px;font-weight:700;padding:10px var(--space-5);cursor:pointer}
+.pf-save:hover{filter:brightness(.94)}
+
+.pf-page :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+@media(max-width:760px){
+    .pf-grid{grid-template-columns:1fr}
+    .pf-section{padding:var(--space-4)}
+    .pf-actions{padding:var(--space-4);flex-direction:column-reverse;align-items:stretch}
+    .pf-cancel{text-align:center}
+    .pf-upload{flex-direction:column;align-items:flex-start}
+}

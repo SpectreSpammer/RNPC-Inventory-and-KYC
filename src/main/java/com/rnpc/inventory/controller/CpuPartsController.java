@@ -3,22 +3,40 @@ package com.rnpc.inventory.controller;
 import com.rnpc.inventory.dto.CpuPartsDto;
 import com.rnpc.inventory.entity.CpuParts;
 import com.rnpc.inventory.service.CpuPartsService;
+import com.rnpc.inventory.service.NotificationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("cpu")
 public class CpuPartsController {
 
     private final CpuPartsService service;
+    private final NotificationService notificationService;
 
     @Autowired
-    public CpuPartsController(CpuPartsService service) {
+    public CpuPartsController(CpuPartsService service, NotificationService notificationService) {
         this.service = service;
+        this.notificationService = notificationService;
+    }
+
+    // Topbar chrome for the shared layout-app shell, same shape as PartsController's /computer.
+    // These routes are admin-only via the filter chain (SecurityConfig.ADMIN_ONLY_PARTS_PATHS), so
+    // the admin inbox is always the right one and no isAdmin check belongs here. Called from the
+    // create and edit handlers, including their validation-error paths, which re-render the form.
+    private void addShellAttributes(Authentication authentication, Model model) {
+        model.addAttribute("currentUsername", authentication != null ? authentication.getName() : null);
+        model.addAttribute("currentRole", "Admin");
+        model.addAttribute("unreadNotifications", notificationService.getUnreadCountForAdmin());
+        model.addAttribute("recentNotifications",
+                notificationService.getForAdmin().stream().limit(15).collect(Collectors.toList()));
     }
 
     @GetMapping({"", "/"})
@@ -28,16 +46,19 @@ public class CpuPartsController {
     }
 
     @GetMapping("/create")
-    public String showCreatePage(Model model) {
+    public String showCreatePage(Authentication authentication, Model model) {
         model.addAttribute("cpuPartsDto", new CpuPartsDto());
         addDropdownOptions(model);
+        addShellAttributes(authentication, model);
         return "products/cpuCreateParts";
     }
 
     @PostMapping("/create")
-    public String createPart(@Valid @ModelAttribute CpuPartsDto cpuPartsDto, BindingResult result, Model model) {
+    public String createPart(@Valid @ModelAttribute CpuPartsDto cpuPartsDto, BindingResult result,
+                              Authentication authentication, Model model) {
         if (result.hasErrors()) {
             addDropdownOptions(model);
+            addShellAttributes(authentication, model);
             return "products/cpuCreateParts";
         }
 
@@ -46,7 +67,7 @@ public class CpuPartsController {
     }
 
     @GetMapping("/edit/{id}")
-    public String showEditForm(@PathVariable("id") int id, Model model) {
+    public String showEditForm(@PathVariable("id") int id, Authentication authentication, Model model) {
         CpuParts part = service.getPartById(id);
 
         CpuPartsDto dto = new CpuPartsDto();
@@ -68,6 +89,7 @@ public class CpuPartsController {
         model.addAttribute("partId", id);
         model.addAttribute("currentImage", part.getImageFileName());
         addDropdownOptions(model);
+        addShellAttributes(authentication, model);
         return "products/cpuEditParts";
     }
 
@@ -75,11 +97,13 @@ public class CpuPartsController {
     public String updatePart(@PathVariable("id") int id,
                               @Valid @ModelAttribute CpuPartsDto cpuPartsDto,
                               BindingResult result,
+                              Authentication authentication,
                               Model model) {
         if (result.hasErrors()) {
             model.addAttribute("partId", id);
             model.addAttribute("currentImage", service.getPartById(id).getImageFileName());
             addDropdownOptions(model);
+            addShellAttributes(authentication, model);
             return "products/cpuEditParts";
         }
 

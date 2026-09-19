@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Shared chrome for the parts create/edit forms (products/*CreateParts.html and
+  products/*EditParts.html). CPU is the reference pair; the other seven categories copy it.
+
+  Deliberately NO th:field and NO #fields in here. Each category keeps its own field markup
+  explicit in its own template, per the house rule that the parts slices are duplicated rather
+  than generalised - and so nothing in this file depends on the form's th:object being visible
+  inside an inserted fragment. The error fragment takes the error state as plain parameters
+  instead, evaluated by the caller where th:object is in scope.
+
+  These are all scalar-parameter fragments; none uses the cross-file ~{::#id} content-parameter
+  pattern that card.html/table-card.html use, which this codebase has had trouble with.
+-->
+
+<th:block th:fragment="assets">
+    <link rel="stylesheet" th:href="@{/css/parts-form.css}"/>
+</th:block>
+
+<!--
+  Page header. backUrl keeps whatever return link the caller already used, so the existing
+  ?category= behaviour survives - the forms link back with @{/computer(category='CPU')}.
+    <div th:replace="~{fragments/parts-form :: header(code='CPU', title='Add CPU', subtitle='...', backUrl=@{/computer(category='CPU')})}"></div>
+-->
+<div th:fragment="header(code, title, subtitle, backUrl)" class="pf-header">
+    <a class="pf-back" th:href="${backUrl}">
+        <i data-feather="chevron-left"></i>Back to parts
+    </a>
+    <div class="pf-title-row">
+        <span class="pf-code" th:text="${code}"></span>
+        <div>
+            <h1 class="pf-title" th:text="${title}"></h1>
+            <p class="pf-subtitle" th:text="${subtitle}"></p>
+        </div>
+    </div>
+</div>
+
+<!--
+  Validation summary, shown only when the form came back with errors. hasErrors and messages are
+  passed in from the caller, e.g.
+    <th:block th:if="${#fields.hasAnyErrors()}">
+      <div th:replace="~{fragments/parts-form :: errors(messages=${#fields.allErrors()})}"></div>
+    </th:block>
+  The caller gates it with a th:block rather than the fragment carrying its own th:if: th:if does
+  not reliably gate a th:replace, and this codebase has already been bitten by that. Per-field
+  messages still render under their own field in the page itself.
+-->
+<div th:fragment="errors(messages)" class="pf-errors" role="alert">
+    <i data-feather="alert-circle"></i>
+    <div>
+        <strong>This part could not be saved.</strong>
+        <ul>
+            <li th:each="message : ${messages}" th:text="${message}"></li>
+        </ul>
+    </div>
+</div>
+
+<!--
+  The current photo and its Remove control, for the edit pages only. The file input itself stays
+  in the page, because it needs th:field="*{imageFile}". removeUrl is the existing
+  /{cat}/removePhoto/{id} route - the behaviour is unchanged, only the styling.
+  The caller wraps this in <th:block th:if="${currentImage}"> - same reason as the errors
+  fragment above.
+-->
+<div th:fragment="current-photo(currentImage, removeUrl)" class="pf-current">
+    <img th:src="@{/images/{imageFileName}(imageFileName=${currentImage})}" alt="Current photo"/>
+    <div class="pf-current-text">
+        <strong>Current photo</strong>
+        <button type="button" class="pf-remove remove-photo-btn" th:attr="data-remove-url=${removeUrl}">
+            <i data-feather="trash-2"></i>Remove photo
+        </button>
+    </div>
+</div>
+
+<!-- Footer actions. saveLabel is "Save part" on create and "Save changes" on edit. -->
+<div th:fragment="actions(cancelUrl, saveLabel)" class="pf-actions">
+    <a class="pf-cancel" th:href="${cancelUrl}">Cancel</a>
+    <button type="submit" class="pf-save" th:text="${saveLabel}"></button>
+</div>
+
+<!--
+  Remove-photo handler, unchanged from the pre-conversion templates: it sends
+  X-Requested-With so an expired session returns 401/403 instead of a redirect that fetch would
+  follow into a 200 plus login-page HTML (see SecurityConfig.wantsMachineResponse), and it checks
+  res.ok before reloading.
+-->
+<script th:fragment="remove-photo-script">
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.remove-photo-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (!confirm('Remove the current photo?')) return;
+                fetch(btn.dataset.removeUrl, { method: 'DELETE', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function (res) {
+                        if (res.ok) { window.location.reload(); return; }
+                        alert(res.status === 401 || res.status === 403
+                            ? 'Your session has expired. Please sign in again to remove this photo.'
+                            : 'The photo could not be removed. Please try again.');
+                    })
+                    .catch(function () { alert('The photo could not be removed. Please try again.'); });
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

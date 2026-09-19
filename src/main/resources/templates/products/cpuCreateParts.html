@@ -1,133 +1,163 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-          crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Add CPU - RN PC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/parts-form :: assets}"></th:block>
 </head>
-<body>
-<div class="container">
-        <h1 class="text-center my-4">Add CPU</h1>
-</div>
+<body class="pf-page">
 
-<div class="content-wrapper">
-    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+<!--
+  Reference create form for the parts conversion - the other seven categories copy this shape.
+  VISUAL CONVERSION ONLY: the entity, DTO, controller, URLs, field names, validation and dropdowns
+  are untouched. Every field the old Bootstrap form had is still here, with the same th:field, and
+  both selects are still populated from the same brandOptions / socketOptions the controller
+  supplies from getDistinctBrands() / getDistinctSockets(). The mockup (gpt/admin/Add CPU@1x.png)
+  shows fewer fields than the real form; the real fields win.
 
-    <main class="main-content">
-    <div th:replace="~{fragments/nav :: back}"></div>
-    <form action="#" th:action="@{/cpu/create}" th:object="${cpuPartsDto}" method="post" enctype="multipart/form-data">
+  Shared chrome comes from fragments/parts-form.html. The field markup stays here, explicit, with
+  its own th:field - see that file's header for why.
+-->
 
-        <div class="mb-3">
-            <label for="brand" class="form-label">Brand</label>
-            <select th:field="*{brand}" class="form-select" id="brand">
-                <option value="">-- Select Brand --</option>
-                <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
+<div th:replace="~{fragments/layout-app :: sidebar(active='pc-parts', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+
+    <main class="content">
+        <div class="pf-wrap">
+            <div th:replace="~{fragments/parts-form :: header(code='CPU', title='Add CPU', subtitle='Fields marked optional can be filled in later.', backUrl=@{/computer(category='CPU')})}"></div>
+
+            <form action="#" th:action="@{/cpu/create}" th:object="${cpuPartsDto}" method="post" enctype="multipart/form-data">
+                <th:block th:if="${#fields.hasAnyErrors()}">
+                    <div th:replace="~{fragments/parts-form :: errors(messages=${#fields.allErrors()})}"></div>
+                </th:block>
+
+                <div class="pf-card">
+
+                    <section class="pf-section">
+                        <h2>CPU details</h2>
+                        <div class="pf-grid">
+
+                            <div class="pf-field">
+                                <label for="brand">Brand</label>
+                                <select th:field="*{brand}" id="brand">
+                                    <option value="">-- Select Brand --</option>
+                                    <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="modelName">Model</label>
+                                <input type="text" th:field="*{modelName}" id="modelName" placeholder="e.g. Ryzen 5 9600X"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('modelName')}" th:errors="*{modelName}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="socket">Socket</label>
+                                <select th:field="*{socket}" id="socket">
+                                    <option value="">-- Select Socket --</option>
+                                    <option th:each="opt : ${socketOptions}" th:value="${opt}" th:text="${opt}"></option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('socket')}" th:errors="*{socket}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="generation">Generation</label>
+                                <input type="text" th:field="*{generation}" id="generation" placeholder="e.g. Ryzen 9000 (Granite Ridge)"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('generation')}" th:errors="*{generation}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="cores">Cores</label>
+                                <input type="number" th:field="*{cores}" id="cores"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('cores')}" th:errors="*{cores}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="thread">Thread</label>
+                                <input type="number" th:field="*{thread}" id="thread"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('thread')}" th:errors="*{thread}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="baseClockGhz">Base Clock(Ghz)</label>
+                                <input type="number" step="0.1" th:field="*{baseClockGhz}" id="baseClockGhz"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('baseClockGhz')}" th:errors="*{baseClockGhz}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="boostClockGhz">Boost Clock(Ghz)</label>
+                                <input type="number" step="0.1" th:field="*{boostClockGhz}" id="boostClockGhz"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('boostClockGhz')}" th:errors="*{boostClockGhz}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="integratedGraphics">Integrated Graphics</label>
+                                <input type="text" th:field="*{integratedGraphics}" id="integratedGraphics" placeholder="e.g. None, Radeon Graphics"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('integratedGraphics')}" th:errors="*{integratedGraphics}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="memorySupport">Memory Support</label>
+                                <input type="text" th:field="*{memorySupport}" id="memorySupport" placeholder="e.g. DDR5-5600"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('memorySupport')}" th:errors="*{memorySupport}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="launchYear">Launch Year</label>
+                                <input type="number" th:field="*{launchYear}" id="launchYear"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('launchYear')}" th:errors="*{launchYear}"></span>
+                            </div>
+
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>Stock and price</h2>
+                        <div class="pf-grid">
+                            <div class="pf-field">
+                                <label for="stocks">Stocks</label>
+                                <input type="number" th:field="*{stocks}" id="stocks" placeholder="Enter stocks"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('stocks')}" th:errors="*{stocks}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="price">Price</label>
+                                <div class="pf-prefix">
+                                    <span>Php</span>
+                                    <input type="number" th:field="*{price}" id="price" placeholder="Enter price" step="0.01" min="0"/>
+                                </div>
+                                <span class="pf-hint">Shown to customers at checkout.</span>
+                                <span class="pf-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>Photo <span class="pf-optional">(optional)</span></h2>
+                        <div class="pf-upload">
+                            <span class="pf-upload-icon"><i data-feather="image"></i></span>
+                            <div class="pf-upload-text">
+                                <strong>Choose a photo for this part</strong>
+                                <input type="file" th:field="*{imageFile}" id="imageFile"/>
+                            </div>
+                        </div>
+                        <span class="pf-error" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></span>
+                    </section>
+
+                    <div th:replace="~{fragments/parts-form :: actions(cancelUrl=@{/computer(category='CPU')}, saveLabel='Save part')}"></div>
+                </div>
+            </form>
         </div>
-
-        <div class="mb-3">
-            <label for="generation" class="form-label">Generation</label>
-            <input type="text" th:field="*{generation}" class="form-control" id="generation" placeholder="e.g. Ryzen 9000 (Granite Ridge)">
-            <div class="text-danger" th:if="${#fields.hasErrors('generation')}" th:errors="*{generation}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="modelName" class="form-label">Model</label>
-            <input type="text" th:field="*{modelName}" class="form-control" id="modelName" placeholder="e.g. Ryzen 5 9600X">
-            <div class="text-danger" th:if="${#fields.hasErrors('modelName')}" th:errors="*{modelName}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="socket" class="form-label">Socket</label>
-            <select th:field="*{socket}" class="form-select" id="socket">
-                <option value="">-- Select Socket --</option>
-                <option th:each="opt : ${socketOptions}" th:value="${opt}" th:text="${opt}"></option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('socket')}" th:errors="*{socket}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="cores" class="form-label">Cores</label>
-            <input type="number" th:field="*{cores}" class="form-control" id="cores">
-            <div class="text-danger" th:if="${#fields.hasErrors('cores')}" th:errors="*{cores}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="thread" class="form-label">Thread</label>
-            <input type="number" th:field="*{thread}" class="form-control" id="thread">
-            <div class="text-danger" th:if="${#fields.hasErrors('thread')}" th:errors="*{thread}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="baseClockGhz" class="form-label">Base Clock(Ghz)</label>
-            <input type="number" step="0.1" th:field="*{baseClockGhz}" class="form-control" id="baseClockGhz">
-            <div class="text-danger" th:if="${#fields.hasErrors('baseClockGhz')}" th:errors="*{baseClockGhz}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="boostClockGhz" class="form-label">Boost Clock(Ghz)</label>
-            <input type="number" step="0.1" th:field="*{boostClockGhz}" class="form-control" id="boostClockGhz">
-            <div class="text-danger" th:if="${#fields.hasErrors('boostClockGhz')}" th:errors="*{boostClockGhz}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="integratedGraphics" class="form-label">Integrated Graphics</label>
-            <input type="text" th:field="*{integratedGraphics}" class="form-control" id="integratedGraphics" placeholder="e.g. None, Radeon Graphics">
-            <div class="text-danger" th:if="${#fields.hasErrors('integratedGraphics')}" th:errors="*{integratedGraphics}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="memorySupport" class="form-label">Memory Support</label>
-            <input type="text" th:field="*{memorySupport}" class="form-control" id="memorySupport" placeholder="e.g. DDR5-5600">
-            <div class="text-danger" th:if="${#fields.hasErrors('memorySupport')}" th:errors="*{memorySupport}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="launchYear" class="form-label">Launch Year</label>
-            <input type="number" th:field="*{launchYear}" class="form-control" id="launchYear">
-            <div class="text-danger" th:if="${#fields.hasErrors('launchYear')}" th:errors="*{launchYear}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="stocks" class="form-label">Stocks</label>
-            <input type="number" th:field="*{stocks}" class="form-control" id="stocks" placeholder="Enter stocks">
-            <div class="text-danger" th:if="${#fields.hasErrors('stocks')}" th:errors="*{stocks}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="price" class="form-label">Price</label>
-            <div class="input-group">
-                <span class="input-group-text">Php</span>
-                <input type="number" th:field="*{price}" class="form-control" id="price" placeholder="Enter price" step="0.01" min="0">
-            </div>
-            <div class="text-danger" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="imageFile" class="form-label">Image <span class="text-muted">(optional)</span></label>
-            <input type="file" th:field="*{imageFile}" class="form-control" id="imageFile">
-            <div class="text-danger" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></div>
-        </div>
-
-        <div class="row">
-            <div class="offset-sm-4 col-sm-4 d-grid">
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-            <div class="col-sm-4 d-grid">
-                <a class="btn btn-outline-primary" th:href="@{/computer(category='CPU')}" role="button">Cancel</a>
-            </div>
-        </div>
-
-    </form>
     </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
-<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
 </body>
 </html>
