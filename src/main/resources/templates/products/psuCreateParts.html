@@ -1,121 +1,147 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-          crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Add PSU - RN PC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/parts-form :: assets}"></th:block>
 </head>
-<body>
-<div class="container">
-        <h1 class="text-center my-4">Add PSU</h1>
-</div>
+<body class="pf-page">
 
-<div class="content-wrapper">
-    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+<!--
+  Create form for PSU, following the converted CPU pair. VISUAL CONVERSION ONLY: the entity,
+  DTO, controller, URLs, field names, validation and dropdowns are untouched. Every field the
+  old Bootstrap form had is still here with the same th:field, and every select is still fed
+  by the same option list the controller supplies. Shared chrome comes from
+  fragments/parts-form.html; the field markup stays here, explicit, with its own th:field.
+-->
 
-    <main class="main-content">
-    <div th:replace="~{fragments/nav :: back}"></div>
-    <form action="#" th:action="@{/psu/create}" th:object="${psuPartsDto}" method="post" enctype="multipart/form-data">
+<div th:replace="~{fragments/layout-app :: sidebar(active='pc-parts', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
 
-        <div class="mb-3">
-            <label for="brand" class="form-label">Brand</label>
-            <select th:field="*{brand}" class="form-select" id="brand">
-                <option value="">-- Select Brand --</option>
-                <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+
+    <main class="content">
+        <div class="pf-wrap">
+            <div th:replace="~{fragments/parts-form :: header(code='PSU', title='Add PSU', subtitle='Fields marked optional can be filled in later.', backUrl=@{/computer(category='PSU')})}"></div>
+
+            <form action="#" th:action="@{/psu/create}" th:object="${psuPartsDto}" method="post" enctype="multipart/form-data">
+                <th:block th:if="${#fields.hasAnyErrors()}">
+                    <div th:replace="~{fragments/parts-form :: errors(messages=${#fields.allErrors()})}"></div>
+                </th:block>
+
+                <div class="pf-card">
+
+                    <section class="pf-section">
+                        <h2>PSU details</h2>
+                        <div class="pf-grid">
+
+                            <div class="pf-field">
+                                <label for="brand">Brand</label>
+                                <select th:field="*{brand}" id="brand">
+                                    <option value="">-- Select Brand --</option>
+                                    <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="modelName">Model</label>
+                                <input type="text" th:field="*{modelName}" id="modelName" placeholder="e.g. RM850x"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('modelName')}" th:errors="*{modelName}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="wattageW">Wattage</label>
+                                <input type="number" th:field="*{wattageW}" id="wattageW"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('wattageW')}" th:errors="*{wattageW}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="plusRating">80 PLUS Rating</label>
+                                <select th:field="*{plusRating}" id="plusRating">
+                                    <option value="">-- Select Rating --</option>
+                                    <option th:each="opt : ${plusRatingOptions}" th:value="${opt}" th:text="${opt}"></option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('plusRating')}" th:errors="*{plusRating}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="modularity">Modularity</label>
+                                <select th:field="*{modularity}" id="modularity">
+                                    <option value="">-- Select Modularity --</option>
+                                    <option th:each="opt : ${modularityOptions}" th:value="${opt}" th:text="${opt}"></option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('modularity')}" th:errors="*{modularity}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="formFactor">Form Factor</label>
+                                <select th:field="*{formFactor}" id="formFactor">
+                                    <option value="">-- Select Form Factor --</option>
+                                    <option th:each="opt : ${formFactorOptions}" th:value="${opt}" th:text="${opt}"></option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('formFactor')}" th:errors="*{formFactor}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="warrantyYears">Warranty</label>
+                                <input type="number" th:field="*{warrantyYears}" id="warrantyYears" placeholder="Years"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('warrantyYears')}" th:errors="*{warrantyYears}"></span>
+                            </div>
+
+                            <div class="pf-field pf-full">
+                                <label for="notes">Notes</label>
+                                <textarea th:field="*{notes}" id="notes" rows="3"></textarea>
+                                <span class="pf-error" th:if="${#fields.hasErrors('notes')}" th:errors="*{notes}"></span>
+                            </div>
+
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>Stock and price</h2>
+                        <div class="pf-grid">
+                            <div class="pf-field">
+                                <label for="stocks">Stocks</label>
+                                <input type="number" th:field="*{stocks}" id="stocks" placeholder="Enter stocks"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('stocks')}" th:errors="*{stocks}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="price">Price</label>
+                                <div class="pf-prefix">
+                                    <span>Php</span>
+                                    <input type="number" th:field="*{price}" id="price" placeholder="Enter price" step="0.01" min="0"/>
+                                </div>
+                                <span class="pf-hint">Shown to customers at checkout.</span>
+                                <span class="pf-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>Photo <span class="pf-optional">(optional)</span></h2>
+                        <div class="pf-upload">
+                            <span class="pf-upload-icon"><i data-feather="image"></i></span>
+                            <div class="pf-upload-text">
+                                <strong>Choose a photo for this part</strong>
+                                <input type="file" th:field="*{imageFile}" id="imageFile"/>
+                            </div>
+                        </div>
+                        <span class="pf-error" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></span>
+                    </section>
+
+                    <div th:replace="~{fragments/parts-form :: actions(cancelUrl=@{/computer(category='PSU')}, saveLabel='Save part')}"></div>
+                </div>
+            </form>
         </div>
-
-        <div class="mb-3">
-            <label for="modelName" class="form-label">Model</label>
-            <input type="text" th:field="*{modelName}" class="form-control" id="modelName" placeholder="e.g. RM850x">
-            <div class="text-danger" th:if="${#fields.hasErrors('modelName')}" th:errors="*{modelName}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="wattageW" class="form-label">Wattage</label>
-            <input type="number" th:field="*{wattageW}" class="form-control" id="wattageW">
-            <div class="text-danger" th:if="${#fields.hasErrors('wattageW')}" th:errors="*{wattageW}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="plusRating" class="form-label">80 PLUS Rating</label>
-            <select th:field="*{plusRating}" class="form-select" id="plusRating">
-                <option value="">-- Select Rating --</option>
-                <option th:each="opt : ${plusRatingOptions}" th:value="${opt}" th:text="${opt}"></option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('plusRating')}" th:errors="*{plusRating}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="modularity" class="form-label">Modularity</label>
-            <select th:field="*{modularity}" class="form-select" id="modularity">
-                <option value="">-- Select Modularity --</option>
-                <option th:each="opt : ${modularityOptions}" th:value="${opt}" th:text="${opt}"></option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('modularity')}" th:errors="*{modularity}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="formFactor" class="form-label">Form Factor</label>
-            <select th:field="*{formFactor}" class="form-select" id="formFactor">
-                <option value="">-- Select Form Factor --</option>
-                <option th:each="opt : ${formFactorOptions}" th:value="${opt}" th:text="${opt}"></option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('formFactor')}" th:errors="*{formFactor}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="warrantyYears" class="form-label">Warranty</label>
-            <input type="number" th:field="*{warrantyYears}" class="form-control" id="warrantyYears" placeholder="Years">
-            <div class="text-danger" th:if="${#fields.hasErrors('warrantyYears')}" th:errors="*{warrantyYears}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="notes" class="form-label">Notes</label>
-            <textarea th:field="*{notes}" class="form-control" id="notes" rows="3"></textarea>
-            <div class="text-danger" th:if="${#fields.hasErrors('notes')}" th:errors="*{notes}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="stocks" class="form-label">Stocks</label>
-            <input type="number" th:field="*{stocks}" class="form-control" id="stocks" placeholder="Enter stocks">
-            <div class="text-danger" th:if="${#fields.hasErrors('stocks')}" th:errors="*{stocks}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="price" class="form-label">Price</label>
-            <div class="input-group">
-                <span class="input-group-text">Php</span>
-                <input type="number" th:field="*{price}" class="form-control" id="price" placeholder="Enter price" step="0.01" min="0">
-            </div>
-            <div class="text-danger" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="imageFile" class="form-label">Image <span class="text-muted">(optional)</span></label>
-            <input type="file" th:field="*{imageFile}" class="form-control" id="imageFile">
-            <div class="text-danger" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></div>
-        </div>
-
-        <div class="row">
-            <div class="offset-sm-4 col-sm-4 d-grid">
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-            <div class="col-sm-4 d-grid">
-                <a class="btn btn-outline-primary" th:href="@{/computer(category='PSU')}" role="button">Cancel</a>
-            </div>
-        </div>
-
-    </form>
     </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
-<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
 </body>
 </html>

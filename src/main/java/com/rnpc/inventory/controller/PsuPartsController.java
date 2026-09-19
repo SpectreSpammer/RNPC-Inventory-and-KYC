@@ -3,22 +3,42 @@ package com.rnpc.inventory.controller;
 import com.rnpc.inventory.dto.PsuPartsDto;
 import com.rnpc.inventory.entity.PsuParts;
 import com.rnpc.inventory.service.PsuPartsService;
+import com.rnpc.inventory.service.NotificationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("psu")
 public class PsuPartsController {
 
     private final PsuPartsService service;
+    private final NotificationService notificationService;
 
     @Autowired
-    public PsuPartsController(PsuPartsService service) {
+    public PsuPartsController(PsuPartsService service,
+                                   NotificationService notificationService) {
         this.service = service;
+        this.notificationService = notificationService;
+    }
+
+    // Topbar chrome for the shared layout-app shell, the same helper CpuPartsController uses.
+    // These routes are admin-only via the filter chain (SecurityConfig.ADMIN_ONLY_PARTS_PATHS), so
+    // the admin inbox is always the right one and no isAdmin check belongs here. Called from all
+    // four paths that render a form, including the two validation-error paths, which re-render the
+    // form and would otherwise lose the shell the moment a submit failed.
+    private void addShellAttributes(Authentication authentication, Model model) {
+        model.addAttribute("currentUsername", authentication != null ? authentication.getName() : null);
+        model.addAttribute("currentRole", "Admin");
+        model.addAttribute("unreadNotifications", notificationService.getUnreadCountForAdmin());
+        model.addAttribute("recentNotifications",
+                notificationService.getForAdmin().stream().limit(15).collect(Collectors.toList()));
     }
 
     @GetMapping({"", "/"})
@@ -28,16 +48,19 @@ public class PsuPartsController {
     }
 
     @GetMapping("/create")
-    public String showCreatePage(Model model) {
+    public String showCreatePage(Authentication authentication, Model model) {
         model.addAttribute("psuPartsDto", new PsuPartsDto());
         addDropdownOptions(model);
+        addShellAttributes(authentication, model);
         return "products/psuCreateParts";
     }
 
     @PostMapping("/create")
-    public String createPart(@Valid @ModelAttribute PsuPartsDto psuPartsDto, BindingResult result, Model model) {
+    public String createPart(@Valid @ModelAttribute PsuPartsDto psuPartsDto, BindingResult result,
+                              Authentication authentication, Model model) {
         if (result.hasErrors()) {
             addDropdownOptions(model);
+            addShellAttributes(authentication, model);
             return "products/psuCreateParts";
         }
 
@@ -46,7 +69,7 @@ public class PsuPartsController {
     }
 
     @GetMapping("/edit/{id}")
-    public String showEditForm(@PathVariable("id") int id, Model model) {
+    public String showEditForm(@PathVariable("id") int id, Authentication authentication, Model model) {
         PsuParts part = service.getPartById(id);
 
         PsuPartsDto dto = new PsuPartsDto();
@@ -65,6 +88,7 @@ public class PsuPartsController {
         model.addAttribute("partId", id);
         model.addAttribute("currentImage", part.getImageFileName());
         addDropdownOptions(model);
+        addShellAttributes(authentication, model);
         return "products/psuEditParts";
     }
 
@@ -72,11 +96,13 @@ public class PsuPartsController {
     public String updatePart(@PathVariable("id") int id,
                               @Valid @ModelAttribute PsuPartsDto psuPartsDto,
                               BindingResult result,
+                              Authentication authentication,
                               Model model) {
         if (result.hasErrors()) {
             model.addAttribute("partId", id);
             model.addAttribute("currentImage", service.getPartById(id).getImageFileName());
             addDropdownOptions(model);
+            addShellAttributes(authentication, model);
             return "products/psuEditParts";
         }
 

@@ -1,139 +1,165 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-          crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Add Storage - RN PC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/parts-form :: assets}"></th:block>
 </head>
-<body>
-<div class="container">
-        <h1 class="text-center my-4">Add Storage</h1>
-</div>
+<body class="pf-page">
 
-<div class="content-wrapper">
-    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+<!--
+  Create form for Storage, following the converted CPU pair. VISUAL CONVERSION ONLY: the entity,
+  DTO, controller, URLs, field names, validation and dropdowns are untouched. Every field the
+  old Bootstrap form had is still here with the same th:field, and every select is still fed
+  by the same option list the controller supplies. Shared chrome comes from
+  fragments/parts-form.html; the field markup stays here, explicit, with its own th:field.
+-->
 
-    <main class="main-content">
-    <div th:replace="~{fragments/nav :: back}"></div>
-    <form action="#" th:action="@{/storage/create}" th:object="${storagePartsDto}" method="post" enctype="multipart/form-data">
+<div th:replace="~{fragments/layout-app :: sidebar(active='pc-parts', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
 
-        <div class="mb-3">
-            <label for="brand" class="form-label">Brand</label>
-            <select th:field="*{brand}" class="form-select" id="brand">
-                <option value="">-- Select Brand --</option>
-                <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+
+    <main class="content">
+        <div class="pf-wrap">
+            <div th:replace="~{fragments/parts-form :: header(code='STO', title='Add Storage', subtitle='Fields marked optional can be filled in later.', backUrl=@{/computer(category='Storage')})}"></div>
+
+            <form action="#" th:action="@{/storage/create}" th:object="${storagePartsDto}" method="post" enctype="multipart/form-data">
+                <th:block th:if="${#fields.hasAnyErrors()}">
+                    <div th:replace="~{fragments/parts-form :: errors(messages=${#fields.allErrors()})}"></div>
+                </th:block>
+
+                <div class="pf-card">
+
+                    <section class="pf-section">
+                        <h2>Storage details</h2>
+                        <div class="pf-grid">
+
+                            <div class="pf-field">
+                                <label for="brand">Brand</label>
+                                <select th:field="*{brand}" id="brand">
+                                    <option value="">-- Select Brand --</option>
+                                    <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="modelName">Model</label>
+                                <input type="text" th:field="*{modelName}" id="modelName" placeholder="e.g. 990 PRO"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('modelName')}" th:errors="*{modelName}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="category">Category</label>
+                                <select th:field="*{category}" id="category">
+                                    <option value="">-- Select Category --</option>
+                                    <option th:each="opt : ${categoryOptions}" th:value="${opt}" th:text="${opt}"></option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="formFactor">Form Factor</label>
+                                <select th:field="*{formFactor}" id="formFactor">
+                                    <option value="">-- Select Form Factor --</option>
+                                    <option th:each="opt : ${formFactorOptions}" th:value="${opt}" th:text="${opt}"></option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('formFactor')}" th:errors="*{formFactor}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="interfaceType">Interface</label>
+                                <input type="text" th:field="*{interfaceType}" id="interfaceType" placeholder="e.g. PCIe 4.0 x4"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('interfaceType')}" th:errors="*{interfaceType}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="capacities">Capacities</label>
+                                <input type="text" th:field="*{capacities}" id="capacities" placeholder="e.g. 500 GB - 2 TB"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('capacities')}" th:errors="*{capacities}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="seqReadMbs">Seq. Read(MB/s)</label>
+                                <input type="number" th:field="*{seqReadMbs}" id="seqReadMbs"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('seqReadMbs')}" th:errors="*{seqReadMbs}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="seqWriteMbs">Seq. Write(MB/s)</label>
+                                <input type="number" th:field="*{seqWriteMbs}" id="seqWriteMbs"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('seqWriteMbs')}" th:errors="*{seqWriteMbs}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="dramCache">DRAM Cache</label>
+                                <select th:field="*{dramCache}" id="dramCache">
+                                    <option value="">-- Select DRAM Cache --</option>
+                                    <option th:each="opt : ${dramCacheOptions}" th:value="${opt}" th:text="${opt}"></option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('dramCache')}" th:errors="*{dramCache}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="warranty">Warranty</label>
+                                <input type="text" th:field="*{warranty}" id="warranty" placeholder="e.g. 5 years"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('warranty')}" th:errors="*{warranty}"></span>
+                            </div>
+
+                            <div class="pf-field">
+                                <label for="typicalUse">Typical Use</label>
+                                <input type="text" th:field="*{typicalUse}" id="typicalUse" placeholder="e.g. OS drive"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('typicalUse')}" th:errors="*{typicalUse}"></span>
+                            </div>
+
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>Stock and price</h2>
+                        <div class="pf-grid">
+                            <div class="pf-field">
+                                <label for="stocks">Stocks</label>
+                                <input type="number" th:field="*{stocks}" id="stocks" placeholder="Enter stocks"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('stocks')}" th:errors="*{stocks}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="price">Price</label>
+                                <div class="pf-prefix">
+                                    <span>Php</span>
+                                    <input type="number" th:field="*{price}" id="price" placeholder="Enter price" step="0.01" min="0"/>
+                                </div>
+                                <span class="pf-hint">Shown to customers at checkout.</span>
+                                <span class="pf-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>Photo <span class="pf-optional">(optional)</span></h2>
+                        <div class="pf-upload">
+                            <span class="pf-upload-icon"><i data-feather="image"></i></span>
+                            <div class="pf-upload-text">
+                                <strong>Choose a photo for this part</strong>
+                                <input type="file" th:field="*{imageFile}" id="imageFile"/>
+                            </div>
+                        </div>
+                        <span class="pf-error" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></span>
+                    </section>
+
+                    <div th:replace="~{fragments/parts-form :: actions(cancelUrl=@{/computer(category='Storage')}, saveLabel='Save part')}"></div>
+                </div>
+            </form>
         </div>
-
-        <div class="mb-3">
-            <label for="modelName" class="form-label">Model</label>
-            <input type="text" th:field="*{modelName}" class="form-control" id="modelName" placeholder="e.g. 990 PRO">
-            <div class="text-danger" th:if="${#fields.hasErrors('modelName')}" th:errors="*{modelName}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="category" class="form-label">Category</label>
-            <select th:field="*{category}" class="form-select" id="category">
-                <option value="">-- Select Category --</option>
-                <option th:each="opt : ${categoryOptions}" th:value="${opt}" th:text="${opt}"></option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="formFactor" class="form-label">Form Factor</label>
-            <select th:field="*{formFactor}" class="form-select" id="formFactor">
-                <option value="">-- Select Form Factor --</option>
-                <option th:each="opt : ${formFactorOptions}" th:value="${opt}" th:text="${opt}"></option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('formFactor')}" th:errors="*{formFactor}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="interfaceType" class="form-label">Interface</label>
-            <input type="text" th:field="*{interfaceType}" class="form-control" id="interfaceType" placeholder="e.g. PCIe 4.0 x4">
-            <div class="text-danger" th:if="${#fields.hasErrors('interfaceType')}" th:errors="*{interfaceType}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="capacities" class="form-label">Capacities</label>
-            <input type="text" th:field="*{capacities}" class="form-control" id="capacities" placeholder="e.g. 500 GB - 2 TB">
-            <div class="text-danger" th:if="${#fields.hasErrors('capacities')}" th:errors="*{capacities}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="seqReadMbs" class="form-label">Seq. Read(MB/s)</label>
-            <input type="number" th:field="*{seqReadMbs}" class="form-control" id="seqReadMbs">
-            <div class="text-danger" th:if="${#fields.hasErrors('seqReadMbs')}" th:errors="*{seqReadMbs}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="seqWriteMbs" class="form-label">Seq. Write(MB/s)</label>
-            <input type="number" th:field="*{seqWriteMbs}" class="form-control" id="seqWriteMbs">
-            <div class="text-danger" th:if="${#fields.hasErrors('seqWriteMbs')}" th:errors="*{seqWriteMbs}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="dramCache" class="form-label">DRAM Cache</label>
-            <select th:field="*{dramCache}" class="form-select" id="dramCache">
-                <option value="">-- Select DRAM Cache --</option>
-                <option th:each="opt : ${dramCacheOptions}" th:value="${opt}" th:text="${opt}"></option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('dramCache')}" th:errors="*{dramCache}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="warranty" class="form-label">Warranty</label>
-            <input type="text" th:field="*{warranty}" class="form-control" id="warranty" placeholder="e.g. 5 years">
-            <div class="text-danger" th:if="${#fields.hasErrors('warranty')}" th:errors="*{warranty}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="typicalUse" class="form-label">Typical Use</label>
-            <input type="text" th:field="*{typicalUse}" class="form-control" id="typicalUse" placeholder="e.g. OS drive">
-            <div class="text-danger" th:if="${#fields.hasErrors('typicalUse')}" th:errors="*{typicalUse}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="stocks" class="form-label">Stocks</label>
-            <input type="number" th:field="*{stocks}" class="form-control" id="stocks" placeholder="Enter stocks">
-            <div class="text-danger" th:if="${#fields.hasErrors('stocks')}" th:errors="*{stocks}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="price" class="form-label">Price</label>
-            <div class="input-group">
-                <span class="input-group-text">Php</span>
-                <input type="number" th:field="*{price}" class="form-control" id="price" placeholder="Enter price" step="0.01" min="0">
-            </div>
-            <div class="text-danger" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="imageFile" class="form-label">Image <span class="text-muted">(optional)</span></label>
-            <input type="file" th:field="*{imageFile}" class="form-control" id="imageFile">
-            <div class="text-danger" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></div>
-        </div>
-
-        <div class="row">
-            <div class="offset-sm-4 col-sm-4 d-grid">
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-            <div class="col-sm-4 d-grid">
-                <a class="btn btn-outline-primary" th:href="@{/computer(category='Storage')}" role="button">Cancel</a>
-            </div>
-        </div>
-
-    </form>
     </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
-<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
 </body>
 </html>
