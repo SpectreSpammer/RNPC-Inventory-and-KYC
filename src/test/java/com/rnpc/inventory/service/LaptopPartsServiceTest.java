@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * The type-based save and update in LaptopPartsService: the type is set from the caller, other
- * types' spec fields are nulled, and pre-redesign rows keep the old mapping. The repository is
+ * types' spec fields are nulled, and a stray null-type row is saved back as OTHER. The repository is
  * mocked and no photo is sent, so this needs no Spring context, no database and writes no file.
  */
 class LaptopPartsServiceTest {
@@ -73,9 +73,8 @@ class LaptopPartsServiceTest {
         assertNull(saved.getLcdSurface());
         assertNull(saved.getNotes());
 
-        // No photo sent: nothing uploaded, no file name, and the old-model fields untouched.
+        // No photo sent: nothing uploaded and no file name.
         assertNull(saved.getImageFileName());
-        assertNull(saved.getCategory());
         assertNotNull(saved.getCreatedAt());
     }
 
@@ -100,25 +99,25 @@ class LaptopPartsServiceTest {
     }
 
     @Test
-    void legacyUpdateUsesTheOldMapping() {
+    void aStrayNullTypeRowIsSavedBackAsOther() {
         LaptopParts existing = new LaptopParts();
         existing.setLaptopPartId(3);
         when(repo.findById(3)).thenReturn(Optional.of(existing));
 
         LaptopPartsDto dto = new LaptopPartsDto();
         dto.setBrand("Acer");
-        dto.setPartName("Keyboard");
-        dto.setCategory("Notebook");
-        dto.setStorageSize("None Applicable");
+        dto.setPartName("Speaker set");
+        dto.setPartCondition(PartCondition.NEW);
         dto.setStocks(4);
-        dto.setPrice(1250);
-        dto.setDescription("Aspire 5 keyboard, US layout");
+        dto.setPrice(450);
+        dto.setDescription("Left and right speakers");
+        dto.setLcdSizeInches(15.6);   // stray spec from another type: cleared
         LaptopParts saved = service.updateLaptopPart(3, dto);
 
-        assertNull(saved.getPartType());
-        assertEquals("Notebook", saved.getCategory());
-        assertEquals("None Applicable", saved.getStorageSize());
-        assertEquals("Aspire 5 keyboard, US layout", saved.getNotes());
+        assertEquals(PartType.OTHER, saved.getPartType());
+        assertEquals("Speaker set", saved.getPartName());
+        assertEquals("Left and right speakers", saved.getNotes());
+        assertNull(saved.getLcdSizeInches());
     }
 
     @Test

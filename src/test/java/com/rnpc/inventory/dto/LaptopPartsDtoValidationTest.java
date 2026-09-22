@@ -55,8 +55,8 @@ class LaptopPartsDtoValidationTest {
     }
 
     @Test
-    void validLcdPassesWithoutAnyLegacyField() {
-        // No category, storageSize or description: the old rules must not apply here.
+    void validLcdPassesWithNoNotes() {
+        // Notes (description) are optional on every form.
         assertEquals(Set.of(), errorFields(validLcd(), PartType.LCD.getGroup()));
     }
 
@@ -306,30 +306,24 @@ class LaptopPartsDtoValidationTest {
     }
 
     @Test
-    void legacyPathKeepsTheOldRulesAndDoesNotRequireCondition() {
-        LaptopPartsDto dto = new LaptopPartsDto();
-        dto.setBrand("Dell");
-        dto.setPartName("LCD");
-        dto.setStocks(3);
-        dto.setPrice(2450);
+    void notesAreOptionalWithNoMinimumLengthButCapped() {
+        // The pre-redesign rule "at least 10 characters" is gone; only the 2000-character cap stays.
+        LaptopPartsDto dto = validLcd();
         dto.setDescription("short");
-        Set<String> errors = errorFields(dto, PartType.Groups.Legacy.class);
-        assertEquals(Set.of("category", "storageSize", "description"), errors);
+        assertEquals(Set.of(), errorFields(dto, PartType.LCD.getGroup()));
 
-        dto.setCategory("Notebook");
-        dto.setStorageSize("None Applicable");
-        dto.setDescription("15.6 inch FHD panel");
-        assertEquals(Set.of(), errorFields(dto, PartType.Groups.Legacy.class));
+        dto.setDescription("x".repeat(2001));
+        assertEquals(Set.of("description"), errorFields(dto, PartType.LCD.getGroup()));
     }
 
     @Test
-    void legacyPathStillRejectsAFreeTextPartName() {
-        LaptopPartsDto dto = new LaptopPartsDto();
-        dto.setBrand("Dell");
-        dto.setPartName("Inspiron 15 3000 LCD");
-        dto.setCategory("Notebook");
-        dto.setStorageSize("None Applicable");
-        dto.setDescription("15.6 inch FHD panel");
-        assertTrue(errorFields(dto, PartType.Groups.Legacy.class).contains("partName"));
+    void partNameIsFreeTextForEveryType() {
+        // The old allow-list (LCD|Keyboard|Trackpad|Ram|SSD|M.2) no longer applies.
+        LaptopPartsDto dto = validLcd();
+        dto.setPartName("Inspiron 15 3000 LCD, 30-pin");
+        assertEquals(Set.of(), errorFields(dto, PartType.LCD.getGroup()));
+
+        dto.setPartName("x".repeat(256));
+        assertEquals(Set.of("partName"), errorFields(dto, PartType.LCD.getGroup()));
     }
 }

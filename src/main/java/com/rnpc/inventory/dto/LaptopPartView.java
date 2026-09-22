@@ -20,14 +20,10 @@ import com.rnpc.inventory.entity.LaptopParts.PartType;
  * The page serializes a list of these into ALL_PARTS (th:inline), so every property is a plain
  * String/number/boolean or a list of Spec - no Date, no enum, nothing Jackson has to guess at.
  *
- * A pre-redesign row (partType null) is "Unassigned": no key spec, and its old category and
- * storage size shown as a "Legacy details" section so nothing stored is hidden.
+ * A row with a null part type should not exist; if one appears it is shown as Other (typeOf
+ * below) rather than throwing, the same way LaptopPartsController edits it.
  */
 public class LaptopPartView {
-
-    /** Key used for rows with no part type, in place of an enum name. */
-    public static final String UNASSIGNED = "UNASSIGNED";
-    public static final String UNASSIGNED_LABEL = "Unassigned";
 
     /** One labelled value. blank means "show Not set in grey". */
     public static class Spec {
@@ -68,12 +64,12 @@ public class LaptopPartView {
 
     public static LaptopPartView from(LaptopParts p) {
         LaptopPartView v = new LaptopPartView();
-        PartType type = p.getPartType();
+        PartType type = typeOf(p);
         v.id = p.getLaptopPartId();
-        v.typeKey = type == null ? UNASSIGNED : type.name();
-        v.typeLabel = type == null ? UNASSIGNED_LABEL : type.getLabel();
+        v.typeKey = type.name();
+        v.typeLabel = type.getLabel();
         v.typeCode = code(type);
-        v.typeOrder = type == null ? PartType.values().length : type.ordinal();
+        v.typeOrder = type.ordinal();
         v.brand = nz(p.getBrand());
         v.partName = nz(p.getPartName());
         v.partNumber = nz(p.getPartNumber());
@@ -88,7 +84,7 @@ public class LaptopPartView {
         // "<Type> specs" list. (Padding tiles such as Condition are not spec rows, so unaffected.)
         v.specs = new ArrayList<>(allSpecs);
         v.specs.removeAll(v.keyTiles);
-        v.specsTitle = type == null ? "Legacy details" : type.getLabel() + " specs";
+        v.specsTitle = type.getLabel() + " specs";
         v.details = List.of(
                 new Spec("Brand", p.getBrand()),
                 new Spec("Compatible models", p.getCompatibleModels()),
@@ -100,11 +96,15 @@ public class LaptopPartView {
         return v;
     }
 
+    /** The part's type, with a stray null read as OTHER - never null, never throws. */
+    static PartType typeOf(LaptopParts p) {
+        return p.getPartType() == null ? PartType.OTHER : p.getPartType();
+    }
+
     // ---- Tile code ----------------------------------------------------------------------------
 
     /** Short code for the Part cell's tile when there is no photo. Never "?". */
     static String code(PartType type) {
-        if (type == null) return "LAP";
         switch (type) {
             case LCD: return "LCD";
             case KEYBOARD: return "KEY";
@@ -129,8 +129,7 @@ public class LaptopPartView {
      * shows "Not set" in grey).
      */
     public static String keySpec(LaptopParts p) {
-        PartType type = p.getPartType();
-        if (type == null) return "";
+        PartType type = typeOf(p);
         switch (type) {
             case LCD:
                 return join(", ",
@@ -189,13 +188,7 @@ public class LaptopPartView {
     /** Every spec field of the part's type, in form order, with units. Empty for Other. */
     static List<Spec> specs(LaptopParts p) {
         List<Spec> s = new ArrayList<>();
-        PartType type = p.getPartType();
-        if (type == null) {
-            s.add(new Spec("Category", p.getCategory()));
-            s.add(new Spec("Storage size", p.getStorageSize()));
-            return s;
-        }
-        switch (type) {
+        switch (typeOf(p)) {
             case LCD:
                 s.add(new Spec("Size", unit(num(p.getLcdSizeInches()), "in")));
                 s.add(new Spec("Resolution", p.getLcdResolution()));
@@ -269,12 +262,10 @@ public class LaptopPartView {
      * are ordered most important first); TILE_ROWS overrides that where later rows matter more
      * for a replacement. A type with fewer than three specs - Casing, Hinges, DC Jack, Other - is
      * padded with Condition, Warranty and Part number, so there are always three tiles.
-     * Unassigned rows get none.
      */
     static List<Spec> keyTiles(LaptopParts p, List<Spec> specs) {
-        if (p.getPartType() == null) return List.of();
         List<Spec> tiles = new ArrayList<>();
-        int[] rows = TILE_ROWS.get(p.getPartType());
+        int[] rows = TILE_ROWS.get(typeOf(p));
         if (rows != null) {
             for (int row : rows) tiles.add(specs.get(row));
         } else {

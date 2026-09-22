@@ -38,14 +38,6 @@ public class LaptopPartsService {
                 .orElseThrow(() -> new IllegalArgumentException("Laptop part with ID " + id + " not found"));
     }
 
-    public LaptopParts saveLaptopPart(LaptopPartsDto laptopPartsDto) {
-        String storageFileName = handleFileUpload(laptopPartsDto.getImageFile());
-        LaptopParts laptopPart = mapToEntity(laptopPartsDto);
-        laptopPart.setCreatedAt(new Date());
-        laptopPart.setImageFileName(storageFileName);
-        return repo.save(laptopPart);
-    }
-
     /**
      * Type-based create (/laptop/{type}/create). The type comes from the route, never from the
      * form. Spec fields belonging to other types are nulled before saving.
@@ -61,18 +53,17 @@ public class LaptopPartsService {
     }
 
     /**
-     * Update for both models. A pre-redesign row (partType null) is updated from the old form's
-     * fields exactly as before; a typed row takes the new fields, keeps its type, and has other
-     * types' spec fields nulled.
+     * Update. The part keeps its stored type and has other types' spec fields nulled. A stray row
+     * with a null type is edited as Other (see LaptopPartsController) and saved back as OTHER, so
+     * it can never be written with a null part_type.
      */
     public LaptopParts updateLaptopPart(int id, LaptopPartsDto laptopPartsDto) {
         LaptopParts laptopPart = getLaptopPartById(id);
         if (laptopPart.getPartType() == null) {
-            updateEntity(laptopPart, laptopPartsDto);
-        } else {
-            copyTypedFields(laptopPart, laptopPartsDto);
-            clearOtherTypesSpecs(laptopPart);
+            laptopPart.setPartType(PartType.OTHER);
         }
+        copyTypedFields(laptopPart, laptopPartsDto);
+        clearOtherTypesSpecs(laptopPart);
 
         if (laptopPartsDto.getImageFile() != null && !laptopPartsDto.getImageFile().isEmpty()) {
             deleteImageFile(laptopPart.getImageFileName());
@@ -130,18 +121,6 @@ public class LaptopPartsService {
                 System.out.println("Error deleting file: " + ex.getMessage());
             }
         }
-    }
-
-    private LaptopParts mapToEntity(LaptopPartsDto laptopPartsDto) {
-        LaptopParts laptopPart = new LaptopParts();
-        laptopPart.setBrand(laptopPartsDto.getBrand());
-        laptopPart.setPartName(laptopPartsDto.getPartName());
-        laptopPart.setCategory(laptopPartsDto.getCategory());
-        laptopPart.setStorageSize(laptopPartsDto.getStorageSize());
-        laptopPart.setStocks(laptopPartsDto.getStocks());
-        laptopPart.setPrice(laptopPartsDto.getPrice());
-        laptopPart.setDescription(laptopPartsDto.getDescription());
-        return laptopPart;
     }
 
     /** New-model fields, DTO to entity. Strings are trimmed and blank ones stored as null. */
@@ -323,15 +302,5 @@ public class LaptopPartsService {
         if (value == null) return null;
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
-    }
-
-    private void updateEntity(LaptopParts laptopPart, LaptopPartsDto laptopPartsDto) {
-        laptopPart.setBrand(laptopPartsDto.getBrand());
-        laptopPart.setPartName(laptopPartsDto.getPartName());
-        laptopPart.setCategory(laptopPartsDto.getCategory());
-        laptopPart.setStorageSize(laptopPartsDto.getStorageSize());
-        laptopPart.setStocks(laptopPartsDto.getStocks());
-        laptopPart.setPrice(laptopPartsDto.getPrice());
-        laptopPart.setDescription(laptopPartsDto.getDescription());
     }
 }

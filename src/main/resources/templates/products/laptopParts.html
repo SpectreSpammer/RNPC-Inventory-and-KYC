@@ -21,9 +21,9 @@
   Every label, key spec, unit and "Not set" is decided in Java (LaptopPartView), so the script
   below only lays values out - it formats nothing but money.
 
-  Chips come from PART_TYPES (every PartType in enum order, shown even at 0) plus an "Unassigned"
-  chip that appears only when a pre-redesign row with no part type exists. Chips, search, sort and
-  the stock cards all combine.
+  Chips come from PART_TYPES: every PartType in enum order, shown even at 0. A stray row with a
+  null part type arrives as Other (LaptopPartView.typeOf), so it is counted under that chip.
+  Chips, search, sort and the stock cards all combine.
 -->
 
 <div th:replace="~{fragments/layout-app :: sidebar(active='laptop-parts', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
@@ -267,7 +267,6 @@ var LOW_STOCK_LIMIT = /*[[${lowStockLimit}]]*/ 5;
     'use strict';
 
     var PAGE_SIZE = 25;
-    var UNASSIGNED = 'UNASSIGNED';
 
     var state = { stock: 'all', type: null, search: '', sort: 'type', page: 1 };
     var el = function (id) { return document.getElementById(id); };
@@ -334,7 +333,7 @@ var LOW_STOCK_LIMIT = /*[[${lowStockLimit}]]*/ 5;
         ALL_PARTS.forEach(function (p) {
             var s = stockState(p);
             if (s === 'low') low++; else if (s === 'out') out++;
-            if (p.typeKey !== UNASSIGNED) types[p.typeKey] = true;
+            types[p.typeKey] = true;
         });
         el('statAll').textContent = ALL_PARTS.length;
         el('statLow').textContent = low;
@@ -351,11 +350,9 @@ var LOW_STOCK_LIMIT = /*[[${lowStockLimit}]]*/ 5;
     }
 
     // Every type in enum order, even at 0, like /computer. Counts follow the stock filter.
-    // "Unassigned" is appended only when a row with no part type exists at all.
     function renderChips() {
-        var counts = {}, total = 0, hasUnassigned = false;
+        var counts = {}, total = 0;
         ALL_PARTS.forEach(function (p) {
-            if (p.typeKey === UNASSIGNED) hasUnassigned = true;
             if (state.stock !== 'all' && stockState(p) !== state.stock) return;
             total++;
             counts[p.typeKey] = (counts[p.typeKey] || 0) + 1;
@@ -377,7 +374,6 @@ var LOW_STOCK_LIMIT = /*[[${lowStockLimit}]]*/ 5;
         }
         chip('All', null, total);
         PART_TYPES.forEach(function (t) { chip(t.label, t.key, counts[t.key] || 0); });
-        if (hasUnassigned) chip('Unassigned', UNASSIGNED, counts[UNASSIGNED] || 0);
     }
 
     function renderRow(p) {

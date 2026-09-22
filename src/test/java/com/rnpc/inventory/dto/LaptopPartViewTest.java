@@ -286,19 +286,19 @@ class LaptopPartViewTest {
     }
 
     @Test
-    void unassignedRowShowsItsLegacyFieldsAndNoTiles() {
-        LaptopParts legacy = new LaptopParts();
-        legacy.setCategory("Notebook");
-        LaptopPartView v = LaptopPartView.from(legacy);
+    void aStrayNullTypeRowIsShownAsOtherWithoutThrowing() {
+        LaptopParts stray = new LaptopParts();
+        stray.setPartName("Unknown part");
+        stray.setPartCondition(PartCondition.NEW);
+        LaptopPartView v = LaptopPartView.from(stray);
 
-        assertEquals(LaptopPartView.UNASSIGNED, v.getTypeKey());
-        assertEquals("Unassigned", v.getTypeLabel());
-        assertEquals("LAP", v.getTypeCode());
-        assertEquals(PartType.values().length, v.getTypeOrder());
+        assertEquals("OTHER", v.getTypeKey());
+        assertEquals("Other", v.getTypeLabel());
+        assertEquals("OTH", v.getTypeCode());
+        assertEquals(PartType.OTHER.ordinal(), v.getTypeOrder());
         assertEquals("", v.getKeySpec());
-        assertTrue(v.getKeyTiles().isEmpty());
-        assertEquals("Legacy details", v.getSpecsTitle());
-        assertEquals("Notebook", v.getSpecs().get(0).getValue());
-        assertTrue(v.getSpecs().get(1).isBlank());
+        assertTrue(v.getSpecs().isEmpty());
+        assertEquals("Other specs", v.getSpecsTitle());
+        assertEquals(List.of("Condition=New", "Warranty=Not set", "Part number=Not set"), rows(v.getKeyTiles()));
     }
 }

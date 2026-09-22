@@ -34,16 +34,19 @@ import jakarta.validation.groups.Default;
 public class LaptopPartsController {
 
 	/*
-	 * Laptop parts, mid-redesign. Two models live side by side:
+	 * Laptop parts, one model: every part has a PartType. A part is created at
+	 * /laptop/{slug}/create - the type comes from that path, never from the form - and edited with
+	 * its own type's template under products/laptop/, chosen from the STORED type, so an edit can
+	 * never change it. Both are validated as Default + the type's group.
 	 *
-	 *  - Type-based parts (partType set): created at /laptop/{slug}/create, edited with the
-	 *    type's own template under products/laptop/. Validated as Default + the type's group.
-	 *  - Pre-redesign parts (partType null): the old /laptop/create form and old edit template,
-	 *    validated as Default + Legacy, exactly the rules they had before.
-	 *
-	 * Validation runs through the injected SmartValidator rather than @Valid, because the groups
-	 * depend on the type, which is only known inside the handler. Boot marks its defaultValidator
+	 * Validation runs through the injected SmartValidator rather than @Valid, because the group
+	 * depends on the type, which is only known inside the handler. Boot marks its defaultValidator
 	 * bean primary, so this injection is unambiguous.
+	 *
+	 * A row with a null part_type should not exist (the old untyped form is gone and part_type is
+	 * NOT NULL once the retirement SQL has run). If one appears anyway it is treated as OTHER
+	 * everywhere - listed, viewed and edited as Other, and saved back as OTHER - rather than
+	 * throwing.
 	 */
 
 	/**
@@ -91,8 +94,8 @@ public class LaptopPartsController {
 				notificationService.getForAdmin().stream().limit(15).collect(Collectors.toList()));
 	}
 
-	// Dropdown options shared by the old and the type-based forms. Passed in rather than read in
-	// the template, because T(...) static calls are avoided in templates here.
+	// Dropdown options shared by every type's form. Passed in rather than read in the template,
+	// because T(...) static calls are avoided in templates here.
 	private void addFormOptions(Model model) {
 		model.addAttribute("brandOptions", LaptopPartsDto.BRAND_OPTIONS);
 		model.addAttribute("conditionOptions", Arrays.asList(PartCondition.values()));
@@ -110,6 +113,12 @@ public class LaptopPartsController {
 		return "products/laptop/" + FORM_TEMPLATES.get(type) + suffix;
 	}
 
+	/** A stored part's type, with a stray null read as OTHER (see the class comment). */
+	private static PartType storedType(LaptopParts part) {
+		PartType type = part.getPartType();
+		return type == null ? PartType.OTHER : type;
+	}
+
 	@GetMapping({"","/"})
 	public String showLaptopPartsList(Authentication authentication, Model model) {
 		// Display-ready rows, serialized into the page as ALL_PARTS - same approach as /computer.
@@ -117,8 +126,7 @@ public class LaptopPartsController {
 		model.addAttribute("parts", laptopPartsService.getAllLaptopParts().stream()
 				.map(LaptopPartView::from).collect(Collectors.toList()));
 
-		// Chip list in enum order, every type shown even at 0 (as on /computer). The page adds an
-		// "Unassigned" chip itself, only when a row with no part type exists.
+		// Chip list in enum order, every type shown even at 0 (as on /computer).
 		List<Map<String, String>> partTypes = new ArrayList<>();
 		for (PartType t : PartType.values()) {
 			Map<String, String> chip = new LinkedHashMap<>();
@@ -163,32 +171,6 @@ public class LaptopPartsController {
 		return "redirect:/laptop";
 	}
 
-	// ---- Pre-redesign create, kept working until every type has a form -----------------------
-
-	@PostMapping("/create")
-	public String createLaptopPart(@ModelAttribute LaptopPartsDto laptopPartsDto, BindingResult result,
-								   Authentication authentication, Model model) {
-		validator.validate(laptopPartsDto, result, Default.class, PartType.Groups.Legacy.class);
-		// The photo is optional, as it is for the PC categories: with no file,
-		// LaptopPartsService.handleFileUpload returns null and the part is saved without one.
-		if (result.hasErrors()) {
-			addFormOptions(model);
-			addShellAttributes(authentication, model);
-			return "products/laptopCreateParts";
-		}
-
-		laptopPartsService.saveLaptopPart(laptopPartsDto);
-		return "redirect:/laptop";
-	}
-
-	@GetMapping("/create")
-	public String showCreateLaptopPartForm(Authentication authentication, Model model) {
-		model.addAttribute("laptopPartsDto", new LaptopPartsDto());
-		addFormOptions(model);
-		addShellAttributes(authentication, model);
-		return "products/laptopCreateParts";
-	}
-
 	@DeleteMapping("/delete/{id}")
 	public String deleteLaptopPart(@PathVariable("id") int id) {
 		laptopPartsService.deleteLaptopPart(id);
@@ -200,31 +182,15 @@ public class LaptopPartsController {
 	@GetMapping("/edit/{id}")
 	public String showEditProductForm(@PathVariable("id") int id, Authentication authentication, Model model) {
 		LaptopParts product = laptopPartsService.getLaptopPartById(id);
-		PartType type = product.getPartType();
+		PartType type = storedType(product);
 
 		model.addAttribute("laptopPartId", id);
 		model.addAttribute("currentImage", product.getImageFileName());
+		model.addAttribute("laptopPartsDto", laptopPartsService.toDto(product));
+		model.addAttribute("partType", type);
 		addFormOptions(model);
 		addShellAttributes(authentication, model);
-
-		if (type != null && FORM_TEMPLATES.containsKey(type)) {
-			model.addAttribute("laptopPartsDto", laptopPartsService.toDto(product));
-			model.addAttribute("partType", type);
-			return typedTemplate(type, "Edit");
-		}
-
-		// Pre-redesign row (partType null): the old edit form, populated as before.
-		LaptopPartsDto laptopPartsDto = new LaptopPartsDto();
-		laptopPartsDto.setBrand(product.getBrand());
-		laptopPartsDto.setPartName(product.getPartName());
-		laptopPartsDto.setCategory(product.getCategory());
-		laptopPartsDto.setStorageSize(product.getStorageSize());
-		laptopPartsDto.setStocks(product.getStocks());
-		laptopPartsDto.setPrice(product.getPrice());
-		laptopPartsDto.setDescription(product.getDescription());
-
-		model.addAttribute("laptopPartsDto", laptopPartsDto);
-		return "products/laptopEditParts";
+		return typedTemplate(type, "Edit");
 	}
 
 	@PutMapping("/update/{id}")
@@ -234,22 +200,17 @@ public class LaptopPartsController {
 								Authentication authentication,
 								Model model) {
 		LaptopParts product = laptopPartsService.getLaptopPartById(id);
-		PartType type = product.getPartType();
-		boolean typed = type != null && FORM_TEMPLATES.containsKey(type);
-
 		// The type is the stored one - an edit can never change it.
-		validator.validate(laptopPartsDto, result, Default.class,
-				typed ? type.getGroup() : PartType.Groups.Legacy.class);
+		PartType type = storedType(product);
+
+		validator.validate(laptopPartsDto, result, Default.class, type.getGroup());
 		if (result.hasErrors()) {
 			model.addAttribute("laptopPartId", id);
 			model.addAttribute("currentImage", product.getImageFileName());
+			model.addAttribute("partType", type);
 			addFormOptions(model);
 			addShellAttributes(authentication, model);
-			if (typed) {
-				model.addAttribute("partType", type);
-				return typedTemplate(type, "Edit");
-			}
-			return "products/laptopEditParts";
+			return typedTemplate(type, "Edit");
 		}
 
 		laptopPartsService.updateLaptopPart(id, laptopPartsDto);

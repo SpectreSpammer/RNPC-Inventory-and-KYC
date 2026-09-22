@@ -16,8 +16,8 @@
 
   Posts to /laptop/dc-jack/create. The part type comes from that path, never from a form
   field - there is deliberately no partType input. The controller validates
-  Default + PartType.Groups for this type, so the pre-redesign rules (category, storage
-  size, a 10-character description) do not apply here.
+  Default + this type's PartType.Groups group through a SmartValidator; each type group
+  extends Typed, which makes Condition required on every form.
 
   Brand and Condition options come from the controller (brandOptions, conditionOptions);
   the spec selects are hard-coded and mirror the @Pattern allow-lists on LaptopPartsDto.

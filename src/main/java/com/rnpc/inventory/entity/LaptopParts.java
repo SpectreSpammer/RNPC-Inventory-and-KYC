@@ -18,18 +18,19 @@ import jakarta.persistence.Table;
 public class LaptopParts {
 
 	/*
-	 * Laptop parts redesign, batch 1: additive only. One table, common fields plus nullable
-	 * per-type spec columns. Every column added here is NULLABLE (wrapper types, no
-	 * nullable = false) because ddl-auto=update only ever adds, and a NOT NULL column added to a
-	 * populated table would be filled with '' or 0 - which an enum cannot load.
+	 * One table for every laptop part: common fields plus nullable per-type spec columns. Every
+	 * column the redesign added is mapped NULLABLE (wrapper types, no nullable = false), because
+	 * ddl-auto=update only ever adds, and a NOT NULL column added to a populated table would be
+	 * filled with '' or 0 - which an enum cannot load. part_type and part_condition are made NOT
+	 * NULL by hand instead; the SQL is in CLAUDE.md under "Database changes not in migrations".
 	 *
-	 * Every new column is named explicitly. Spring's default naming would turn chargerCurrentA
-	 * into "charger_currenta" (it never splits the final character), and explicit names keep the
-	 * DDL in CLAUDE.md honest.
+	 * Every redesign column is named explicitly. Spring's default naming would turn
+	 * chargerCurrentA into "charger_currenta" (it never splits the final character), and explicit
+	 * names keep the DDL in CLAUDE.md honest.
 	 *
-	 * category and storageSize are the old model and stay until the create/edit batch replaces
-	 * the current forms. Their columns stay in the table after that either way: ddl-auto never
-	 * drops.
+	 * The pre-redesign category and storage_size columns, and the fan_* / mb_* columns of the two
+	 * types that were dropped, are no longer mapped. Hibernate ignores unmapped columns, so they
+	 * are harmless until they are dropped by hand (same CLAUDE.md section).
 	 */
 
 	/**
@@ -58,14 +59,9 @@ public class LaptopParts {
 		 * Bean Validation group markers, one per type. Every type group extends Typed, so a rule
 		 * in Typed (e.g. partCondition required) applies to every type-based form: validating a
 		 * group also validates the groups it extends.
-		 *
-		 * Legacy carries the pre-redesign rules (category, storageSize, the old partName
-		 * allow-list, description's 10-character minimum). It is validated only on the old
-		 * /laptop/create path and when editing a row whose partType is null.
 		 */
 		public interface Groups {
 			interface Typed {}
-			interface Legacy {}
 			interface Lcd extends Typed {}
 			interface Keyboard extends Typed {}
 			interface Battery extends Typed {}
@@ -125,19 +121,14 @@ public class LaptopParts {
 
 
 	private String brand;
-	/** Existing column. Old model: the part type (LCD, Keyboard, ...). New model: free text. */
+	/** Free text, e.g. "Inspiron 15 3000 battery". (Before the redesign it held the part type.) */
 	private String partName;
-	/** Old model (laptop type). Kept until the create/edit batch. */
-	private String category;
-	/** Old model. Kept until the create/edit batch. */
-	private String storageSize;
 	private int stocks;
 	private double price;
 
 	/**
-	 * The redesign's "notes", mapped onto the existing description column rather than renamed -
-	 * ddl-auto cannot rename. getDescription()/setDescription() below keep the current
-	 * controller, service and templates working unchanged.
+	 * Notes, mapped onto the pre-existing description column rather than renamed - ddl-auto
+	 * cannot rename. The form binds it through LaptopPartsDto.description.
 	 */
 	@Column(name = "description", columnDefinition = "TEXT")
 	private String notes;
@@ -284,18 +275,6 @@ public class LaptopParts {
 	public void setPartName(String partName) {
 		this.partName = partName;
 	}
-	public String getCategory() {
-		return category;
-	}
-	public void setCategory(String category) {
-		this.category = category;
-	}
-	public String getStorageSize() {
-		return storageSize;
-	}
-	public void setStorageSize(String storageSize) {
-		this.storageSize = storageSize;
-	}
 	public int getStocks() {
 		return stocks;
 	}
@@ -313,13 +292,6 @@ public class LaptopParts {
 	}
 	public void setNotes(String notes) {
 		this.notes = notes;
-	}
-	/** Old name for notes; same column. */
-	public String getDescription() {
-		return notes;
-	}
-	public void setDescription(String description) {
-		this.notes = description;
 	}
 	public Date getCreatedAt() {
 		return createdAt;

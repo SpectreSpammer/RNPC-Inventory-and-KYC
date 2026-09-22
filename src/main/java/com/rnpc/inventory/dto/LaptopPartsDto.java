@@ -19,19 +19,15 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 /*
- * One DTO for both laptop models, sorted into Bean Validation groups:
+ * One DTO for every laptop part type, sorted into Bean Validation groups:
  *
  *   Default             - rules every form shares (brand, partName, stocks, price, field lengths).
  *   PartType.Groups.X   - one per type, e.g. Lcd; each extends Typed, which holds the rules every
- *                         type-based form shares (partCondition). Run by the controller as
+ *                         type's form shares (partCondition). Run by the controller as
  *                         validate(dto, result, Default.class, type.getGroup()).
- *   Legacy              - the pre-redesign rules (category, storageSize, the old partName
- *                         allow-list, description's 10-character minimum). Only the old
- *                         /laptop/create path and the edit of a partType-null row run it.
  *
  * There is deliberately no partType field: the type comes from the route, never the form.
- * "notes" in the redesign is still bound as description here - it is the same column
- * (LaptopParts.notes maps onto description).
+ * "Notes" is bound as description here - LaptopParts.notes maps onto the description column.
  */
 public class LaptopPartsDto {
 
@@ -47,16 +43,7 @@ public class LaptopPartsDto {
 
 	@NotEmpty(message = "The part name is required!")
 	@Size(max = 255, message = "The part name cannot exceed 255 characters")
-	@Pattern(regexp = "LCD|Keyboard|Trackpad|Ram|SSD|M.2", message = "Invalid part name selected", groups = PartType.Groups.Legacy.class)
 	private String partName;
-
-	@NotEmpty(message = "The category is required!", groups = PartType.Groups.Legacy.class)
-	@Pattern(regexp = "Convertible|Netbook|Notebook|Gaming Laptop|Macbook", message = "Invalid category selected", groups = PartType.Groups.Legacy.class)
-	private String category;
-
-	@NotEmpty(message = "The storage size is required!", groups = PartType.Groups.Legacy.class)
-	@Pattern(regexp = "None Applicable|120 GB|240 GB|500 GB|1 TB|2 TB", message = "Invalid storage size selected", groups = PartType.Groups.Legacy.class)
-	private String storageSize;
 
 	@Min(value = 0, message = "The stocks cannot be negative!")
 	private int stocks;
@@ -64,8 +51,8 @@ public class LaptopPartsDto {
 	@Min(0)
 	private double price;
 
-	@Size(min = 10, message = "The description should be at least 10 characters", groups = PartType.Groups.Legacy.class)
-	@Size(max = 2000, message = "The description cannot exceed 2000 characters")
+	/** The Notes field on every form (LaptopParts.notes, stored in the description column). */
+	@Size(max = 2000, message = "The notes cannot exceed 2000 characters")
 	private String description;
 
 	private Date createdAt;
@@ -242,22 +229,6 @@ public class LaptopPartsDto {
 
 	public void setPartName(String partName) {
 		this.partName = partName;
-	}
-
-	public String getCategory() {
-		return category;
-	}
-
-	public void setCategory(String category) {
-		this.category = category;
-	}
-
-	public String getStorageSize() {
-		return storageSize;
-	}
-
-	public void setStorageSize(String storageSize) {
-		this.storageSize = storageSize;
 	}
 
 	public int getStocks() {
