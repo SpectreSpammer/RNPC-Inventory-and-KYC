@@ -13,9 +13,13 @@
 <!--
   Laptop create form, same shape as the CPU reference pair (cpuCreateParts.html).
   VISUAL CONVERSION ONLY: the entity, DTO, controller, URLs, field names, validation and dropdowns
-  are untouched. Every field the old Bootstrap form had is still here with the same th:field, and
-  all four selects keep their hard-coded options exactly as before - they mirror the @Pattern
-  allow-lists on LaptopPartsDto rather than coming from the controller.
+  are untouched. Every field the old Bootstrap form had is still here with the same th:field.
+  Part name, category and storage size keep their hard-coded options, mirroring the Legacy-group
+  @Pattern allow-lists on LaptopPartsDto. Brand comes from brandOptions
+  (LaptopPartsDto.BRAND_OPTIONS), shared with the type-based forms.
+
+  PRE-REDESIGN FORM: kept working at /laptop/create until every part type has its own form under
+  products/laptop/. It is validated as Default + Legacy.
 
   The mockup (gpt/admin/Add laptop part@1x.png) shows Part name and Storage size as free text and
   Description as optional. The real form wins: both are selects, storageSize is @NotEmpty and
@@ -50,12 +54,7 @@
                                 <label for="brand">Brand</label>
                                 <select th:field="*{brand}" id="brand">
                                     <option value="">Select a brand</option>
-                                    <option value="Asus">Asus</option>
-                                    <option value="Acer">Acer</option>
-                                    <option value="Dell">Dell</option>
-                                    <option value="Hp">Hp</option>
-                                    <option value="Lenovo">Lenovo</option>
-                                    <option value="MSI">MSI</option>
+                                    <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
                                 </select>
                                 <span class="pf-error" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></span>
                             </div>

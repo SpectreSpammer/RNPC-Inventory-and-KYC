@@ -32,6 +32,11 @@
 .pf-field input:focus,.pf-field select:focus,.pf-field textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
 .pf-hint{display:block;font-size:11.5px;color:var(--text-muted);margin-top:5px}
 
+/* Checkbox field (e.g. laptop LCD "Touch"): a caption styled like a label, then the box and its text. */
+.pf-label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px}
+.pf-field label.pf-check{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:500;margin:0;padding:9px 0;cursor:pointer}
+.pf-check input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:var(--accent)}
+
 /* Php prefix on price */
 .pf-prefix{display:flex;align-items:stretch}
 .pf-prefix span{display:grid;place-items:center;padding:0 12px;border:1px solid var(--border);border-right:0;border-radius:var(--radius-sm) 0 0 var(--radius-sm);background:var(--bg-page);color:var(--text-muted);font-size:12.5px;font-weight:600}

@@ -56,22 +56,32 @@ public class LaptopParts {
 		TOUCHPAD("Touchpad", "touchpad", Groups.Touchpad.class),
 		OTHER("Other", "other", Groups.Other.class);
 
-		/** Bean Validation group markers, one per type. */
+		/**
+		 * Bean Validation group markers, one per type. Every type group extends Typed, so a rule
+		 * in Typed (e.g. partCondition required) applies to every type-based form: validating a
+		 * group also validates the groups it extends.
+		 *
+		 * Legacy carries the pre-redesign rules (category, storageSize, the old partName
+		 * allow-list, description's 10-character minimum). It is validated only on the old
+		 * /laptop/create path and when editing a row whose partType is null.
+		 */
 		public interface Groups {
-			interface Lcd {}
-			interface Keyboard {}
-			interface Battery {}
-			interface Charger {}
-			interface Ram {}
-			interface Storage {}
-			interface Fan {}
-			interface Motherboard {}
-			interface Casing {}
-			interface Hinges {}
-			interface DcJack {}
-			interface WifiCard {}
-			interface Touchpad {}
-			interface Other {}
+			interface Typed {}
+			interface Legacy {}
+			interface Lcd extends Typed {}
+			interface Keyboard extends Typed {}
+			interface Battery extends Typed {}
+			interface Charger extends Typed {}
+			interface Ram extends Typed {}
+			interface Storage extends Typed {}
+			interface Fan extends Typed {}
+			interface Motherboard extends Typed {}
+			interface Casing extends Typed {}
+			interface Hinges extends Typed {}
+			interface DcJack extends Typed {}
+			interface WifiCard extends Typed {}
+			interface Touchpad extends Typed {}
+			interface Other extends Typed {}
 		}
 
 		private final String label;

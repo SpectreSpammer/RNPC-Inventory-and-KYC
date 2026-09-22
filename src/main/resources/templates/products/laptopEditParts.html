@@ -49,12 +49,7 @@
                                 <label for="brand">Brand</label>
                                 <select th:field="*{brand}" id="brand">
                                     <option value="">Select a brand</option>
-                                    <option value="Asus">Asus</option>
-                                    <option value="Acer">Acer</option>
-                                    <option value="Dell">Dell</option>
-                                    <option value="Hp">Hp</option>
-                                    <option value="Lenovo">Lenovo</option>
-                                    <option value="MSI">MSI</option>
+                                    <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
                                 </select>
                                 <span class="pf-error" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></span>
                             </div>

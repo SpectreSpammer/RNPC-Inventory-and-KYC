@@ -43,9 +43,18 @@
                 <p class="rn-page-header-subtitle">Screens, keyboards, memory and other laptop spares held in stock.</p>
             </div>
             <div class="rn-page-header-actions">
-                <a class="parts-add" th:href="@{/laptop/create}">
-                    <i data-feather="plus"></i>Add laptop part
-                </a>
+                <!-- One entry per part type that has its own form so far (addPartTypes, from
+                     LaptopPartsController.FORM_TEMPLATES), same dropdown as /computer's Add part. -->
+                <div class="dropdown">
+                    <button class="parts-add" type="button" id="addPartBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i data-feather="plus"></i>Add laptop part<i data-feather="chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end parts-add-menu" aria-labelledby="addPartBtn">
+                        <li th:each="t : ${addPartTypes}">
+                            <a class="dropdown-item" th:href="@{/laptop/{slug}/create(slug=${t.slug})}" th:text="${t.label}">LCD / Screen</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
 
