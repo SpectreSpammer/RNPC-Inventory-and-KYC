@@ -30,7 +30,7 @@ import jakarta.validation.constraints.Size;
 	    @Pattern(regexp = "None Applicable|120 GB|240 GB|500 GB|1 TB|2 TB", message = "Invalid storage size selected")
 	    private String storageSize;
 	    
-	    @Min(value = 1, message = "The stocks must be greater than 0!")
+	    @Min(value = 0, message = "The stocks cannot be negative!")
 	    private int stocks;
 	    
 	    @Min(0)
