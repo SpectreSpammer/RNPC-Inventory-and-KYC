@@ -33,7 +33,7 @@ public class LaptopParts {
 	 */
 
 	/**
-	 * The fourteen part types. The slug is the URL segment the per-type create routes will use
+	 * The twelve part types. The slug is the URL segment the per-type create routes will use
 	 * (/laptop/{slug}/create); group is the Bean Validation group carrying that type's
 	 * required-field rules on the DTO.
 	 *
@@ -47,8 +47,6 @@ public class LaptopParts {
 		CHARGER("Charger", "charger", Groups.Charger.class),
 		RAM("RAM", "ram", Groups.Ram.class),
 		STORAGE("Storage", "storage", Groups.Storage.class),
-		FAN("Fan / Heatsink", "fan", Groups.Fan.class),
-		MOTHERBOARD("Motherboard", "motherboard", Groups.Motherboard.class),
 		CASING("Casing", "casing", Groups.Casing.class),
 		HINGES("Hinges", "hinges", Groups.Hinges.class),
 		DC_JACK("DC Jack / Port", "dc-jack", Groups.DcJack.class),
@@ -74,8 +72,6 @@ public class LaptopParts {
 			interface Charger extends Typed {}
 			interface Ram extends Typed {}
 			interface Storage extends Typed {}
-			interface Fan extends Typed {}
-			interface Motherboard extends Typed {}
 			interface Casing extends Typed {}
 			interface Hinges extends Typed {}
 			interface DcJack extends Typed {}
@@ -237,24 +233,6 @@ public class LaptopParts {
 	private String storageFormFactor;
 	@Column(name = "storage_interface")
 	private String storageInterface;
-
-	// ---- Fan / Heatsink ----
-	@Column(name = "fan_assembly")
-	private String fanAssembly;
-	@Column(name = "fan_connector_pins")
-	private Integer fanConnectorPins;
-	@Column(name = "fan_voltage")
-	private Double fanVoltage;
-
-	// ---- Motherboard ----
-	@Column(name = "mb_onboard_cpu")
-	private String mbOnboardCpu;
-	@Column(name = "mb_gpu")
-	private String mbGpu;
-	@Column(name = "mb_onboard_ram")
-	private String mbOnboardRam;
-	@Column(name = "mb_tested_status")
-	private String mbTestedStatus;
 
 	// ---- Casing ----
 	@Column(name = "casing_panel")
@@ -558,48 +536,6 @@ public class LaptopParts {
 	}
 	public void setStorageInterface(String storageInterface) {
 		this.storageInterface = storageInterface;
-	}
-	public String getFanAssembly() {
-		return fanAssembly;
-	}
-	public void setFanAssembly(String fanAssembly) {
-		this.fanAssembly = fanAssembly;
-	}
-	public Integer getFanConnectorPins() {
-		return fanConnectorPins;
-	}
-	public void setFanConnectorPins(Integer fanConnectorPins) {
-		this.fanConnectorPins = fanConnectorPins;
-	}
-	public Double getFanVoltage() {
-		return fanVoltage;
-	}
-	public void setFanVoltage(Double fanVoltage) {
-		this.fanVoltage = fanVoltage;
-	}
-	public String getMbOnboardCpu() {
-		return mbOnboardCpu;
-	}
-	public void setMbOnboardCpu(String mbOnboardCpu) {
-		this.mbOnboardCpu = mbOnboardCpu;
-	}
-	public String getMbGpu() {
-		return mbGpu;
-	}
-	public void setMbGpu(String mbGpu) {
-		this.mbGpu = mbGpu;
-	}
-	public String getMbOnboardRam() {
-		return mbOnboardRam;
-	}
-	public void setMbOnboardRam(String mbOnboardRam) {
-		this.mbOnboardRam = mbOnboardRam;
-	}
-	public String getMbTestedStatus() {
-		return mbTestedStatus;
-	}
-	public void setMbTestedStatus(String mbTestedStatus) {
-		this.mbTestedStatus = mbTestedStatus;
 	}
 	public String getCasingPanel() {
 		return casingPanel;

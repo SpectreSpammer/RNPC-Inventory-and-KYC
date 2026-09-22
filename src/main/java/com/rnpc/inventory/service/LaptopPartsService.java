@@ -184,13 +184,6 @@ public class LaptopPartsService {
         laptopPart.setStorageCapacityGb(dto.getStorageCapacityGb());
         laptopPart.setStorageFormFactor(blankToNull(dto.getStorageFormFactor()));
         laptopPart.setStorageInterface(blankToNull(dto.getStorageInterface()));
-        laptopPart.setFanAssembly(blankToNull(dto.getFanAssembly()));
-        laptopPart.setFanConnectorPins(dto.getFanConnectorPins());
-        laptopPart.setFanVoltage(dto.getFanVoltage());
-        laptopPart.setMbOnboardCpu(blankToNull(dto.getMbOnboardCpu()));
-        laptopPart.setMbGpu(blankToNull(dto.getMbGpu()));
-        laptopPart.setMbOnboardRam(blankToNull(dto.getMbOnboardRam()));
-        laptopPart.setMbTestedStatus(blankToNull(dto.getMbTestedStatus()));
         laptopPart.setCasingPanel(blankToNull(dto.getCasingPanel()));
         laptopPart.setCasingColor(blankToNull(dto.getCasingColor()));
         laptopPart.setHingeSide(blankToNull(dto.getHingeSide()));
@@ -247,17 +240,6 @@ public class LaptopPartsService {
             laptopPart.setStorageCapacityGb(null);
             laptopPart.setStorageFormFactor(null);
             laptopPart.setStorageInterface(null);
-        }
-        if (type != PartType.FAN) {
-            laptopPart.setFanAssembly(null);
-            laptopPart.setFanConnectorPins(null);
-            laptopPart.setFanVoltage(null);
-        }
-        if (type != PartType.MOTHERBOARD) {
-            laptopPart.setMbOnboardCpu(null);
-            laptopPart.setMbGpu(null);
-            laptopPart.setMbOnboardRam(null);
-            laptopPart.setMbTestedStatus(null);
         }
         if (type != PartType.CASING) {
             laptopPart.setCasingPanel(null);
@@ -323,13 +305,6 @@ public class LaptopPartsService {
         dto.setStorageCapacityGb(laptopPart.getStorageCapacityGb());
         dto.setStorageFormFactor(laptopPart.getStorageFormFactor());
         dto.setStorageInterface(laptopPart.getStorageInterface());
-        dto.setFanAssembly(laptopPart.getFanAssembly());
-        dto.setFanConnectorPins(laptopPart.getFanConnectorPins());
-        dto.setFanVoltage(laptopPart.getFanVoltage());
-        dto.setMbOnboardCpu(laptopPart.getMbOnboardCpu());
-        dto.setMbGpu(laptopPart.getMbGpu());
-        dto.setMbOnboardRam(laptopPart.getMbOnboardRam());
-        dto.setMbTestedStatus(laptopPart.getMbTestedStatus());
         dto.setCasingPanel(laptopPart.getCasingPanel());
         dto.setCasingColor(laptopPart.getCasingColor());
         dto.setHingeSide(laptopPart.getHingeSide());

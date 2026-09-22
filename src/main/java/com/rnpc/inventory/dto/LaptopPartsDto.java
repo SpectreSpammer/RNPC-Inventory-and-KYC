@@ -76,7 +76,9 @@ public class LaptopPartsDto {
 
 	// ---- Common fields of the type-based model ----
 
-	@NotEmpty(message = "The compatible models are required!", groups = {PartType.Groups.Lcd.class, PartType.Groups.Battery.class})
+	// Required for the model-specific types; optional for generic ones (Charger, RAM, Storage).
+	@NotEmpty(message = "The compatible models are required!", groups = {PartType.Groups.Lcd.class,
+			PartType.Groups.Battery.class, PartType.Groups.Keyboard.class})
 	@Size(max = 500, message = "The compatible models cannot exceed 500 characters")
 	private String compatibleModels;
 
@@ -111,8 +113,11 @@ public class LaptopPartsDto {
 	private String lcdMounting;
 
 	// ---- KEYBOARD ----
+	@NotEmpty(message = "The layout is required!", groups = PartType.Groups.Keyboard.class)
+	@Pattern(regexp = "US|UK", message = "Invalid layout selected", groups = PartType.Groups.Keyboard.class)
 	private String kbLayout;
 	private Boolean kbBacklit;
+	@Pattern(regexp = "Black|Silver|White|Grey|", message = "Invalid color selected", groups = PartType.Groups.Keyboard.class)
 	private String kbColor;
 	private Boolean kbWithPalmrest;
 	private Boolean kbWithFrame;
@@ -174,17 +179,6 @@ public class LaptopPartsDto {
 	private String storageFormFactor;
 	@Pattern(regexp = "SATA III|PCIe 3\\.0 x4|PCIe 4\\.0 x4|", message = "Invalid interface selected", groups = PartType.Groups.Storage.class)
 	private String storageInterface;
-
-	// ---- FAN ----
-	private String fanAssembly;
-	private Integer fanConnectorPins;
-	private Double fanVoltage;
-
-	// ---- MOTHERBOARD ----
-	private String mbOnboardCpu;
-	private String mbGpu;
-	private String mbOnboardRam;
-	private String mbTestedStatus;
 
 	// ---- CASING ----
 	private String casingPanel;
@@ -557,62 +551,6 @@ public class LaptopPartsDto {
 
 	public void setStorageInterface(String storageInterface) {
 		this.storageInterface = storageInterface;
-	}
-
-	public String getFanAssembly() {
-		return fanAssembly;
-	}
-
-	public void setFanAssembly(String fanAssembly) {
-		this.fanAssembly = fanAssembly;
-	}
-
-	public Integer getFanConnectorPins() {
-		return fanConnectorPins;
-	}
-
-	public void setFanConnectorPins(Integer fanConnectorPins) {
-		this.fanConnectorPins = fanConnectorPins;
-	}
-
-	public Double getFanVoltage() {
-		return fanVoltage;
-	}
-
-	public void setFanVoltage(Double fanVoltage) {
-		this.fanVoltage = fanVoltage;
-	}
-
-	public String getMbOnboardCpu() {
-		return mbOnboardCpu;
-	}
-
-	public void setMbOnboardCpu(String mbOnboardCpu) {
-		this.mbOnboardCpu = mbOnboardCpu;
-	}
-
-	public String getMbGpu() {
-		return mbGpu;
-	}
-
-	public void setMbGpu(String mbGpu) {
-		this.mbGpu = mbGpu;
-	}
-
-	public String getMbOnboardRam() {
-		return mbOnboardRam;
-	}
-
-	public void setMbOnboardRam(String mbOnboardRam) {
-		this.mbOnboardRam = mbOnboardRam;
-	}
-
-	public String getMbTestedStatus() {
-		return mbTestedStatus;
-	}
-
-	public void setMbTestedStatus(String mbTestedStatus) {
-		this.mbTestedStatus = mbTestedStatus;
 	}
 
 	public String getCasingPanel() {

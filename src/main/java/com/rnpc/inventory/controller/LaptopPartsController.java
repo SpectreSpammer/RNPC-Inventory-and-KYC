@@ -58,6 +58,7 @@ public class LaptopPartsController {
 		FORM_TEMPLATES.put(PartType.CHARGER, "charger");
 		FORM_TEMPLATES.put(PartType.RAM, "ram");
 		FORM_TEMPLATES.put(PartType.STORAGE, "storage");
+		FORM_TEMPLATES.put(PartType.KEYBOARD, "keyboard");
 	}
 
 	private final LaptopPartsService laptopPartsService;

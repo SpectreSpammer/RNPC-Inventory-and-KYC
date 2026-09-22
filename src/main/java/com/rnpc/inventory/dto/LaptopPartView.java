@@ -3,8 +3,10 @@ package com.rnpc.inventory.dto;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import com.rnpc.inventory.entity.LaptopParts;
 import com.rnpc.inventory.entity.LaptopParts.PartType;
@@ -110,8 +112,6 @@ public class LaptopPartView {
             case CHARGER: return "CHG";
             case RAM: return "RAM";
             case STORAGE: return "STO";
-            case FAN: return "FAN";
-            case MOTHERBOARD: return "MB";
             case CASING: return "CAS";
             case HINGES: return "HNG";
             case DC_JACK: return "DC";
@@ -148,10 +148,6 @@ public class LaptopPartView {
                 return join(", ", unit(num(p.getChargerWattage()), "W"), p.getChargerConnectorTip());
             case KEYBOARD:
                 return join(", ", p.getKbLayout(), Boolean.TRUE.equals(p.getKbBacklit()) ? "backlit" : null);
-            case FAN:
-                return join(", ", p.getFanAssembly(), suffix(num(p.getFanConnectorPins()), "-pin"));
-            case MOTHERBOARD:
-                return join(", ", p.getMbOnboardCpu(), suffix(p.getMbOnboardRam(), " onboard"));
             case CASING:
                 return join(", ", suffix(p.getCasingPanel(), " cover"), p.getCasingColor());
             case HINGES:
@@ -177,6 +173,17 @@ public class LaptopPartView {
     }
 
     // ---- Spec rows ----------------------------------------------------------------------------
+
+    /**
+     * Key-spec tiles picked by spec-row index, for the types where the first three rows are not
+     * the three that matter most. Indexes refer to the order in specs(...) below.
+     */
+    private static final Map<PartType, int[]> TILE_ROWS = new EnumMap<>(PartType.class);
+    static {
+        TILE_ROWS.put(PartType.LCD, new int[] {0, 1, 3});          // Size, Resolution, Connector
+        TILE_ROWS.put(PartType.CHARGER, new int[] {0, 1, 3});      // Wattage, Output voltage, Connector tip
+        TILE_ROWS.put(PartType.KEYBOARD, new int[] {0, 1, 3});     // Layout, Backlit, With palmrest
+    }
 
     /** Every spec field of the part's type, in form order, with units. Empty for Other. */
     static List<Spec> specs(LaptopParts p) {
@@ -229,17 +236,6 @@ public class LaptopPartView {
                 s.add(new Spec("Form factor", p.getStorageFormFactor()));
                 s.add(new Spec("Interface", p.getStorageInterface()));
                 break;
-            case FAN:
-                s.add(new Spec("Assembly", p.getFanAssembly()));
-                s.add(new Spec("Connector pins", num(p.getFanConnectorPins())));
-                s.add(new Spec("Voltage", unit(num(p.getFanVoltage()), "V")));
-                break;
-            case MOTHERBOARD:
-                s.add(new Spec("Onboard CPU", p.getMbOnboardCpu()));
-                s.add(new Spec("GPU", p.getMbGpu()));
-                s.add(new Spec("Onboard RAM", p.getMbOnboardRam()));
-                s.add(new Spec("Tested status", p.getMbTestedStatus()));
-                break;
             case CASING:
                 s.add(new Spec("Panel", p.getCasingPanel()));
                 s.add(new Spec("Color", p.getCasingColor()));
@@ -268,20 +264,20 @@ public class LaptopPartView {
     }
 
     /**
-     * The three key-spec tiles: the type's first three spec rows (the spec lists above are
-     * ordered most important first), with two exceptions where the fourth row matters more for a
-     * replacement than the third: LCD takes Size, Resolution, Connector (not Panel type), and
-     * Charger takes Wattage, Output voltage, Connector tip (not the optional Current). A type with
-     * fewer than three specs - Casing, Hinges, DC Jack, Other - is padded with Condition, Warranty
-     * and Part number, so there are always three tiles. Unassigned rows get none.
+     * The three key-spec tiles. By default the type's first three spec rows (the spec lists above
+     * are ordered most important first); TILE_ROWS overrides that where later rows matter more
+     * for a replacement. A type with fewer than three specs - Casing, Hinges, DC Jack, Other - is
+     * padded with Condition, Warranty and Part number, so there are always three tiles.
+     * Unassigned rows get none.
      */
     static List<Spec> keyTiles(LaptopParts p, List<Spec> specs) {
         if (p.getPartType() == null) return List.of();
-        List<Spec> tiles;
-        if (p.getPartType() == PartType.LCD || p.getPartType() == PartType.CHARGER) {
-            tiles = new ArrayList<>(List.of(specs.get(0), specs.get(1), specs.get(3)));
+        List<Spec> tiles = new ArrayList<>();
+        int[] rows = TILE_ROWS.get(p.getPartType());
+        if (rows != null) {
+            for (int row : rows) tiles.add(specs.get(row));
         } else {
-            tiles = new ArrayList<>(specs.subList(0, Math.min(3, specs.size())));
+            tiles.addAll(specs.subList(0, Math.min(3, specs.size())));
         }
         List<Spec> padding = List.of(
                 new Spec("Condition", p.getPartCondition() == null ? null : p.getPartCondition().getLabel()),

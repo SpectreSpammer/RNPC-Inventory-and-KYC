@@ -169,6 +169,33 @@ class LaptopPartsDtoValidationTest {
     }
 
     @Test
+    void keyboardRequiresLayoutAndCompatibleModels() {
+        LaptopPartsDto dto = common();
+        dto.setCompatibleModels("");
+        dto.setKbColor("");
+        assertEquals(Set.of("kbLayout", "compatibleModels"), errorFields(dto, PartType.KEYBOARD.getGroup()));
+
+        dto.setCompatibleModels("Aspire 5 A515-54, A515-55");
+        dto.setKbLayout("US");
+        dto.setKbBacklit(true);
+        dto.setKbWithPalmrest(false);
+        assertEquals(Set.of(), errorFields(dto, PartType.KEYBOARD.getGroup()));
+
+        dto.setKbLayout("JP");
+        dto.setKbColor("Red");
+        assertEquals(Set.of("kbLayout", "kbColor"), errorFields(dto, PartType.KEYBOARD.getGroup()));
+    }
+
+    @Test
+    void compatibleModelsStaysOptionalForGenericTypes() {
+        LaptopPartsDto dto = common();
+        dto.setCompatibleModels(null);
+        dto.setRamType("DDR4");
+        dto.setRamCapacityGb(8);
+        assertEquals(Set.of(), errorFields(dto, PartType.RAM.getGroup()));
+    }
+
+    @Test
     void newTypeRulesDoNotLeakIntoOtherTypes() {
         // A valid LCD with nothing set for RAM, Storage or Charger stays valid.
         assertEquals(Set.of(), errorFields(validLcd(), PartType.LCD.getGroup()));
@@ -176,6 +203,7 @@ class LaptopPartsDtoValidationTest {
         LaptopPartsDto dto = validLcd();
         dto.setBatteryCapacityWh(9000.0);
         dto.setChargerOutputVoltage(1.0);
+        dto.setKbLayout("JP");
         assertEquals(Set.of(), errorFields(dto, PartType.LCD.getGroup()));
     }
 

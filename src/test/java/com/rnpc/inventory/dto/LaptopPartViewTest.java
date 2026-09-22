@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -59,16 +60,6 @@ class LaptopPartViewTest {
         keyboard.setKbLayout("US");
         keyboard.setKbBacklit(true);
         assertEquals("US, backlit", LaptopPartView.keySpec(keyboard));
-
-        LaptopParts fan = part(PartType.FAN);
-        fan.setFanAssembly("CPU fan");
-        fan.setFanConnectorPins(4);
-        assertEquals("CPU fan, 4-pin", LaptopPartView.keySpec(fan));
-
-        LaptopParts board = part(PartType.MOTHERBOARD);
-        board.setMbOnboardCpu("i5-1135G7");
-        board.setMbOnboardRam("8GB");
-        assertEquals("i5-1135G7, 8GB onboard", LaptopPartView.keySpec(board));
 
         LaptopParts casing = part(PartType.CASING);
         casing.setCasingPanel("A");
@@ -194,6 +185,31 @@ class LaptopPartViewTest {
         LaptopPartView v = LaptopPartView.from(charger);
         assertEquals(List.of("Wattage=65 W", "Output voltage=19.5 V", "Connector tip=4.5x3.0mm"), rows(v.getKeyTiles()));
         assertEquals(List.of("Current=3.34 A", "Includes cord=Yes"), rows(v.getSpecs()));
+    }
+
+    @Test
+    void keyboardTilesAndNoRepeat() {
+        LaptopParts keyboard = part(PartType.KEYBOARD);
+        keyboard.setKbLayout("UK");
+        keyboard.setKbBacklit(true);
+        keyboard.setKbColor("Silver");
+        keyboard.setKbWithPalmrest(true);
+        keyboard.setKbWithFrame(false);
+        assertEquals("UK, backlit", LaptopPartView.keySpec(keyboard));
+        LaptopPartView v = LaptopPartView.from(keyboard);
+        assertEquals(List.of("Layout=UK", "Backlit=Yes", "With palmrest=Yes"), rows(v.getKeyTiles()));
+        assertEquals(List.of("Color=Silver", "With frame=No"), rows(v.getSpecs()));
+    }
+
+    @Test
+    void fanAndMotherboardAreNotLaptopPartTypes() {
+        // Not stocked: board work is a repair service. Neither slug resolves to a type.
+        assertEquals(12, PartType.values().length);
+        assertNull(PartType.fromSlug("fan"));
+        assertNull(PartType.fromSlug("motherboard"));
+        for (PartType t : PartType.values()) {
+            assertFalse(t.name().equals("FAN") || t.name().equals("MOTHERBOARD"), t.name());
+        }
     }
 
     @Test
