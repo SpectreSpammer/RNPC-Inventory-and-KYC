@@ -1,17 +1,19 @@
 package com.rnpc.inventory.controller;
 
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.rnpc.inventory.entity.LaptopParts;
 import com.rnpc.inventory.dto.LaptopPartsDto;
+import com.rnpc.inventory.service.AdminDashboardService;
 import com.rnpc.inventory.service.LaptopPartsService;
+import com.rnpc.inventory.service.NotificationService;
 
 import jakarta.validation.Valid;
 
@@ -20,25 +22,42 @@ import jakarta.validation.Valid;
 public class LaptopPartsController {
 
 	private final LaptopPartsService laptopPartsService;
+	private final NotificationService notificationService;
 
 	@Autowired
-	public LaptopPartsController(LaptopPartsService laptopPartsService) {
+	public LaptopPartsController(LaptopPartsService laptopPartsService, NotificationService notificationService) {
 		this.laptopPartsService = laptopPartsService;
+		this.notificationService = notificationService;
+	}
+
+	// Topbar chrome for the shared layout-app shell, same shape as CpuPartsController's.
+	// These routes are admin-only via the filter chain (SecurityConfig.ADMIN_ONLY_PARTS_PATHS), so
+	// the admin inbox is always the right one and no isAdmin check belongs here. Called from the
+	// list, create and edit handlers, including their validation-error paths.
+	private void addShellAttributes(Authentication authentication, Model model) {
+		model.addAttribute("currentUsername", authentication != null ? authentication.getName() : null);
+		model.addAttribute("currentRole", "Admin");
+		model.addAttribute("unreadNotifications", notificationService.getUnreadCountForAdmin());
+		model.addAttribute("recentNotifications",
+				notificationService.getForAdmin().stream().limit(15).collect(Collectors.toList()));
 	}
 
 	@GetMapping({"","/"})
-	public String showLaptopPartsList(Model model) {
+	public String showLaptopPartsList(Authentication authentication, Model model) {
 		model.addAttribute("laptop", laptopPartsService.getAllLaptopParts());
+		// Same low-stock rule as the admin dashboard and /computer, reused rather than restated.
+		model.addAttribute("lowStockLimit", AdminDashboardService.LOW_STOCK_LIMIT);
+		addShellAttributes(authentication, model);
 		return "products/laptopParts";
 	}
 
 	@PostMapping("/create")
-	public String createLaptopPart(@Valid @ModelAttribute LaptopPartsDto laptopPartsDto, BindingResult result) {
-		if (laptopPartsDto.getImageFile().isEmpty()) {
-			result.addError(new FieldError("laptopPartsDto", "imageFile", "The image file is required!"));
-		}
-
+	public String createLaptopPart(@Valid @ModelAttribute LaptopPartsDto laptopPartsDto, BindingResult result,
+								   Authentication authentication, Model model) {
+		// The photo is optional, as it is for the PC categories: with no file,
+		// LaptopPartsService.handleFileUpload returns null and the part is saved without one.
 		if (result.hasErrors()) {
+			addShellAttributes(authentication, model);
 			return "products/laptopCreateParts";
 		}
 
@@ -47,8 +66,9 @@ public class LaptopPartsController {
 	}
 
 	@GetMapping("/create")
-	public String showCreateLaptopPartForm(Model model) {
+	public String showCreateLaptopPartForm(Authentication authentication, Model model) {
 		model.addAttribute("laptopPartsDto", new LaptopPartsDto());
+		addShellAttributes(authentication, model);
 		return "products/laptopCreateParts";
 	}
 
@@ -60,7 +80,7 @@ public class LaptopPartsController {
 
 	// Show edit page for a specific laptop
 	@GetMapping("/edit/{id}")
-	public String showEditProductForm(@PathVariable("id") int id, Model model) {
+	public String showEditProductForm(@PathVariable("id") int id, Authentication authentication, Model model) {
 		LaptopParts product = laptopPartsService.getLaptopPartById(id);
 
 		LaptopPartsDto laptopPartsDto = new LaptopPartsDto();
@@ -75,6 +95,7 @@ public class LaptopPartsController {
 		model.addAttribute("laptopPartsDto", laptopPartsDto); // Changed here
 		model.addAttribute("laptopPartId", id);
 		model.addAttribute("currentImage", product.getImageFileName());
+		addShellAttributes(authentication, model);
 		return "products/laptopEditParts";
 	}
 
@@ -84,10 +105,12 @@ public class LaptopPartsController {
 	public String updateProduct(@PathVariable("id") int id,
 								@Valid @ModelAttribute LaptopPartsDto laptopDto,
 								BindingResult result,
+								Authentication authentication,
 								Model model) {
 		if (result.hasErrors()) {
 			model.addAttribute("laptopPartId", id);
 			model.addAttribute("currentImage", laptopPartsService.getLaptopPartById(id).getImageFileName());
+			addShellAttributes(authentication, model);
 			return "products/laptopEditParts";
 		}
 

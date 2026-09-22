@@ -1,113 +1,582 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-          crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Laptop parts - RN PC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/card :: card-styles}"></th:block>
+    <th:block th:replace="~{fragments/page-header :: page-header-styles}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/parts.css}"/>
 </head>
-<body>
-<div class="container">
-        <h1 class="text-center my-4">Laptop Products</h1>
+<body class="parts-page">
+
+<!--
+  Converted from the old Bootstrap list to the shared layout-app shell, matching
+  gpt/admin/Laptop parts (same shape for cellphone)@1x.png and its empty state. Styling reuses
+  static/css/parts.css from /computer; the few laptop-only rules are at the end of that file.
+
+  Unlike /computer, the rows are still rendered SERVER-SIDE with th:each, as before - the
+  controller passes the same List<LaptopParts> it always has. Each row carries its values in data-*
+  attributes; the script below only shows/hides and pages those rows and fills the view modal from
+  them. Nothing is fetched and no query was added.
+
+  "Category" here is the laptop type (Convertible, Notebook, ...), not the part type - the part
+  type is partName (LCD, Keyboard, ...). The mockup's chips (Battery, Charger, ...) are not real
+  values; the chips are built at runtime from whatever categories the rows actually carry.
+
+  Id, Description, Created At and Image are no longer table columns: the image is the Part cell's
+  thumbnail, and every field is shown in the view modal.
+-->
+
+<div th:replace="~{fragments/layout-app :: sidebar(active='laptop-parts', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+
+    <main class="content">
+        <div class="rn-page-header">
+            <div class="rn-page-header-text">
+                <h1 class="rn-page-header-title">Laptop parts</h1>
+                <p class="rn-page-header-subtitle">Screens, keyboards, memory and other laptop spares held in stock.</p>
+            </div>
+            <div class="rn-page-header-actions">
+                <a class="parts-add" th:href="@{/laptop/create}">
+                    <i data-feather="plus"></i>Add laptop part
+                </a>
+            </div>
+        </div>
+
+        <!-- Stock-status filter, same markup as /computer. aria-pressed carries the active state. -->
+        <section class="parts-stats" aria-label="Filter by stock status">
+            <button type="button" class="parts-stat" data-stock="all" aria-pressed="true">
+                <span class="parts-stat-icon blue">#</span>
+                <span class="parts-stat-body">
+                    <span class="parts-stat-label">All parts</span>
+                    <span class="parts-stat-value" id="statAll">0</span>
+                    <span class="parts-stat-note" id="statAllNote">Across 0 categories</span>
+                </span>
+                <span class="parts-stat-action" data-stock-action>Showing</span>
+            </button>
+            <button type="button" class="parts-stat" data-stock="low" aria-pressed="false">
+                <span class="parts-stat-icon amber"><i data-feather="alert-triangle"></i></span>
+                <span class="parts-stat-body">
+                    <span class="parts-stat-label">Low stock</span>
+                    <span class="parts-stat-value" id="statLow">0</span>
+                    <span class="parts-stat-note" th:text="${'1 to ' + lowStockLimit + ' units left'}">1 to 5 units left</span>
+                </span>
+                <span class="parts-stat-action" data-stock-action>Show</span>
+            </button>
+            <button type="button" class="parts-stat" data-stock="out" aria-pressed="false">
+                <span class="parts-stat-icon red">0</span>
+                <span class="parts-stat-body">
+                    <span class="parts-stat-label">Out of stock</span>
+                    <span class="parts-stat-value" id="statOut">0</span>
+                    <span class="parts-stat-note">No units left</span>
+                </span>
+                <span class="parts-stat-action" data-stock-action>Show</span>
+            </button>
+        </section>
+
+        <section class="card">
+            <div class="parts-toolbar">
+                <div class="parts-search">
+                    <i data-feather="search"></i>
+                    <input type="search" id="partsSearch" placeholder="Search by brand or part name" aria-label="Search laptop parts by brand or part name"/>
+                </div>
+            </div>
+
+            <div class="parts-chips" id="partsChips" role="group" aria-label="Filter by category"></div>
+
+            <div class="parts-table-scroll">
+                <table class="parts-table">
+                    <thead>
+                    <tr>
+                        <th scope="col">Part</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Storage size</th>
+                        <th scope="col">Stock</th>
+                        <th scope="col" class="num">Price</th>
+                        <th scope="col" class="act">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="partsTableBody">
+                    <tr class="laptop-row" th:each="part : ${laptop}"
+                        th:with="stockState=${part.stocks <= 0 ? 'out' : (part.stocks <= lowStockLimit ? 'low' : 'in')}"
+                        th:attr="data-id=${part.laptopPartId}, data-brand=${part.brand}, data-name=${part.partName}, data-category=${part.category}, data-storage=${part.storageSize}, data-stocks=${part.stocks}, data-stock-state=${stockState}, data-price=${'Php ' + #numbers.formatDecimal(part.price, 1, 'COMMA', 2, 'POINT')}, data-description=${part.description}, data-created=${part.createdAt == null ? '' : #dates.format(part.createdAt, 'MMM d, yyyy')}, data-image=${part.imageFileName}, data-edit-url=@{/laptop/edit/{id}(id=${part.laptopPartId})}, data-delete-url=@{/laptop/delete/{id}(id=${part.laptopPartId})}">
+                        <td>
+                            <div class="parts-name">
+                                <img class="parts-thumb" th:if="${part.imageFileName}" th:src="@{/images/{f}(f=${part.imageFileName})}" alt=""/>
+                                <span class="parts-code" th:unless="${part.imageFileName}"
+                                      th:text="${#strings.isEmpty(part.category) ? '?' : #strings.toUpperCase(#strings.substring(part.category, 0, #strings.length(part.category) < 3 ? #strings.length(part.category) : 3))}">LAP</span>
+                                <div class="parts-name-text">
+                                    <span class="parts-model" th:text="${#strings.isEmpty(part.partName) ? 'Not set' : part.partName}"></span>
+                                    <span class="parts-brand" th:text="${part.brand}"></span>
+                                </div>
+                            </div>
+                        </td>
+                        <td th:text="${#strings.isEmpty(part.category) ? 'Not set' : part.category}"
+                            th:classappend="${#strings.isEmpty(part.category) ? 'parts-unset' : ''}"></td>
+                        <td th:text="${#strings.isEmpty(part.storageSize) ? 'Not set' : part.storageSize}"
+                            th:classappend="${#strings.isEmpty(part.storageSize) ? 'parts-unset' : ''}"></td>
+                        <td class="parts-stock">
+                            <div class="parts-stock-top">
+                                <span class="parts-stock-qty" th:text="${part.stocks}"></span>
+                                <span class="parts-badge" th:classappend="${stockState}"
+                                      th:text="${stockState == 'out' ? 'Out of stock' : (stockState == 'low' ? 'Low stock' : 'In stock')}"></span>
+                            </div>
+                            <progress class="parts-stock-bar" th:classappend="${stockState}" max="20"
+                                      th:value="${part.stocks > 20 ? 20 : (part.stocks < 0 ? 0 : part.stocks)}" aria-hidden="true"></progress>
+                        </td>
+                        <td class="num" th:text="${'Php ' + #numbers.formatDecimal(part.price, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="act">
+                            <div class="parts-actions">
+                                <button type="button" class="parts-icon-btn" data-action="view" title="View details"
+                                        th:attr="aria-label=${'View ' + part.partName}">
+                                    <i data-feather="eye"></i>
+                                </button>
+                                <a class="parts-icon-btn" title="Edit"
+                                   th:href="@{/laptop/edit/{id}(id=${part.laptopPartId})}"
+                                   th:attr="aria-label=${'Edit ' + part.partName}">
+                                    <i data-feather="edit-2"></i>
+                                </a>
+                                <button type="button" class="parts-icon-btn danger" data-action="delete" title="Delete"
+                                        th:attr="aria-label=${'Delete ' + part.partName}">
+                                    <i data-feather="trash-2"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- No laptop parts at all - matches gpt/admin/Laptop parts - empty state@1x.png. -->
+                    <tr th:if="${#lists.isEmpty(laptop)}">
+                        <td class="parts-empty parts-empty-state" colspan="6">
+                            <span class="parts-empty-icon"><i data-feather="box"></i></span>
+                            <p class="parts-empty-title">No laptop parts yet</p>
+                            <p class="parts-empty-text">Add the spares you keep on hand so they show up in repairs and orders.</p>
+                            <a class="parts-add parts-empty-add" th:href="@{/laptop/create}">Add laptop part</a>
+                        </td>
+                    </tr>
+
+                    <!-- Parts exist, but none match the current filters. Shown by the script. -->
+                    <tr id="partsFilteredEmpty" th:unless="${#lists.isEmpty(laptop)}" hidden>
+                        <td class="parts-empty" colspan="6">
+                            <i data-feather="package"></i>
+                            <p class="parts-empty-title">No laptop parts match these filters.</p>
+                            <button type="button" class="parts-clear" id="partsClear">Clear filters</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="parts-foot">
+                <span class="parts-count" id="partsCount"></span>
+                <nav class="parts-pager" id="partsPager" aria-label="Laptop parts pages"></nav>
+            </div>
+        </section>
+    </main>
 </div>
 
-<div class="content-wrapper">
-    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+<!-- One shared view modal, same layout and classes as the /computer view modal. Filled on click
+     from the row's own data-* attributes; nothing is fetched. Every LaptopParts field appears:
+     part name, brand, category, price and stock in the header; photo; part name, category and
+     storage size as key specs; id, brand, created date and photo state in the grid; description
+     as a paragraph. -->
+<div class="modal fade" id="partsViewModal" tabindex="-1" aria-hidden="true" aria-labelledby="partsViewTitle">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content parts-view">
 
-    <main class="main-content">
-    <div th:replace="~{fragments/nav :: back}"></div>
-    <div class="row mb-3">
-        <div class="col-md-3 mb-3">
-            <a class="btn btn-primary w-150" href="/laptop/create">Add Laptop Parts</a>
-        </div>
-        <div class="col-md-9">
-            <div class="input-group rounded">
-                <input type="search" class="form-control rounded" id="brandSearch" placeholder="Search by brand" aria-label="Search" aria-describedby="search-addon" />
-                <span class="input-group-text border-0" id="search-addon">
-                    <i class="fas fa-search"></i>
-                </span>
+            <div class="modal-header parts-view-head">
+                <div class="parts-view-headings">
+                    <div class="parts-view-tags">
+                        <span class="parts-view-cat" id="partsViewCat"></span>
+                        <span class="parts-badge" id="partsViewStatus"></span>
+                    </div>
+                    <h5 class="parts-view-model" id="partsViewTitle"></h5>
+                    <p class="parts-view-brand" id="partsViewBrand"></p>
+                    <div class="parts-view-figures">
+                        <div class="parts-view-price">
+                            <span class="parts-view-key">Price</span>
+                            <strong id="partsViewPrice"></strong>
+                        </div>
+                        <div class="parts-view-stock">
+                            <span class="parts-view-key" id="partsViewStockLabel"></span>
+                            <div class="parts-view-stockrow">
+                                <strong id="partsViewStockQty"></strong>
+                                <progress class="parts-stock-bar" id="partsViewStockBar" max="20" value="0" aria-hidden="true"></progress>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="parts-view-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+
+            <div class="modal-body parts-view-body">
+                <img id="partsViewImg" class="parts-view-img" alt="" hidden/>
+                <div class="parts-view-photo" id="partsViewNoPhoto" hidden>
+                    <span class="parts-view-photo-cat" id="partsViewPhotoCat"></span>
+                    <span class="parts-view-photo-note">No photo uploaded</span>
+                </div>
+
+                <h6 class="parts-view-section">Key specs</h6>
+                <div class="parts-view-tiles" id="partsViewTiles"></div>
+
+                <h6 class="parts-view-section">Record</h6>
+                <div class="parts-view-grid" id="partsViewGrid"></div>
+
+                <div class="parts-view-notes">
+                    <span class="parts-view-key">Description</span>
+                    <p id="partsViewNotesText"></p>
+                </div>
+            </div>
+
+            <div class="modal-footer parts-view-foot">
+                <a class="parts-view-edit" id="partsViewEdit" href="#">
+                    <i data-feather="edit-2"></i>Edit part
+                </a>
+                <button type="button" class="parts-icon-btn danger" id="partsViewDelete" aria-label="Delete this part">
+                    <i data-feather="trash-2"></i>
+                </button>
+                <button type="button" class="parts-view-closebtn" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
-
-    <table class="table" id="laptopartsTable">
-        <thead>
-        <tr>
-            <th>Id</th>
-            <th>Brand</th>
-            <th>Part Name</th>
-            <th>Category</th>
-            <th>Storage Size</th>
-            <th>Stocks</th>
-            <th>Price</th>
-            <th>Description</th>
-            <th>Created At</th>
-            <th>Image</th>
-            <th>Action</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="part : ${laptop}">
-            <td th:text="${part.laptopPartId}"></td>
-            <td th:text="${part.brand}"></td>
-            <td th:text="${part.partName}"></td>
-            <td th:text="${part.category}"></td>
-            <td th:text="${part.storageSize}"></td>
-            <td th:text="${part.stocks}"></td>
-            <td th:text="${part.price}"></td>
-            <td th:text="${part.description}"></td>
-            <td th:text="${#dates.format(part.createdAt, 'yyyy-MM-dd')}"></td>
-            <td>
-                <img th:if="${part.imageFileName}" th:src="@{'/images/' + ${part.imageFileName}}" alt="Laptop Part Image" style="max-width: 100px; max-height: 100px;">
-            </td>
-            <td style="white-space:nowrap">
-                <a class="btn btn-primary btn-sm"
-                   th:href="@{/laptop/edit/{id} (id=${part.laptopPartId})}">Edit
-                </a>
-                <!-- Replace the delete link with a form -->
-                <form th:action="@{/laptop/delete/{id}(id=${part.laptopPartId})}"
-                      method="post"
-                      style="display:inline;">
-                    <input type="hidden" name="_method" value="delete"/>
-                    <button type="submit"
-                            class="btn btn-danger btn-sm"
-                            onclick="return confirm('Are you sure?')">
-                        Delete
-                    </button>
-                </form>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-    </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
-<script th:replace="~{fragments/nav :: sidebarScript}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const brandSearch = document.getElementById('brandSearch');
-        const table = document.getElementById('laptopartsTable');
-        const rows = table.getElementsByTagName('tr');
-        brandSearch.addEventListener('input', function() {
-            const filter = this.value.toLowerCase();
-            for (let i = 1; i < rows.length; i++) {
-                const brandCell = rows[i].getElementsByTagName('td')[1];
-                if (brandCell) {
-                    const brandText = brandCell.textContent || brandCell.innerText;
-                    if (brandText.toLowerCase().indexOf(filter) > -1) {
-                        rows[i].style.display = '';
-                    } else {
-                        rows[i].style.display = 'none';
-                    }
-                }
-            }
+
+<!-- Delete confirmation, replacing the old inline confirm(). The form action is set per part to
+     that row's existing /laptop/delete/{id} URL; _method=delete because the route is
+     @DeleteMapping - the same request the old inline form sent. -->
+<div class="modal fade" id="partsDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete laptop part</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Delete <strong id="partsDeleteName"></strong>? This also removes its photo and cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="table-action" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" id="partsDeleteForm">
+                    <input type="hidden" name="_method" value="delete"/>
+                    <button type="submit" class="btn-accent-sm">Yes, delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+
+<script th:inline="javascript">/*<![CDATA[*/
+var LOW_STOCK_LIMIT = /*[[${lowStockLimit}]]*/ 5;
+/*]]>*/</script>
+
+<script th:inline="none">
+(function () {
+    'use strict';
+
+    var PAGE_SIZE = 25;
+
+    var state = { stock: 'all', category: null, search: '', page: 1 };
+    var el = function (id) { return document.getElementById(id); };
+    var ROWS = [];
+
+    function isBlank(v) {
+        return v === null || v === undefined || String(v).trim() === '';
+    }
+
+    // One plain object per server-rendered row, read once from its data-* attributes.
+    function readRow(tr) {
+        var d = tr.dataset;
+        return {
+            tr: tr,
+            id: d.id,
+            brand: d.brand || '',
+            name: d.name || '',
+            category: d.category || '',
+            storage: d.storage || '',
+            stocks: Number(d.stocks) || 0,
+            stock: d.stockState,
+            price: d.price || '',
+            description: d.description || '',
+            created: d.created || '',
+            image: d.image || '',
+            editUrl: d.editUrl,
+            deleteUrl: d.deleteUrl
+        };
+    }
+
+    function matches(p) {
+        if (state.stock !== 'all' && p.stock !== state.stock) return false;
+        if (state.category !== null && p.category !== state.category) return false;
+        if (state.search) {
+            var t = state.search.toLowerCase();
+            if (p.brand.toLowerCase().indexOf(t) === -1 && p.name.toLowerCase().indexOf(t) === -1) return false;
+        }
+        return true;
+    }
+
+    function anyFilterActive() {
+        return state.stock !== 'all' || state.category !== null || state.search !== '';
+    }
+
+    function clearFilters() {
+        state.stock = 'all';
+        state.category = null;
+        state.search = '';
+        state.page = 1;
+        el('partsSearch').value = '';
+        render();
+    }
+
+    function node(tag, cls, text) {
+        var n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text !== undefined && text !== null) n.textContent = text;
+        return n;
+    }
+    function icon(name) {
+        var i = document.createElement('i');
+        i.setAttribute('data-feather', name);
+        return i;
+    }
+    function stockText(s) {
+        return s === 'in' ? 'In stock' : s === 'low' ? 'Low stock' : 'Out of stock';
+    }
+
+    function renderStats() {
+        var low = 0, out = 0, cats = {};
+        ROWS.forEach(function (p) {
+            if (p.stock === 'low') low++; else if (p.stock === 'out') out++;
+            if (!isBlank(p.category)) cats[p.category] = true;
         });
+        el('statAll').textContent = ROWS.length;
+        el('statLow').textContent = low;
+        el('statOut').textContent = out;
+        var n = Object.keys(cats).length;
+        el('statAllNote').textContent = 'Across ' + n + (n === 1 ? ' category' : ' categories');
+
+        document.querySelectorAll('.parts-stat').forEach(function (btn) {
+            var on = btn.dataset.stock === state.stock;
+            btn.setAttribute('aria-pressed', String(on));
+            btn.querySelector('[data-stock-action]').textContent = on ? 'Showing' : 'Show';
+        });
+    }
+
+    // Chips come from the categories the rows actually carry, counted under the current stock
+    // filter - the same rule /computer uses - so a chip never offers a category with nothing
+    // behind it. A part with a blank category is still counted under All.
+    function renderChips() {
+        var counts = {}, total = 0;
+        ROWS.forEach(function (p) {
+            if (state.stock !== 'all' && p.stock !== state.stock) return;
+            total++;
+            if (!isBlank(p.category)) counts[p.category] = (counts[p.category] || 0) + 1;
+        });
+        var wrap = el('partsChips');
+        wrap.replaceChildren();
+
+        function chip(label, value, count) {
+            var b = node('button', 'parts-chip');
+            b.type = 'button';
+            b.setAttribute('aria-pressed', String(state.category === value));
+            b.append(document.createTextNode(label), node('span', 'parts-chip-count', count));
+            b.addEventListener('click', function () {
+                state.category = value;
+                state.page = 1;
+                render();
+            });
+            wrap.append(b);
+        }
+        chip('All', null, total);
+        Object.keys(counts).sort(function (a, b) { return a.localeCompare(b); })
+            .forEach(function (c) { chip(c, c, counts[c]); });
+    }
+
+    function renderPager(totalPages) {
+        var pager = el('partsPager');
+        pager.replaceChildren();
+        if (totalPages <= 1) return;
+
+        function pageBtn(label, target, opts) {
+            var b = node('button', null);
+            b.type = 'button';
+            if (opts && opts.icon) b.append(icon(opts.icon)); else b.textContent = label;
+            if (opts && opts.current) b.setAttribute('aria-current', 'page');
+            if (opts && opts.disabled) b.disabled = true;
+            if (opts && opts.label) b.setAttribute('aria-label', opts.label);
+            b.addEventListener('click', function () {
+                if (b.disabled) return;
+                state.page = target;
+                render();
+            });
+            pager.append(b);
+        }
+        // Condensed like /computer: first, last and a window around the current page.
+        var want = {}, i;
+        want[1] = true;
+        want[totalPages] = true;
+        for (i = state.page - 1; i <= state.page + 1; i++) {
+            if (i >= 1 && i <= totalPages) want[i] = true;
+        }
+        var nums = Object.keys(want).map(Number).sort(function (a, b) { return a - b; });
+
+        pageBtn('', state.page - 1, { icon: 'chevron-left', disabled: state.page === 1, label: 'Previous page' });
+        var prev = 0;
+        nums.forEach(function (n) {
+            if (n - prev > 1) pager.append(node('span', 'parts-gap', '\u2026'));
+            pageBtn(String(n), n, { current: n === state.page });
+            prev = n;
+        });
+        pageBtn('', state.page + 1, { icon: 'chevron-right', disabled: state.page === totalPages, label: 'Next page' });
+    }
+
+    function render() {
+        renderStats();
+        renderChips();
+
+        var shown = ROWS.filter(matches);
+        var totalPages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
+        if (state.page > totalPages) state.page = totalPages;
+        var start = (state.page - 1) * PAGE_SIZE;
+        var onPage = {};
+        shown.slice(start, start + PAGE_SIZE).forEach(function (p) { onPage[p.id] = true; });
+
+        // Rows keep their server-rendered order (newest first, as the service sorts them).
+        ROWS.forEach(function (p) { p.tr.hidden = !onPage[p.id]; });
+
+        var filteredEmpty = el('partsFilteredEmpty');
+        if (filteredEmpty) {
+            filteredEmpty.hidden = !(ROWS.length && !shown.length);
+            el('partsClear').hidden = !anyFilterActive();
+        }
+
+        var pageCount = Math.min(PAGE_SIZE, Math.max(0, shown.length - start));
+        el('partsCount').textContent = shown.length
+            ? 'Showing ' + (start + 1) + ' to ' + (start + pageCount) + ' of ' + shown.length + ' part' + (shown.length === 1 ? '' : 's')
+            : 'No parts to show';
+        renderPager(totalPages);
+
+        if (window.feather) window.feather.replace();
+    }
+
+    function gridCell(label, value) {
+        var cell = node('div', 'parts-view-cell');
+        cell.append(node('span', 'parts-view-key', label));
+        cell.append(node('strong', isBlank(value) ? 'parts-view-unset' : null, isBlank(value) ? 'Not set' : value));
+        return cell;
+    }
+    function tile(label, value) {
+        var t = node('div', 'parts-view-tile');
+        t.append(node('span', 'parts-view-key', label));
+        t.append(node('strong', isBlank(value) ? 'parts-view-unset' : null, isBlank(value) ? 'Not set' : value));
+        return t;
+    }
+
+    function openView(p) {
+        el('partsViewCat').textContent = isBlank(p.category) ? 'No category' : p.category;
+        var status = el('partsViewStatus');
+        status.className = 'parts-badge ' + p.stock;
+        status.textContent = stockText(p.stock);
+        el('partsViewTitle').textContent = isBlank(p.name) ? 'Not set' : p.name;
+        el('partsViewBrand').textContent = isBlank(p.brand) ? 'Not set' : p.brand;
+        el('partsViewPrice').textContent = p.price;
+        el('partsViewStockLabel').textContent = stockText(p.stock);
+        el('partsViewStockQty').textContent = p.stocks;
+        var bar = el('partsViewStockBar');
+        bar.className = 'parts-stock-bar ' + p.stock;
+        bar.value = Math.max(0, Math.min(p.stocks, 20));
+
+        var img = el('partsViewImg');
+        var placeholder = el('partsViewNoPhoto');
+        if (p.image) {
+            img.src = '/images/' + encodeURIComponent(p.image);
+            img.alt = p.name;
+            img.hidden = false;
+            placeholder.hidden = true;
+        } else {
+            img.removeAttribute('src');
+            img.hidden = true;
+            el('partsViewPhotoCat').textContent = isBlank(p.category) ? 'Laptop part' : p.category;
+            placeholder.hidden = false;
+        }
+
+        var tiles = el('partsViewTiles');
+        tiles.replaceChildren(
+            tile('Part name', p.name),
+            tile('Category', p.category),
+            tile('Storage size', p.storage)
+        );
+
+        var grid = el('partsViewGrid');
+        grid.replaceChildren(
+            gridCell('Part ID', '#' + p.id),
+            gridCell('Brand', p.brand),
+            gridCell('Created at', p.created),
+            gridCell('Photo', p.image ? 'Uploaded' : '')
+        );
+
+        var notes = el('partsViewNotesText');
+        notes.textContent = isBlank(p.description) ? 'Not set' : p.description;
+        notes.classList.toggle('parts-view-unset', isBlank(p.description));
+
+        el('partsViewEdit').href = p.editUrl;
+
+        // Same handoff as /computer: close the view modal, then open the confirmation on its
+        // hidden event, deferred a tick so Bootstrap's own cleanup does not strip .modal-open
+        // from <body> after the second modal has opened.
+        el('partsViewDelete').onclick = function () {
+            var viewEl = el('partsViewModal');
+            viewEl.addEventListener('hidden.bs.modal', function once() {
+                viewEl.removeEventListener('hidden.bs.modal', once);
+                setTimeout(function () { openDelete(p); }, 0);
+            });
+            bootstrap.Modal.getOrCreateInstance(viewEl).hide();
+        };
+
+        bootstrap.Modal.getOrCreateInstance(el('partsViewModal')).show();
+        if (window.feather) window.feather.replace();
+    }
+
+    function openDelete(p) {
+        el('partsDeleteName').textContent = (p.brand ? p.brand + ' ' : '') + p.name;
+        el('partsDeleteForm').action = p.deleteUrl;
+        bootstrap.Modal.getOrCreateInstance(el('partsDeleteModal')).show();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        ROWS = Array.prototype.map.call(document.querySelectorAll('#partsTableBody tr.laptop-row'), readRow);
+        ROWS.forEach(function (p) {
+            p.tr.querySelector('[data-action="view"]').addEventListener('click', function () { openView(p); });
+            p.tr.querySelector('[data-action="delete"]').addEventListener('click', function () { openDelete(p); });
+        });
+
+        document.querySelectorAll('.parts-stat').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                state.stock = btn.dataset.stock;
+                state.page = 1;
+                render();
+            });
+        });
+        el('partsSearch').addEventListener('input', function () {
+            state.search = this.value.trim();
+            state.page = 1;
+            render();
+        });
+        var clear = el('partsClear');
+        if (clear) clear.addEventListener('click', clearFilters);
+
+        render();
     });
+})();
 </script>
 </body>
 </html>
