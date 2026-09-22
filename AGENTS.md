@@ -16,6 +16,10 @@ To verify work without running anything: compile, read the templates, and where 
 needs proving, write a mock-based unit test or build a throwaway harness outside the repo. Then hand
 the owner the steps to check it ("stop the app in IntelliJ, rebuild, restart, reload /sales").
 
+On Railway, "after deploy" SQL means **once the new deployment shows ACTIVE**, not when the push
+goes out: the old build keeps serving traffic throughout the build, and breaks if its columns are
+dropped early.
+
 ## File encoding: UTF-8, no BOM
 
 **Every text file in this repo must be saved as UTF-8 without a BOM.** Spring Boot reads Thymeleaf
@@ -257,7 +261,18 @@ ALTER TABLE rnpc_laptop_parts
 Order matters: `category` / `storage_size` may only be dropped, and the `NOT NULL` applied, once
 the running build is batch 7 or later. An older build still maps those two columns (dropping them
 breaks every `/laptop` query), and its untyped `/laptop/create` form inserts a null `part_type`.
-The `fan_*` / `mb_*` drops are safe on any batch 5+ build.
+The `fan_*` / `mb_*` drops are safe on any batch 5+ build. On Railway, wait for the deployment to
+show ACTIVE - see the working agreement.
+
+**Applied (September 2026).** Both databases are done; the statements above are kept as the record
+of what ran, not as work outstanding:
+
+- **Local (XAMPP MariaDB):** dropped `fan_assembly`, `fan_connector_pins`, `fan_voltage`,
+  `mb_onboard_cpu`, `mb_gpu`, `mb_onboard_ram`, `mb_tested_status`, `category` and `storage_size`;
+  `part_type` and `part_condition` are `NOT NULL`.
+- **Railway (MySQL):** dropped `category` and `storage_size`; `part_type` and `part_condition` are
+  `NOT NULL`. The `fan_*` / `mb_*` columns never existed there - the entity stopped mapping them
+  before the redesign's first deploy, so `ddl-auto` never created them.
 
 ## Sign-in and authorization
 
