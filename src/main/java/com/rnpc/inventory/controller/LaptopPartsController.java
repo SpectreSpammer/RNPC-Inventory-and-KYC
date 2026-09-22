@@ -47,9 +47,9 @@ public class LaptopPartsController {
 	 */
 
 	/**
-	 * The types that have create/edit templates so far, and each one's template prefix
-	 * (products/laptop/<prefix>Create and <prefix>Edit). A later batch adds the rest; until then
-	 * any other slug is a 404. Also the order of the Add laptop part dropdown.
+	 * Every part type's template prefix (products/laptop/<prefix>Create and <prefix>Edit) - all
+	 * twelve types now have forms. A slug that is not a PartType is a 404. EnumMap iterates in
+	 * enum order, which is also the order of the Add laptop part dropdowns.
 	 */
 	private static final Map<PartType, String> FORM_TEMPLATES = new EnumMap<>(PartType.class);
 	static {
@@ -59,6 +59,12 @@ public class LaptopPartsController {
 		FORM_TEMPLATES.put(PartType.RAM, "ram");
 		FORM_TEMPLATES.put(PartType.STORAGE, "storage");
 		FORM_TEMPLATES.put(PartType.KEYBOARD, "keyboard");
+		FORM_TEMPLATES.put(PartType.CASING, "casing");
+		FORM_TEMPLATES.put(PartType.HINGES, "hinges");
+		FORM_TEMPLATES.put(PartType.DC_JACK, "dcJack");
+		FORM_TEMPLATES.put(PartType.WIFI_CARD, "wifiCard");
+		FORM_TEMPLATES.put(PartType.TOUCHPAD, "touchpad");
+		FORM_TEMPLATES.put(PartType.OTHER, "other");
 	}
 
 	private final LaptopPartsService laptopPartsService;

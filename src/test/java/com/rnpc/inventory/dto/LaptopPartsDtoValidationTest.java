@@ -187,6 +187,97 @@ class LaptopPartsDtoValidationTest {
     }
 
     @Test
+    void casingRequiresPanelAndCompatibleModels() {
+        LaptopPartsDto dto = common();
+        dto.setCompatibleModels(null);
+        dto.setCasingColor("");
+        assertEquals(Set.of("casingPanel", "compatibleModels"), errorFields(dto, PartType.CASING.getGroup()));
+
+        dto.setCompatibleModels("Aspire 5 A515-54");
+        dto.setCasingPanel("A cover (lid)");     // parentheses are literal in the allow-list
+        dto.setCasingColor("Gold");
+        assertEquals(Set.of(), errorFields(dto, PartType.CASING.getGroup()));
+
+        dto.setCasingPanel("A cover lid");
+        dto.setCasingColor("Red");
+        assertEquals(Set.of("casingPanel", "casingColor"), errorFields(dto, PartType.CASING.getGroup()));
+    }
+
+    @Test
+    void hingesRequireSideAndCompatibleModels() {
+        LaptopPartsDto dto = common();
+        dto.setCompatibleModels("");
+        assertEquals(Set.of("hingeSide", "compatibleModels"), errorFields(dto, PartType.HINGES.getGroup()));
+
+        dto.setCompatibleModels("IdeaPad 3 15IIL05");
+        dto.setHingeSide("Pair");
+        assertEquals(Set.of(), errorFields(dto, PartType.HINGES.getGroup()));
+
+        dto.setHingeSide("Both");
+        assertEquals(Set.of("hingeSide"), errorFields(dto, PartType.HINGES.getGroup()));
+    }
+
+    @Test
+    void dcJackRequiresTypeAndCompatibleModels() {
+        LaptopPartsDto dto = common();
+        dto.setCompatibleModels(null);
+        dto.setDcJackTipSize("");
+        assertEquals(Set.of("dcJackType", "compatibleModels"), errorFields(dto, PartType.DC_JACK.getGroup()));
+
+        dto.setCompatibleModels("Inspiron 15 3511");
+        dto.setDcJackType("Soldered barrel");
+        dto.setDcJackTipSize("7.4x5.0mm");
+        assertEquals(Set.of(), errorFields(dto, PartType.DC_JACK.getGroup()));
+
+        dto.setDcJackTipSize("USB-C");           // a charger tip, not a DC jack tip size
+        assertEquals(Set.of("dcJackTipSize"), errorFields(dto, PartType.DC_JACK.getGroup()));
+    }
+
+    @Test
+    void wifiCardRequiresStandardAndFormFactorButNotCompatibleModels() {
+        LaptopPartsDto dto = common();
+        dto.setCompatibleModels(null);
+        dto.setWifiBluetoothVersion("");
+        assertEquals(Set.of("wifiStandard", "wifiFormFactor"), errorFields(dto, PartType.WIFI_CARD.getGroup()));
+
+        dto.setWifiStandard("Wi-Fi 6E");
+        dto.setWifiFormFactor("Mini PCIe");
+        dto.setWifiBluetoothVersion("5.0");
+        assertEquals(Set.of(), errorFields(dto, PartType.WIFI_CARD.getGroup()));
+
+        dto.setWifiBluetoothVersion("5x3");      // the "." is literal in the allow-list
+        dto.setWifiStandard("Wi-Fi 8");
+        assertEquals(Set.of("wifiBluetoothVersion", "wifiStandard"), errorFields(dto, PartType.WIFI_CARD.getGroup()));
+    }
+
+    @Test
+    void touchpadNeedsOnlyCompatibleModels() {
+        LaptopPartsDto dto = common();
+        dto.setCompatibleModels("");
+        dto.setTouchpadColor("");
+        assertEquals(Set.of("compatibleModels"), errorFields(dto, PartType.TOUCHPAD.getGroup()));
+
+        dto.setCompatibleModels("Pavilion 15-eg");
+        dto.setTouchpadConnector("6-pin FFC");
+        dto.setTouchpadWithBracket(true);
+        assertEquals(Set.of(), errorFields(dto, PartType.TOUCHPAD.getGroup()));
+
+        dto.setTouchpadColor("Gold");            // Casing offers Gold, Touchpad does not
+        dto.setTouchpadConnector("x".repeat(101));
+        assertEquals(Set.of("touchpadColor", "touchpadConnector"), errorFields(dto, PartType.TOUCHPAD.getGroup()));
+    }
+
+    @Test
+    void otherNeedsOnlyTheCommonFields() {
+        LaptopPartsDto dto = common();
+        dto.setCompatibleModels(null);
+        assertEquals(Set.of(), errorFields(dto, PartType.OTHER.getGroup()));
+
+        dto.setPartCondition(null);              // still a typed part: condition is required
+        assertEquals(Set.of("partCondition"), errorFields(dto, PartType.OTHER.getGroup()));
+    }
+
+    @Test
     void compatibleModelsStaysOptionalForGenericTypes() {
         LaptopPartsDto dto = common();
         dto.setCompatibleModels(null);

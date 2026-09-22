@@ -149,7 +149,8 @@ public class LaptopPartView {
             case KEYBOARD:
                 return join(", ", p.getKbLayout(), Boolean.TRUE.equals(p.getKbBacklit()) ? "backlit" : null);
             case CASING:
-                return join(", ", suffix(p.getCasingPanel(), " cover"), p.getCasingColor());
+                // The panel value already names itself ("A cover (lid)", "D bottom").
+                return join(", ", p.getCasingPanel(), p.getCasingColor());
             case HINGES:
                 return join(", ", p.getHingeSide());
             case DC_JACK:

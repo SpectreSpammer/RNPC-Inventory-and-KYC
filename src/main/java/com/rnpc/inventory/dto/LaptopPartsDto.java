@@ -76,9 +76,11 @@ public class LaptopPartsDto {
 
 	// ---- Common fields of the type-based model ----
 
-	// Required for the model-specific types; optional for generic ones (Charger, RAM, Storage).
+	// Required for the model-specific types; optional for generic ones (Charger, RAM, Storage,
+	// Wi-Fi Card, Other).
 	@NotEmpty(message = "The compatible models are required!", groups = {PartType.Groups.Lcd.class,
-			PartType.Groups.Battery.class, PartType.Groups.Keyboard.class})
+			PartType.Groups.Battery.class, PartType.Groups.Keyboard.class, PartType.Groups.Casing.class,
+			PartType.Groups.Hinges.class, PartType.Groups.DcJack.class, PartType.Groups.Touchpad.class})
 	@Size(max = 500, message = "The compatible models cannot exceed 500 characters")
 	private String compatibleModels;
 
@@ -181,25 +183,42 @@ public class LaptopPartsDto {
 	private String storageInterface;
 
 	// ---- CASING ----
+	@NotEmpty(message = "The panel is required!", groups = PartType.Groups.Casing.class)
+	@Pattern(regexp = "A cover \\(lid\\)|B bezel|C palmrest|D bottom", message = "Invalid panel selected", groups = PartType.Groups.Casing.class)
 	private String casingPanel;
+	@Pattern(regexp = "Black|Silver|White|Grey|Blue|Gold|", message = "Invalid color selected", groups = PartType.Groups.Casing.class)
 	private String casingColor;
 
 	// ---- HINGES ----
+	@NotEmpty(message = "The side is required!", groups = PartType.Groups.Hinges.class)
+	@Pattern(regexp = "Left|Right|Pair", message = "Invalid side selected", groups = PartType.Groups.Hinges.class)
 	private String hingeSide;
 
 	// ---- DC_JACK ----
+	@NotEmpty(message = "The jack type is required!", groups = PartType.Groups.DcJack.class)
+	@Pattern(regexp = "Barrel with cable|Soldered barrel|USB-C board|USB-C with cable", message = "Invalid jack type selected", groups = PartType.Groups.DcJack.class)
 	private String dcJackType;
+	@Pattern(regexp = "4\\.5x3\\.0mm|7\\.4x5\\.0mm|5\\.5x2\\.5mm|4\\.0x1\\.7mm|Lenovo slim tip|", message = "Invalid tip size selected", groups = PartType.Groups.DcJack.class)
 	private String dcJackTipSize;
 
 	// ---- WIFI_CARD ----
+	@NotEmpty(message = "The Wi-Fi standard is required!", groups = PartType.Groups.WifiCard.class)
+	@Pattern(regexp = "Wi-Fi 5|Wi-Fi 6|Wi-Fi 6E|Wi-Fi 7", message = "Invalid Wi-Fi standard selected", groups = PartType.Groups.WifiCard.class)
 	private String wifiStandard;
+	@NotEmpty(message = "The form factor is required!", groups = PartType.Groups.WifiCard.class)
+	@Pattern(regexp = "M\\.2 2230|M\\.2 2242|Mini PCIe", message = "Invalid form factor selected", groups = PartType.Groups.WifiCard.class)
 	private String wifiFormFactor;
+	@Pattern(regexp = "4\\.2|5\\.0|5\\.1|5\\.2|5\\.3|5\\.4|", message = "Invalid Bluetooth version selected", groups = PartType.Groups.WifiCard.class)
 	private String wifiBluetoothVersion;
 
 	// ---- TOUCHPAD ----
+	@Size(max = 100, message = "The connector cannot exceed 100 characters", groups = PartType.Groups.Touchpad.class)
 	private String touchpadConnector;
 	private Boolean touchpadWithBracket;
+	@Pattern(regexp = "Black|Silver|White|Grey|", message = "Invalid color selected", groups = PartType.Groups.Touchpad.class)
 	private String touchpadColor;
+
+	// OTHER has no spec fields: its group (PartType.Groups.Other) carries only the Typed rules.
 
 	public int getLaptopPartId() {
 		return laptopPartId;

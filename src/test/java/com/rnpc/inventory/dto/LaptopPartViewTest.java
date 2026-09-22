@@ -62,9 +62,9 @@ class LaptopPartViewTest {
         assertEquals("US, backlit", LaptopPartView.keySpec(keyboard));
 
         LaptopParts casing = part(PartType.CASING);
-        casing.setCasingPanel("A");
-        casing.setCasingColor("silver");
-        assertEquals("A cover, silver", LaptopPartView.keySpec(casing));
+        casing.setCasingPanel("A cover (lid)");
+        casing.setCasingColor("Silver");
+        assertEquals("A cover (lid), Silver", LaptopPartView.keySpec(casing));
 
         LaptopParts hinges = part(PartType.HINGES);
         hinges.setHingeSide("Pair");
@@ -199,6 +199,60 @@ class LaptopPartViewTest {
         LaptopPartView v = LaptopPartView.from(keyboard);
         assertEquals(List.of("Layout=UK", "Backlit=Yes", "With palmrest=Yes"), rows(v.getKeyTiles()));
         assertEquals(List.of("Color=Silver", "With frame=No"), rows(v.getSpecs()));
+    }
+
+    @Test
+    void shortTypesPadTheirTilesAndDoNotRepeatThem() {
+        LaptopParts casing = part(PartType.CASING);
+        casing.setCasingPanel("D bottom");
+        casing.setCasingColor("Black");
+        casing.setPartCondition(PartCondition.OEM_PULL);
+        LaptopPartView v = LaptopPartView.from(casing);
+        assertEquals(List.of("Panel=D bottom", "Color=Black", "Condition=OEM pull"), rows(v.getKeyTiles()));
+        assertTrue(v.getSpecs().isEmpty());
+
+        LaptopParts jack = part(PartType.DC_JACK);
+        jack.setDcJackType("USB-C board");
+        jack.setWarrantyDays(7);
+        v = LaptopPartView.from(jack);
+        assertEquals("USB-C board", LaptopPartView.keySpec(jack));
+        assertEquals(List.of("Jack type=USB-C board", "Tip size=Not set", "Condition=Not set"), rows(v.getKeyTiles()));
+        assertTrue(v.getSpecs().isEmpty());
+    }
+
+    @Test
+    void wifiAndTouchpadRowsAndTiles() {
+        LaptopParts wifi = part(PartType.WIFI_CARD);
+        wifi.setWifiStandard("Wi-Fi 6E");
+        wifi.setWifiFormFactor("M.2 2230");
+        wifi.setWifiBluetoothVersion("5.3");
+        assertEquals("Wi-Fi 6E, M.2 2230", LaptopPartView.keySpec(wifi));
+        LaptopPartView v = LaptopPartView.from(wifi);
+        assertEquals(List.of("Standard=Wi-Fi 6E", "Form factor=M.2 2230", "Bluetooth version=5.3"), rows(v.getKeyTiles()));
+        assertTrue(v.getSpecs().isEmpty());
+        assertEquals("Wi-Fi Card specs", v.getSpecsTitle());
+
+        LaptopParts touchpad = part(PartType.TOUCHPAD);
+        touchpad.setTouchpadConnector("6-pin FFC");
+        touchpad.setTouchpadWithBracket(true);
+        touchpad.setTouchpadColor("Silver");
+        assertEquals("With bracket, 6-pin FFC", LaptopPartView.keySpec(touchpad));
+        v = LaptopPartView.from(touchpad);
+        assertEquals(List.of("Connector=6-pin FFC", "With bracket=Yes", "Color=Silver"), rows(v.getKeyTiles()));
+        assertTrue(v.getSpecs().isEmpty());
+    }
+
+    @Test
+    void otherHasNoSpecsAndTilesFromTheCommonFields() {
+        LaptopParts other = part(PartType.OTHER);
+        other.setPartCondition(PartCondition.NEW);
+        other.setWarrantyDays(30);
+        other.setPartNumber("SPK-01");
+        LaptopPartView v = LaptopPartView.from(other);
+        assertEquals("", v.getKeySpec());
+        assertTrue(v.getSpecs().isEmpty());
+        assertEquals(List.of("Condition=New", "Warranty=30 days", "Part number=SPK-01"), rows(v.getKeyTiles()));
+        assertEquals("OTH", v.getTypeCode());
     }
 
     @Test

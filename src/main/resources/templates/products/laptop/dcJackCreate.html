@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Add DC jack / port - RN PC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/parts-form :: assets}"></th:block>
+</head>
+<body class="pf-page">
+
+<!--
+  Type-based create form for DC Jack / Port parts (laptop redesign batch 6),
+  following the CPU pair on fragments/parts-form.html and parts-form.css.
+
+  Posts to /laptop/dc-jack/create. The part type comes from that path, never from a form
+  field - there is deliberately no partType input. The controller validates
+  Default + PartType.Groups for this type, so the pre-redesign rules (category, storage
+  size, a 10-character description) do not apply here.
+
+  Brand and Condition options come from the controller (brandOptions, conditionOptions);
+  the spec selects are hard-coded and mirror the @Pattern allow-lists on LaptopPartsDto.
+  "Notes" binds to description - the same column (LaptopParts.notes).
+-->
+
+<div th:replace="~{fragments/layout-app :: sidebar(active='laptop-parts', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+
+    <main class="content">
+        <div class="pf-wrap">
+            <div th:replace="~{fragments/parts-form :: header(code='DC', title='Add DC jack / port', subtitle='Fields marked optional can be filled in later.', backUrl=@{/laptop})}"></div>
+
+            <form action="#" th:action="@{/laptop/dc-jack/create}" th:object="${laptopPartsDto}" method="post" enctype="multipart/form-data">
+                <th:block th:if="${#fields.hasAnyErrors()}">
+                    <div th:replace="~{fragments/parts-form :: errors(messages=${#fields.allErrors()})}"></div>
+                </th:block>
+
+                <div class="pf-card">
+
+                    <section class="pf-section">
+                        <h2>Part details</h2>
+                        <div class="pf-grid">
+                            <div class="pf-field">
+                                <label for="brand">Brand</label>
+                                <select th:field="*{brand}" id="brand">
+                                    <option value="">Select brand</option>
+                                    <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="partName">Part name</label>
+                                <input type="text" th:field="*{partName}" id="partName" placeholder="e.g. Inspiron 15 3000 DC jack"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('partName')}" th:errors="*{partName}"></span>
+                            </div>
+                            <div class="pf-field pf-full">
+                                <label for="compatibleModels">Compatible models</label>
+                                <input type="text" th:field="*{compatibleModels}" id="compatibleModels" placeholder="e.g. Inspiron 15 3511, 3520"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('compatibleModels')}" th:errors="*{compatibleModels}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="partNumber">Part number <span class="pf-optional">(optional)</span></label>
+                                <input type="text" th:field="*{partNumber}" id="partNumber" placeholder="e.g. 0M5RH2"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('partNumber')}" th:errors="*{partNumber}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="partCondition">Condition</label>
+                                <select th:field="*{partCondition}" id="partCondition">
+                                    <option value="">Select condition</option>
+                                    <option th:each="c : ${conditionOptions}" th:value="${c.name()}" th:text="${c.label}"></option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('partCondition')}" th:errors="*{partCondition}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="warrantyDays">Warranty days <span class="pf-optional">(optional)</span></label>
+                                <input type="number" th:field="*{warrantyDays}" id="warrantyDays" min="0" placeholder="e.g. 30"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('warrantyDays')}" th:errors="*{warrantyDays}"></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>DC Jack / Port specs</h2>
+                        <div class="pf-grid">
+                            <div class="pf-field">
+                                <label for="dcJackType">Type</label>
+                                <select th:field="*{dcJackType}" id="dcJackType">
+                                    <option value="">Select type</option>
+                                    <option value="Barrel with cable">Barrel with cable</option>
+                                    <option value="Soldered barrel">Soldered barrel</option>
+                                    <option value="USB-C board">USB-C board</option>
+                                    <option value="USB-C with cable">USB-C with cable</option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('dcJackType')}" th:errors="*{dcJackType}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="dcJackTipSize">Tip size <span class="pf-optional">(optional)</span></label>
+                                <select th:field="*{dcJackTipSize}" id="dcJackTipSize">
+                                    <option value="">Not specified</option>
+                                    <option value="4.5x3.0mm">4.5x3.0mm</option>
+                                    <option value="7.4x5.0mm">7.4x5.0mm</option>
+                                    <option value="5.5x2.5mm">5.5x2.5mm</option>
+                                    <option value="4.0x1.7mm">4.0x1.7mm</option>
+                                    <option value="Lenovo slim tip">Lenovo slim tip</option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('dcJackTipSize')}" th:errors="*{dcJackTipSize}"></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>Stock and price</h2>
+                        <div class="pf-grid">
+                            <div class="pf-field">
+                                <label for="stocks">Stocks</label>
+                                <input type="number" th:field="*{stocks}" id="stocks" min="0" placeholder="Enter stocks"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('stocks')}" th:errors="*{stocks}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="price">Price</label>
+                                <div class="pf-prefix">
+                                    <span>Php</span>
+                                    <input type="number" th:field="*{price}" id="price" placeholder="Enter price" step="0.01" min="0"/>
+                                </div>
+                                <span class="pf-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>Notes <span class="pf-optional">(optional)</span></h2>
+                        <div class="pf-grid">
+                            <div class="pf-field pf-full">
+                                <label for="description">Notes</label>
+                                <textarea th:field="*{description}" id="description" rows="3" placeholder="Anything else worth knowing: markings, defects, where it came from"></textarea>
+                                <span class="pf-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>Photo <span class="pf-optional">(optional)</span></h2>
+                        <div class="pf-upload">
+                            <span class="pf-upload-icon"><i data-feather="image"></i></span>
+                            <div class="pf-upload-text">
+                                <strong>Choose a photo for this part</strong>
+                                <input type="file" th:field="*{imageFile}" id="imageFile"/>
+                            </div>
+                        </div>
+                        <span class="pf-error" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></span>
+                    </section>
+
+                    <div th:replace="~{fragments/parts-form :: actions(cancelUrl=@{/laptop}, saveLabel='Save part')}"></div>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+</body>
+</html>
