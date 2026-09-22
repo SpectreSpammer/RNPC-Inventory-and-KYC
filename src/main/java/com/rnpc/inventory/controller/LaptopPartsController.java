@@ -55,6 +55,9 @@ public class LaptopPartsController {
 	static {
 		FORM_TEMPLATES.put(PartType.LCD, "lcd");
 		FORM_TEMPLATES.put(PartType.BATTERY, "battery");
+		FORM_TEMPLATES.put(PartType.CHARGER, "charger");
+		FORM_TEMPLATES.put(PartType.RAM, "ram");
+		FORM_TEMPLATES.put(PartType.STORAGE, "storage");
 	}
 
 	private final LaptopPartsService laptopPartsService;

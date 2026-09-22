@@ -90,6 +90,96 @@ class LaptopPartsDtoValidationTest {
     }
 
     @Test
+    void batteryRangesCatchImplausibleValues() {
+        LaptopPartsDto dto = common();
+        dto.setBatteryCapacityWh(9.9);
+        dto.setBatteryVoltage(20.1);
+        assertEquals(Set.of("batteryCapacityWh", "batteryVoltage"), errorFields(dto, PartType.BATTERY.getGroup()));
+
+        dto.setBatteryCapacityWh(4000.0);   // a mAh figure typed into the Wh field
+        dto.setBatteryVoltage(2.9);
+        assertEquals(Set.of("batteryCapacityWh", "batteryVoltage"), errorFields(dto, PartType.BATTERY.getGroup()));
+
+        dto.setBatteryCapacityWh(10.0);     // both ends inclusive
+        dto.setBatteryVoltage(20.0);
+        assertEquals(Set.of(), errorFields(dto, PartType.BATTERY.getGroup()));
+        dto.setBatteryCapacityWh(150.0);
+        dto.setBatteryVoltage(3.0);
+        assertEquals(Set.of(), errorFields(dto, PartType.BATTERY.getGroup()));
+    }
+
+    @Test
+    void ramRequiresTypeAndCapacityButNotCompatibleModels() {
+        LaptopPartsDto dto = common();
+        dto.setCompatibleModels(null);
+        dto.setRamSpeedMts(null);
+        assertEquals(Set.of("ramType", "ramCapacityGb"), errorFields(dto, PartType.RAM.getGroup()));
+
+        dto.setRamType("DDR4");
+        dto.setRamCapacityGb(8);
+        assertEquals(Set.of(), errorFields(dto, PartType.RAM.getGroup()));
+
+        dto.setRamType("DDR2");
+        assertEquals(Set.of("ramType"), errorFields(dto, PartType.RAM.getGroup()));
+    }
+
+    @Test
+    void storageRequiresTypeCapacityAndFormFactor() {
+        LaptopPartsDto dto = common();
+        dto.setCompatibleModels("");
+        dto.setStorageInterface("");
+        assertEquals(Set.of("storageType", "storageCapacityGb", "storageFormFactor"),
+                errorFields(dto, PartType.STORAGE.getGroup()));
+
+        dto.setStorageType("SATA SSD");
+        dto.setStorageCapacityGb(1000);
+        dto.setStorageFormFactor("2.5\"");
+        assertEquals(Set.of(), errorFields(dto, PartType.STORAGE.getGroup()));
+
+        dto.setStorageFormFactor("M.2 22110");
+        dto.setStorageInterface("PCIe 5.0 x4");
+        assertEquals(Set.of("storageFormFactor", "storageInterface"), errorFields(dto, PartType.STORAGE.getGroup()));
+    }
+
+    @Test
+    void chargerRequiresWattageVoltageAndTipWithinRange() {
+        LaptopPartsDto dto = common();
+        dto.setCompatibleModels(null);
+        assertEquals(Set.of("chargerWattage", "chargerOutputVoltage", "chargerConnectorTip"),
+                errorFields(dto, PartType.CHARGER.getGroup()));
+
+        dto.setChargerWattage(65);
+        dto.setChargerOutputVoltage(19.5);
+        dto.setChargerConnectorTip("4.5x3.0mm");
+        dto.setChargerIncludesCord(true);
+        assertEquals(Set.of(), errorFields(dto, PartType.CHARGER.getGroup()));
+
+        dto.setChargerOutputVoltage(4.9);
+        dto.setChargerCurrentA(0.4);
+        assertEquals(Set.of("chargerOutputVoltage", "chargerCurrentA"), errorFields(dto, PartType.CHARGER.getGroup()));
+
+        dto.setChargerOutputVoltage(48.1);
+        dto.setChargerCurrentA(10.1);
+        assertEquals(Set.of("chargerOutputVoltage", "chargerCurrentA"), errorFields(dto, PartType.CHARGER.getGroup()));
+
+        dto.setChargerOutputVoltage(5.0);
+        dto.setChargerCurrentA(10.0);
+        dto.setChargerConnectorTip("4.5x3.0 mm");  // not the listed spelling
+        assertEquals(Set.of("chargerConnectorTip"), errorFields(dto, PartType.CHARGER.getGroup()));
+    }
+
+    @Test
+    void newTypeRulesDoNotLeakIntoOtherTypes() {
+        // A valid LCD with nothing set for RAM, Storage or Charger stays valid.
+        assertEquals(Set.of(), errorFields(validLcd(), PartType.LCD.getGroup()));
+        // And the ranges only apply to their own type.
+        LaptopPartsDto dto = validLcd();
+        dto.setBatteryCapacityWh(9000.0);
+        dto.setChargerOutputVoltage(1.0);
+        assertEquals(Set.of(), errorFields(dto, PartType.LCD.getGroup()));
+    }
+
+    @Test
     void newBrandAllowListRejectsTheOldHpSpelling() {
         LaptopPartsDto dto = validLcd();
         dto.setBrand("Hp");

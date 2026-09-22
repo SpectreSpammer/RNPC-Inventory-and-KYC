@@ -9,6 +9,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.rnpc.inventory.entity.LaptopParts.PartCondition;
 import com.rnpc.inventory.entity.LaptopParts.PartType;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -116,11 +118,15 @@ public class LaptopPartsDto {
 	private Boolean kbWithFrame;
 
 	// ---- BATTERY ----
+	// Sanity ranges, not specifications: wide enough for any laptop battery, narrow enough to catch
+	// a slipped decimal or a mAh figure typed into the Wh field.
 	@NotNull(message = "The capacity is required!", groups = PartType.Groups.Battery.class)
-	@Positive(message = "The capacity must be greater than 0!", groups = PartType.Groups.Battery.class)
+	@DecimalMin(value = "10", message = "The capacity must be between 10 and 150 Wh", groups = PartType.Groups.Battery.class)
+	@DecimalMax(value = "150", message = "The capacity must be between 10 and 150 Wh", groups = PartType.Groups.Battery.class)
 	private Double batteryCapacityWh;
 	@NotNull(message = "The voltage is required!", groups = PartType.Groups.Battery.class)
-	@Positive(message = "The voltage must be greater than 0!", groups = PartType.Groups.Battery.class)
+	@DecimalMin(value = "3", message = "The voltage must be between 3 and 20 V", groups = PartType.Groups.Battery.class)
+	@DecimalMax(value = "20", message = "The voltage must be between 3 and 20 V", groups = PartType.Groups.Battery.class)
 	private Double batteryVoltage;
 	@Positive(message = "Invalid cell count selected", groups = PartType.Groups.Battery.class)
 	private Integer batteryCells;
@@ -128,21 +134,45 @@ public class LaptopPartsDto {
 	private String batteryChemistry;
 
 	// ---- CHARGER ----
+	// Numeric selects (wattage here, capacities and speed below) are guarded with @Positive rather
+	// than an exact allow-list: @Pattern does not apply to numbers, and an off-list number from a
+	// tampered form is harmless. String selects keep exact @Pattern allow-lists.
+	@NotNull(message = "The wattage is required!", groups = PartType.Groups.Charger.class)
+	@Positive(message = "Invalid wattage selected", groups = PartType.Groups.Charger.class)
 	private Integer chargerWattage;
+	@NotNull(message = "The output voltage is required!", groups = PartType.Groups.Charger.class)
+	@DecimalMin(value = "5", message = "The output voltage must be between 5 and 48 V", groups = PartType.Groups.Charger.class)
+	@DecimalMax(value = "48", message = "The output voltage must be between 5 and 48 V", groups = PartType.Groups.Charger.class)
 	private Double chargerOutputVoltage;
+	@DecimalMin(value = "0.5", message = "The current must be between 0.5 and 10 A", groups = PartType.Groups.Charger.class)
+	@DecimalMax(value = "10", message = "The current must be between 0.5 and 10 A", groups = PartType.Groups.Charger.class)
 	private Double chargerCurrentA;
+	@NotEmpty(message = "The connector tip is required!", groups = PartType.Groups.Charger.class)
+	@Pattern(regexp = "4\\.5x3\\.0mm|7\\.4x5\\.0mm|5\\.5x2\\.5mm|4\\.0x1\\.7mm|USB-C|Lenovo slim tip", message = "Invalid connector tip selected", groups = PartType.Groups.Charger.class)
 	private String chargerConnectorTip;
 	private Boolean chargerIncludesCord;
 
 	// ---- RAM ----
+	@NotEmpty(message = "The RAM type is required!", groups = PartType.Groups.Ram.class)
+	@Pattern(regexp = "DDR3L|DDR4|DDR5|LPDDR4X|LPDDR5", message = "Invalid RAM type selected", groups = PartType.Groups.Ram.class)
 	private String ramType;
+	@NotNull(message = "The capacity is required!", groups = PartType.Groups.Ram.class)
+	@Positive(message = "Invalid capacity selected", groups = PartType.Groups.Ram.class)
 	private Integer ramCapacityGb;
+	@Positive(message = "Invalid speed selected", groups = PartType.Groups.Ram.class)
 	private Integer ramSpeedMts;
 
 	// ---- STORAGE ----
+	@NotEmpty(message = "The storage type is required!", groups = PartType.Groups.Storage.class)
+	@Pattern(regexp = "SATA SSD|NVMe SSD|HDD|eMMC", message = "Invalid storage type selected", groups = PartType.Groups.Storage.class)
 	private String storageType;
+	@NotNull(message = "The capacity is required!", groups = PartType.Groups.Storage.class)
+	@Positive(message = "Invalid capacity selected", groups = PartType.Groups.Storage.class)
 	private Integer storageCapacityGb;
+	@NotEmpty(message = "The form factor is required!", groups = PartType.Groups.Storage.class)
+	@Pattern(regexp = "2\\.5\"|M\\.2 2280|M\\.2 2242|M\\.2 2230", message = "Invalid form factor selected", groups = PartType.Groups.Storage.class)
 	private String storageFormFactor;
+	@Pattern(regexp = "SATA III|PCIe 3\\.0 x4|PCIe 4\\.0 x4|", message = "Invalid interface selected", groups = PartType.Groups.Storage.class)
 	private String storageInterface;
 
 	// ---- FAN ----

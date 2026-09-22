@@ -80,9 +80,13 @@ public class LaptopPartView {
         v.price = p.getPrice();
         v.imageFileName = p.getImageFileName();
         v.keySpec = keySpec(p);
-        v.specs = specs(p);
+        List<Spec> allSpecs = specs(p);
+        v.keyTiles = keyTiles(p, allSpecs);
+        // Like /computer's modal: a spec already shown as a key-spec tile is not repeated in the
+        // "<Type> specs" list. (Padding tiles such as Condition are not spec rows, so unaffected.)
+        v.specs = new ArrayList<>(allSpecs);
+        v.specs.removeAll(v.keyTiles);
         v.specsTitle = type == null ? "Legacy details" : type.getLabel() + " specs";
-        v.keyTiles = keyTiles(p, v.specs);
         v.details = List.of(
                 new Spec("Brand", p.getBrand()),
                 new Spec("Compatible models", p.getCompatibleModels()),
@@ -138,7 +142,7 @@ public class LaptopPartView {
                 return join(", ", p.getRamType(), suffix(num(p.getRamCapacityGb()), "GB"), unit(num(p.getRamSpeedMts()), "MT/s"));
             case STORAGE:
                 return join(", ",
-                        join(" ", suffix(num(p.getStorageCapacityGb()), "GB"), p.getStorageType()),
+                        join(" ", storageCapacity(p.getStorageCapacityGb(), ""), p.getStorageType()),
                         p.getStorageFormFactor());
             case CHARGER:
                 return join(", ", unit(num(p.getChargerWattage()), "W"), p.getChargerConnectorTip());
@@ -221,7 +225,7 @@ public class LaptopPartView {
                 break;
             case STORAGE:
                 s.add(new Spec("Type", p.getStorageType()));
-                s.add(new Spec("Capacity", unit(num(p.getStorageCapacityGb()), "GB")));
+                s.add(new Spec("Capacity", storageCapacity(p.getStorageCapacityGb(), " ")));
                 s.add(new Spec("Form factor", p.getStorageFormFactor()));
                 s.add(new Spec("Interface", p.getStorageInterface()));
                 break;
@@ -265,15 +269,16 @@ public class LaptopPartView {
 
     /**
      * The three key-spec tiles: the type's first three spec rows (the spec lists above are
-     * ordered most important first), except LCD, where the connector matters more for a
-     * replacement than the panel type - Size, Resolution, Connector. A type with fewer than three
-     * specs - Casing, Hinges, DC Jack, Other - is padded with Condition, Warranty and Part number,
-     * so there are always three tiles. Unassigned rows get none.
+     * ordered most important first), with two exceptions where the fourth row matters more for a
+     * replacement than the third: LCD takes Size, Resolution, Connector (not Panel type), and
+     * Charger takes Wattage, Output voltage, Connector tip (not the optional Current). A type with
+     * fewer than three specs - Casing, Hinges, DC Jack, Other - is padded with Condition, Warranty
+     * and Part number, so there are always three tiles. Unassigned rows get none.
      */
     static List<Spec> keyTiles(LaptopParts p, List<Spec> specs) {
         if (p.getPartType() == null) return List.of();
         List<Spec> tiles;
-        if (p.getPartType() == PartType.LCD) {
+        if (p.getPartType() == PartType.LCD || p.getPartType() == PartType.CHARGER) {
             tiles = new ArrayList<>(List.of(specs.get(0), specs.get(1), specs.get(3)));
         } else {
             tiles = new ArrayList<>(specs.subList(0, Math.min(3, specs.size())));
@@ -302,6 +307,17 @@ public class LaptopPartView {
     static String num(Number n) {
         if (n == null) return null;
         return new BigDecimal(n.toString()).stripTrailingZeros().toPlainString();
+    }
+
+    /**
+     * Storage capacity is stored in GB (1 TB = 1000 GB, as drives are sold). Whole terabytes read
+     * as TB, matching the form's options: 512 -> "512GB", 1000 -> "1TB", 2000 -> "2TB". sep is
+     * the gap before the unit - "" for the compact key-spec line, " " for the spec rows.
+     */
+    static String storageCapacity(Integer gb, String sep) {
+        if (gb == null) return null;
+        if (gb >= 1000 && gb % 1000 == 0) return (gb / 1000) + sep + "TB";
+        return gb + sep + "GB";
     }
 
     /** "42" + "Wh" -> "42 Wh". */
