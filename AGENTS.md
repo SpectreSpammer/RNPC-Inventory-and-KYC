@@ -148,6 +148,117 @@ CREATE TABLE rnpc_support_attachments (
 attachments going into a `LONGBLOB`, the practical ceiling is the server's `max_allowed_packet`
 (16 MB on XAMPP's MariaDB 10.4), not the column type.
 
+**`rnpc_laptop_parts`, redesigned** (the laptop redesign, batches 1-7 - see Laptop parts below). The
+table predates the redesign: `laptop_part_id`, `brand`, `part_name`, `stocks`, `price`,
+`description`, `created_at` and `image_file_name` are the original columns, and `ddl-auto` added the
+other 45, all nullable. On a fresh database `ddl-auto` creates the whole table as below. This is
+Hibernate 6.5's own DDL for the entity (MySQL and MariaDB dialects are identical), reordered by
+group; `FLOAT(53)` is a `DOUBLE`, `BIT` a boolean:
+
+```sql
+CREATE TABLE rnpc_laptop_parts (
+    laptop_part_id         INTEGER NOT NULL AUTO_INCREMENT,
+    part_type              VARCHAR(32) NULL,
+    part_condition         VARCHAR(32) NULL,
+    brand                  VARCHAR(255) NULL,
+    part_name              VARCHAR(255) NULL,
+    compatible_models      VARCHAR(500) NULL,
+    part_number            VARCHAR(64) NULL,
+    warranty_days          INTEGER NULL,
+    stocks                 INTEGER NOT NULL,
+    price                  FLOAT(53) NOT NULL,
+    description            TEXT NULL,
+    created_at             DATETIME(6) NULL,
+    image_file_name        VARCHAR(255) NULL,
+    lcd_connector          VARCHAR(255) NULL,
+    lcd_mounting           VARCHAR(255) NULL,
+    lcd_panel_type         VARCHAR(255) NULL,
+    lcd_refresh_rate_hz    INTEGER NULL,
+    lcd_resolution         VARCHAR(255) NULL,
+    lcd_size_inches        FLOAT(53) NULL,
+    lcd_surface            VARCHAR(255) NULL,
+    lcd_touch              BIT NULL,
+    kb_backlit             BIT NULL,
+    kb_color               VARCHAR(255) NULL,
+    kb_layout              VARCHAR(255) NULL,
+    kb_with_frame          BIT NULL,
+    kb_with_palmrest       BIT NULL,
+    battery_capacity_wh    FLOAT(53) NULL,
+    battery_cells          INTEGER NULL,
+    battery_chemistry      VARCHAR(255) NULL,
+    battery_voltage        FLOAT(53) NULL,
+    charger_connector_tip  VARCHAR(255) NULL,
+    charger_current_a      FLOAT(53) NULL,
+    charger_includes_cord  BIT NULL,
+    charger_output_voltage FLOAT(53) NULL,
+    charger_wattage        INTEGER NULL,
+    ram_capacity_gb        INTEGER NULL,
+    ram_speed_mts          INTEGER NULL,
+    ram_type               VARCHAR(255) NULL,
+    storage_capacity_gb    INTEGER NULL,
+    storage_form_factor    VARCHAR(255) NULL,
+    storage_interface      VARCHAR(255) NULL,
+    storage_type           VARCHAR(255) NULL,
+    casing_color           VARCHAR(255) NULL,
+    casing_panel           VARCHAR(255) NULL,
+    hinge_side             VARCHAR(255) NULL,
+    dc_jack_tip_size       VARCHAR(255) NULL,
+    dc_jack_type           VARCHAR(255) NULL,
+    wifi_bluetooth_version VARCHAR(255) NULL,
+    wifi_form_factor       VARCHAR(255) NULL,
+    wifi_standard          VARCHAR(255) NULL,
+    touchpad_color         VARCHAR(255) NULL,
+    touchpad_connector     VARCHAR(255) NULL,
+    touchpad_with_bracket  BIT NULL,
+    PRIMARY KEY (laptop_part_id)
+) ENGINE=InnoDB;
+```
+
+Two things about that table are deliberate:
+
+- `part_type` and `part_condition` are `VARCHAR(32)`, set via `columnDefinition`, **not** a native
+  MySQL `ENUM`. Hibernate 6 can generate `ENUM('LCD', ...)` for `@Enumerated(STRING)`, and
+  `ddl-auto` cannot alter that when a `PartType` constant is added.
+- The entity maps **every** redesign column nullable, `part_type` and `part_condition` included.
+  `ddl-auto` adding a `NOT NULL` column to a populated table fills it with `''`, which an enum
+  cannot load, so those two are made `NOT NULL` by hand instead (below).
+
+**Applied by hand** - `ddl-auto` never drops or alters. The entity no longer maps `category` and
+`storage_size` (the pre-redesign model, retired in batch 7) or the seven `fan_*` / `mb_*` columns
+(the Fan / Heatsink and Motherboard types, removed in batch 5). Hibernate ignores unmapped columns,
+so they are harmless until dropped. The `fan_*` / `mb_*` columns only exist on a database that ran a
+batch 1-4 build (the local one); a database first deployed at batch 7 or later, like Railway, never
+has them:
+
+```sql
+-- Only where they exist (local): the removed Fan / Heatsink and Motherboard types.
+ALTER TABLE rnpc_laptop_parts
+    DROP COLUMN fan_assembly,
+    DROP COLUMN fan_connector_pins,
+    DROP COLUMN fan_voltage,
+    DROP COLUMN mb_onboard_cpu,
+    DROP COLUMN mb_gpu,
+    DROP COLUMN mb_onboard_ram,
+    DROP COLUMN mb_tested_status;
+
+-- Everywhere the table predates the redesign: the pre-redesign model.
+ALTER TABLE rnpc_laptop_parts
+    DROP COLUMN category,
+    DROP COLUMN storage_size;
+
+-- Must return 0 before the next statement.
+SELECT COUNT(*) FROM rnpc_laptop_parts WHERE part_type IS NULL OR part_condition IS NULL;
+
+ALTER TABLE rnpc_laptop_parts
+    MODIFY COLUMN part_type      VARCHAR(32) NOT NULL,
+    MODIFY COLUMN part_condition VARCHAR(32) NOT NULL;
+```
+
+Order matters: `category` / `storage_size` may only be dropped, and the `NOT NULL` applied, once
+the running build is batch 7 or later. An older build still maps those two columns (dropping them
+breaks every `/laptop` query), and its untyped `/laptop/create` form inserts a null `part_type`.
+The `fan_*` / `mb_*` drops are safe on any batch 5+ build.
+
 ## Sign-in and authorization
 
 Google-only OAuth2/OIDC. There is no username/password login, no local sign-up, and no passwords
@@ -243,12 +354,16 @@ Controller (@Controller) → Service (business logic + file I/O) → Repository 
                          ↘ DTO (validation + form binding) ↗
 ```
 
-### Parts inventory - ten near-identical slices
+### Parts inventory - per-category slices
 
 `CpuPartsController` (`/cpu`), `GpuPartsController` (`/gpu`), `MotherboardPartsController`
 (`/motherboard`), `RamPartsController` (`/ram`), `StoragePartsController` (`/storage`),
 `PsuPartsController` (`/psu`), `CasePartsController` (`/case`), `CoolerPartsController` (`/cooler`),
-`LaptopPartsController` (`/laptop`), `CellphonePartsController` (`/cellphone`).
+`CellphonePartsController` (`/cellphone`), and `LaptopPartsController` (`/laptop`).
+
+**Laptop is no longer one of the near-identical slices.** Since the laptop redesign it is one
+controller over twelve part types, with per-type forms and validation groups - see Laptop parts
+below. Everything else in this section describes the other nine.
 
 Each has the identical route set: `GET /` (list), `GET /create` + `POST /create`,
 `GET /edit/{id}` + `PUT /update/{id}`, `DELETE /delete/{id}`, and most also
@@ -265,8 +380,9 @@ These controllers carry no admin check of their own, so a new one is world-writa
 entry exists - see the filter-chain exception under Sign-in and authorization.
 
 DTOs carry the Bean Validation (`@NotEmpty`, `@Pattern` allow-lists for dropdowns, `@Min`, `@Size`)
-plus a `MultipartFile imageFile`. Controllers validate with `@Valid` + `BindingResult`; the
-image-required check is done manually in the controller (`imageFile.isEmpty()`), only on create.
+plus a `MultipartFile imageFile`. Controllers validate with `@Valid` + `BindingResult`. The photo
+is optional everywhere except Cellphone, whose create handler still rejects an empty `imageFile`
+by hand.
 
 `PartsController` is separate and owns just `GET /computer`, a read-only combined view of all eight
 PC-component catalogs. There is no `ComputerPartsController` and no `Computers` entity.
@@ -338,6 +454,88 @@ the rows are rendered by JS; it reads the part from `ALL_PARTS` and fetches noth
   **deferred by a `setTimeout(..., 0)`**. Without the deferral Bootstrap's own hidden-cleanup runs
   last and strips `.modal-open` from `<body>`, leaving the page behind scrollable while the
   confirmation is open.
+
+### Laptop parts (`/laptop`)
+
+One table (`rnpc_laptop_parts`), one entity (`LaptopParts`), one DTO, one controller - over twelve
+part types. The redesign replaced a single untyped form whose "part name" was really a type
+(`LCD|Keyboard|Trackpad|Ram|SSD|M.2`) and whose "category" was a laptop type (Notebook, Gaming
+Laptop, ...). Both old fields, their templates (`laptopCreateParts.html`, `laptopEditParts.html`)
+and `GET/POST /laptop/create` are gone.
+
+**`LaptopParts.PartType`** - label, URL slug and a Bean Validation group per constant, in this order
+(also the order of the Add dropdowns, the chips and the Type sort):
+
+| Type (slug) | Spec fields - **bold** = required | Compatible models |
+|---|---|---|
+| LCD / Screen (`lcd`) | **size** (11.6-17.3 in), **resolution**, **panel type**, **connector** (30-pin eDP, 40-pin eDP, 40-pin LVDS), refresh rate, surface, touch, mounting | required |
+| Keyboard (`keyboard`) | **layout** (US, UK), backlit, color, with palmrest, with frame | required |
+| Battery (`battery`) | **capacity Wh**, **voltage V**, cells, chemistry | required |
+| Charger (`charger`) | **wattage**, **output voltage**, current, **connector tip**, includes cord | optional |
+| RAM (`ram`) | **type**, **capacity GB**, speed MT/s | optional |
+| Storage (`storage`) | **type**, **capacity GB** (1000 = 1TB), **form factor**, interface | optional |
+| Casing (`casing`) | **panel** (A cover (lid), B bezel, C palmrest, D bottom), color | required |
+| Hinges (`hinges`) | **side** (Left, Right, Pair) | required |
+| DC Jack / Port (`dc-jack`) | **type**, tip size | required |
+| Wi-Fi Card (`wifi-card`) | **standard**, **form factor**, Bluetooth version | optional |
+| Touchpad (`touchpad`) | connector (text), with bracket, color | required |
+| Other (`other`) | none - its forms have no specs section | optional |
+
+There is no Fan / Heatsink or Motherboard type: the shop does not stock them - board work is a
+repair service - and both were removed in batch 5. Their columns are listed for dropping under
+"Database changes not in migrations".
+
+**Common fields**, on every type: brand (dropdown; `LaptopPartsDto.BRAND_PATTERN` is the one source
+for both the allow-list and the options), part name (free text, e.g. "Inspiron 15 3000 battery"),
+compatible models, part number (optional; battery codes go here), **condition**
+(`LaptopParts.PartCondition`: New, OEM pull, Refurbished - column `part_condition`, because
+`CONDITION` is reserved in MySQL), warranty days (optional), notes, stock (`@Min(0)`), price and an
+optional photo. Notes is the entity's `notes` field, mapped onto the pre-existing `description`
+column (`ddl-auto` cannot rename), and bound on the forms as the DTO's `description`.
+
+**Routes.** `GET/POST /laptop/{slug}/create` resolves the type with `PartType.fromSlug`; an unknown
+slug is a 404. The type comes **only** from the path: the DTO has no `partType` field, so a posted
+one is ignored. `GET /laptop/edit/{id}` and `PUT /laptop/update/{id}` keep their id-only URLs and
+dispatch on the **stored** type, so an edit can never change it. `FORM_TEMPLATES` in the controller
+maps each type to its template prefix: `products/laptop/<prefix>Create.html` / `<prefix>Edit.html`,
+24 templates, all on `fragments/parts-form.html`. They are deliberately identical in shape (Part
+details, "<Type> specs", Stock and price, Notes, Photo) - when changing one, change them all.
+
+**Validation** runs through an injected `SmartValidator`, not `@Valid`, because the group depends on
+the type: `validate(dto, result, Default.class, type.getGroup())`. `Default` holds the shared rules
+(brand, lengths, stock, price); every type group in `PartType.Groups` extends `Typed`, which makes
+condition required. String dropdowns have exact `@Pattern` allow-lists that mirror the templates'
+options (with an empty alternative for optional ones); numeric dropdowns are `@Positive` instead.
+Sanity ranges, both ends inclusive: battery capacity 10-150 Wh, battery voltage 3-20 V, charger
+output voltage 5-48 V, charger current 0.5-10 A.
+
+**Service.** `LaptopPartsService` stores blank text as null and, before every save, nulls each spec
+field that belongs to another type - a tampered or stale form can never leave another type's specs
+on a part.
+
+**`LaptopPartView`** builds everything the list page and View modal show, in Java: the type label
+and tile code, the Key spec line (e.g. `15.6" FHD IPS, 30-pin eDP`, `42 Wh, 11.4 V`,
+`DDR4, 8GB, 3200 MT/s`; blank parts skipped, "Not set" when empty), the spec rows with units and
+Yes/No, and three key-spec tiles. Tiles are the type's first three spec rows unless `TILE_ROWS` picks
+others (LCD: Size, Resolution, Connector; Charger: Wattage, Output voltage, Connector tip; Keyboard:
+Layout, Backlit, With palmrest). Types with fewer than three specs are padded with Condition,
+Warranty, Part number. A spec shown as a tile is not repeated in the "<Type> specs" list, and the
+modal hides that list when it ends up empty.
+
+**List page** (`products/laptopParts.html`, styled from `parts.css`) works like `/computer`: the
+controller serializes `LaptopPartView` rows into `ALL_PARTS` and the page filters, sorts and pages
+them client-side. Stock cards (`LOW_STOCK_LIMIT` reused), one chip per type in enum order with its
+count (shown at 0, recounted by the stock filter), search over brand, part name, part number and
+compatible models, the same sort options as `/computer`, 25 rows a page, a Clear filters empty
+state, and an Add dropdown in both the header and the no-parts empty state.
+
+**A null `part_type` should not exist** - the untyped form is gone and the column is `NOT NULL`
+once the hand-run SQL is applied. If one appears anyway it is treated as Other everywhere
+(`LaptopPartView.typeOf`, `LaptopPartsController.storedType`): listed and viewed as Other, edited
+with the Other form, and saved back as `OTHER`. Nothing throws.
+
+Tests (context-free, run by name): `LaptopPartsDtoValidationTest`, `LaptopPartViewTest`,
+`LaptopPartsServiceTest`.
 
 ### Feature slices
 
@@ -507,26 +705,25 @@ Current nav layout, which is not symmetric between the two menus:
   the topbar bell dropdown's "View All", and `notifications/notificationIndex.html` is still an
   unconverted Bootstrap page. Don't assume a missing sidebar entry means a missing route.
 
-**The migration to it is roughly half done.** Converted: `dashboard.html`, `admin/dashboard.html`,
+**The migration to it is well past half done.** Converted: `dashboard.html`, `admin/dashboard.html`,
 all five `appointments/`, both `orders/` index pages, `build/`, `repairs/repairIndex.html`,
 `sales/salesReport.html`, `search/searchResults.html`, `profile/profileEdit.html`, all three
-`support/`, and **`products/allParts.html`** (see the parts inventory page below). Still
-unconverted: **30 of the 31** `products/` pages, `orders/orderCheckout.html` and
-`orderConfirmation.html`, the three other `repairs/` pages, all three `clients/`, both `tickets/`,
-`login/login.html`, and `notifications/notificationIndex.html`.
+`support/`, and **42 of the 53** `products/` templates (below). Still unconverted: the other 11
+`products/` pages, `orders/orderCheckout.html` and `orderConfirmation.html`, the three other
+`repairs/` pages, all three `clients/`, both `tickets/`, `login/login.html`, and
+`notifications/notificationIndex.html`.
 When converting a page, follow one that's already done rather than inventing a new structure.
 
-`products/` breaks down as 31 templates: `allParts.html` plus ten categories with a list, a create
-and an edit page each. **`allParts.html` is the only one converted.** Still old Bootstrap:
+`products/` holds 53 templates: 29 at the top level and 24 in `products/laptop/`.
 
-- the **10 per-category list pages** (`cpuParts.html` at `/cpu`, `gpuParts.html` at `/gpu`, and so
-  on - note this is ten, not eight: `laptopParts.html` and `cellphoneParts.html` are list pages
-  too), and
-- **all 20 create and edit pages**.
-
-They are not in the same state either: the list and create pages use the old `fragments/nav.html`
-shell, but the **10 `*EditParts.html` templates have no shell at all** - no sidebar, no topbar,
-just a centered Bootstrap form. So the edit pages are a bigger visual jump than the create pages.
+- **Converted (42):** `allParts.html`; the 16 create and edit forms of the eight PC categories
+  (`cpuCreateParts.html` / `cpuEditParts.html` and so on, all on `fragments/parts-form.html`, CPU
+  being the reference pair); `laptopParts.html`; and the 24 per-type laptop forms in
+  `products/laptop/`.
+- **Still old Bootstrap (11):** the eight PC list pages (`cpuParts.html` at `/cpu`, `gpuParts.html`
+  at `/gpu`, and so on) and `cellphoneParts.html` / `cellphoneCreateParts.html`, all on the old
+  `fragments/nav.html` shell; and `cellphoneEditParts.html`, which has **no shell at all** - no
+  sidebar, no topbar, just a centered Bootstrap form.
 
 Page-specific CSS goes in `static/css/<page>.css` (see `profile.css`, `sales-report.css`,
 `support.css`, `parts.css`); shared tokens live in `theme.css`. **No inline `style` attributes** -
