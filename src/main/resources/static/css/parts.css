@@ -162,19 +162,22 @@
 /* ---- Laptop parts list (/laptop) ---------------------------------------------------------
    The laptop page reuses everything above; only these few rules are its own. */
 
-/* The header action is a plain link to /laptop/create, not /computer's dropdown button. */
-a.parts-add{text-decoration:none}
-a.parts-add:hover{color:#fff;filter:brightness(.94)}
-
 /* Part cell: the uploaded photo where there is one, in the same footprint as .parts-code. */
 .parts-thumb{display:block;width:38px;height:32px;flex-shrink:0;border:1px solid var(--border);border-radius:8px;object-fit:cover;background:var(--bg-page)}
 
-/* "Not set" in a table cell. */
+/* "Not set" in a table cell (e.g. a part with no key spec). */
 .parts-table td.parts-unset{color:var(--text-muted)}
 
-/* Nothing in the catalog at all - gpt/admin/Laptop parts - empty state@1x.png. */
+/* Empty states. They sit below the table, not inside it, so the empty state's Add dropdown is not
+   clipped by the table's horizontal scroll wrapper. */
 .parts-empty-state{padding:var(--space-6) var(--space-3) calc(var(--space-6) * 2)}
 .parts-empty-icon{display:grid;place-items:center;width:64px;height:64px;margin:0 auto;border-radius:16px;background:var(--bg-page);color:var(--text-muted)}
 .parts-empty-icon svg{width:26px;height:26px;opacity:1}
 .parts-empty-text{max-width:420px;margin:var(--space-2) auto 0;font-size:13px;line-height:1.6}
-.parts-empty-add{margin-top:var(--space-4)}
+.parts-empty-add{display:inline-block;margin-top:var(--space-4)}
+.parts-empty .parts-add svg{width:15px;height:15px;opacity:1;stroke-width:2}
+
+/* View modal: space between the Part details / specs grids and the next heading, and the
+   "Added <date>" line under the notes. */
+.parts-view-block{margin-bottom:var(--space-5)}
+.parts-view-added{margin:var(--space-4) 0 0;font-size:12px;color:var(--text-muted)}

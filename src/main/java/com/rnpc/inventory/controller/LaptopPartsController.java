@@ -3,6 +3,7 @@ package com.rnpc.inventory.controller;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.rnpc.inventory.entity.LaptopParts;
 import com.rnpc.inventory.entity.LaptopParts.PartCondition;
 import com.rnpc.inventory.entity.LaptopParts.PartType;
+import com.rnpc.inventory.dto.LaptopPartView;
 import com.rnpc.inventory.dto.LaptopPartsDto;
 import com.rnpc.inventory.service.AdminDashboardService;
 import com.rnpc.inventory.service.LaptopPartsService;
@@ -100,7 +102,21 @@ public class LaptopPartsController {
 
 	@GetMapping({"","/"})
 	public String showLaptopPartsList(Authentication authentication, Model model) {
-		model.addAttribute("laptop", laptopPartsService.getAllLaptopParts());
+		// Display-ready rows, serialized into the page as ALL_PARTS - same approach as /computer.
+		// Every label, key spec and unit is decided in LaptopPartView, not in the template.
+		model.addAttribute("parts", laptopPartsService.getAllLaptopParts().stream()
+				.map(LaptopPartView::from).collect(Collectors.toList()));
+
+		// Chip list in enum order, every type shown even at 0 (as on /computer). The page adds an
+		// "Unassigned" chip itself, only when a row with no part type exists.
+		List<Map<String, String>> partTypes = new ArrayList<>();
+		for (PartType t : PartType.values()) {
+			Map<String, String> chip = new LinkedHashMap<>();
+			chip.put("key", t.name());
+			chip.put("label", t.getLabel());
+			partTypes.add(chip);
+		}
+		model.addAttribute("partTypes", partTypes);
 		// Same low-stock rule as the admin dashboard and /computer, reused rather than restated.
 		model.addAttribute("lowStockLimit", AdminDashboardService.LOW_STOCK_LIMIT);
 		model.addAttribute("addPartTypes", new ArrayList<>(FORM_TEMPLATES.keySet()));
