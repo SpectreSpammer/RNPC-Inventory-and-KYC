@@ -1,9 +1,13 @@
 .parts-page [hidden]{display:none!important}
 
-/* Add part dropdown in the page header. */
+/* Add part in the page header - a dropdown button on /computer and /laptop, a plain link on
+   /cellphone (batch 2: Add still points at the untyped create form, so there is nothing to pick
+   from yet). Shared base styling; the two extra rules only apply when it is an <a>. */
 .parts-add{display:inline-flex;align-items:center;gap:var(--space-2);background:var(--accent);border:0;border-radius:var(--radius-sm);color:#fff;font:inherit;font-size:13px;font-weight:700;padding:var(--space-3) var(--space-4);cursor:pointer;white-space:nowrap}
 .parts-add svg{width:15px;height:15px}
 .parts-add-menu{min-width:190px}
+a.parts-add{text-decoration:none}
+a.parts-add:hover{color:#fff;filter:brightness(.94)}
 
 /* The three stock-status cards double as filters, so they are buttons with an active state -
    stat-card.html's fragment renders a static card or a link, neither of which can toggle. */
