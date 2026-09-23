@@ -100,21 +100,6 @@ public class LaptopParts {
 		}
 	}
 
-	/** Column is part_condition: CONDITION is a reserved word in MySQL/MariaDB. */
-	public enum PartCondition {
-		NEW("New"),
-		OEM_PULL("OEM pull"),
-		REFURBISHED("Refurbished");
-
-		private final String label;
-
-		PartCondition(String label) {
-			this.label = label;
-		}
-
-		public String getLabel() { return label; }
-	}
-
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private int laptopPartId;

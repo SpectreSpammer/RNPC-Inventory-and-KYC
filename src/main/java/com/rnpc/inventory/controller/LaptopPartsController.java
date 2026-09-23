@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.rnpc.inventory.entity.LaptopParts;
-import com.rnpc.inventory.entity.LaptopParts.PartCondition;
+import com.rnpc.inventory.entity.PartCondition;
 import com.rnpc.inventory.entity.LaptopParts.PartType;
 import com.rnpc.inventory.dto.LaptopPartView;
 import com.rnpc.inventory.dto.LaptopPartsDto;

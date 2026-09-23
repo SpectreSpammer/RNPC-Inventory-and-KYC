@@ -27,7 +27,7 @@ public class CellphonePartsDto {
     @Pattern(regexp = "None Applicable|32GB|64GB|128GB|256GB|512GB|1TB|2TB", message = "Invalid storage size selected")
     private String storageSize;
 
-    @Min(value = 1, message = "The stocks must be greater than 0!")
+    @Min(value = 0, message = "The stocks cannot be negative!")
     private int stocks;
 
     @Min(0)

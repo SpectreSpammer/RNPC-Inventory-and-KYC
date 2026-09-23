@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.rnpc.inventory.entity.LaptopParts.PartCondition;
+import com.rnpc.inventory.entity.PartCondition;
 import com.rnpc.inventory.entity.LaptopParts.PartType;
 
 import jakarta.validation.constraints.DecimalMax;

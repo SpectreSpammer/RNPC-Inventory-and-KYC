@@ -1,6 +1,6 @@
 package com.rnpc.inventory.dto;
 
-import com.rnpc.inventory.entity.LaptopParts.PartCondition;
+import com.rnpc.inventory.entity.PartCondition;
 import com.rnpc.inventory.entity.LaptopParts.PartType;
 import jakarta.validation.Validation;
 import jakarta.validation.groups.Default;

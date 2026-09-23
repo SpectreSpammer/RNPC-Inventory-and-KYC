@@ -2,7 +2,7 @@ package com.rnpc.inventory.service;
 
 import com.rnpc.inventory.dto.LaptopPartsDto;
 import com.rnpc.inventory.entity.LaptopParts;
-import com.rnpc.inventory.entity.LaptopParts.PartCondition;
+import com.rnpc.inventory.entity.PartCondition;
 import com.rnpc.inventory.entity.LaptopParts.PartType;
 import com.rnpc.inventory.repository.LaptopPartsRepository;
 import org.junit.jupiter.api.Test;
