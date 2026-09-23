@@ -69,7 +69,10 @@ public class CellphonePartView {
         CellphonePartView v = new CellphonePartView();
         PartType type = typeOf(p);
         v.id = p.getCellphonePartId();
-        v.typeKey = type.name();
+        // The slug, not type.name(): see LaptopPartView.from - the same identifier the edit page's
+        // ?type= Cancel link and update redirect carry, so the list page's on-load restore matches
+        // a chip against it directly.
+        v.typeKey = type.getSlug();
         v.typeLabel = type.getLabel();
         v.typeCode = code(type);
         v.typeOrder = type.ordinal();

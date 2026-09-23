@@ -66,7 +66,10 @@ public class LaptopPartView {
         LaptopPartView v = new LaptopPartView();
         PartType type = typeOf(p);
         v.id = p.getLaptopPartId();
-        v.typeKey = type.name();
+        // The slug, not type.name(): it's the same identifier the URLs use (/laptop/{slug}/create,
+        // the ?type= the edit page's Back link and update redirect carry), so the list page's
+        // on-load restore can match a chip against it directly with no separate lookup.
+        v.typeKey = type.getSlug();
         v.typeLabel = type.getLabel();
         v.typeCode = code(type);
         v.typeOrder = type.ordinal();

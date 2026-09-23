@@ -107,7 +107,10 @@
         <button type="submit" class="btn btn-primary">Submit</button>
       </div>
       <div class="col-sm-4 d-grid">
-        <a class="btn btn-outline-primary" href="/cellphone" role="button">Cancel</a>
+        <!-- Same mechanism as /computer and /laptop: ?type= sends the list back to this part's
+             own type instead of always resetting to All. partType is set by the controller on
+             both the initial load and a validation-error re-render. -->
+        <a class="btn btn-outline-primary" th:href="@{/cellphone(type=${partType.slug})}" role="button">Cancel</a>
       </div>
     </div>
   </form>

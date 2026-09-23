@@ -292,7 +292,7 @@ class LaptopPartViewTest {
         stray.setPartCondition(PartCondition.NEW);
         LaptopPartView v = LaptopPartView.from(stray);
 
-        assertEquals("OTHER", v.getTypeKey());
+        assertEquals("other", v.getTypeKey());
         assertEquals("Other", v.getTypeLabel());
         assertEquals("OTH", v.getTypeCode());
         assertEquals(PartType.OTHER.ordinal(), v.getTypeOrder());

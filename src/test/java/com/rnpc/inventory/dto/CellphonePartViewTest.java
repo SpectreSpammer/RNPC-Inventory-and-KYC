@@ -241,7 +241,7 @@ class CellphonePartViewTest {
         stray.setPartCondition(PartCondition.NEW);
         CellphonePartView v = CellphonePartView.from(stray);
 
-        assertEquals("OTHER", v.getTypeKey());
+        assertEquals("other", v.getTypeKey());
         assertEquals("Other", v.getTypeLabel());
         assertEquals("OTH", v.getTypeCode());
         assertEquals(PartType.OTHER.ordinal(), v.getTypeOrder());

@@ -126,11 +126,13 @@ public class LaptopPartsController {
 		model.addAttribute("parts", laptopPartsService.getAllLaptopParts().stream()
 				.map(LaptopPartView::from).collect(Collectors.toList()));
 
-		// Chip list in enum order, every type shown even at 0 (as on /computer).
+		// Chip list in enum order, every type shown even at 0 (as on /computer). The chip's key is
+		// the slug, not t.name() - it's the same identifier the ?type= restore below has to match
+		// (see LaptopPartView.from), which is also what every /laptop/{slug}/... URL already uses.
 		List<Map<String, String>> partTypes = new ArrayList<>();
 		for (PartType t : PartType.values()) {
 			Map<String, String> chip = new LinkedHashMap<>();
-			chip.put("key", t.name());
+			chip.put("key", t.getSlug());
 			chip.put("label", t.getLabel());
 			partTypes.add(chip);
 		}
@@ -214,7 +216,9 @@ public class LaptopPartsController {
 		}
 
 		laptopPartsService.updateLaptopPart(id, laptopPartsDto);
-		return "redirect:/laptop";
+		// Return to the type the part belongs to, not always All - same mechanism as /computer's
+		// ?category= (allParts.html), just computed here since one controller serves every type.
+		return "redirect:/laptop?type=" + type.getSlug();
 	}
 
 	@DeleteMapping("/removePhoto/{id}")

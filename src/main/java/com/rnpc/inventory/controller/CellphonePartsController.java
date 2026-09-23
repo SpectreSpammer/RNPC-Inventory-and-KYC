@@ -3,6 +3,7 @@ package com.rnpc.inventory.controller;
 import com.rnpc.inventory.dto.CellphonePartView;
 import com.rnpc.inventory.dto.CellphonePartsDto;
 import com.rnpc.inventory.entity.CellphoneParts;
+import com.rnpc.inventory.entity.CellphoneParts.PartType;
 import com.rnpc.inventory.service.AdminDashboardService;
 import com.rnpc.inventory.service.CellphonePartsService;
 import com.rnpc.inventory.service.NotificationService;
@@ -55,6 +56,16 @@ public class CellphonePartsController {
                 notificationService.getForAdmin().stream().limit(15).collect(Collectors.toList()));
     }
 
+    /**
+     * A stored part's type, with a stray null read as OTHER - same helper as
+     * LaptopPartsController.storedType. Every cellphone row is null today (batch 1 added the
+     * column without backfilling it), so this always returns OTHER for now.
+     */
+    private static PartType storedType(CellphoneParts part) {
+        PartType type = part.getPartType();
+        return type == null ? PartType.OTHER : type;
+    }
+
     @GetMapping({"", "/"})
     public String showCellphonePartsList(Authentication authentication, Model model){
         // Display-ready rows, serialized into the page as ALL_PARTS - same approach as /laptop.
@@ -62,11 +73,12 @@ public class CellphonePartsController {
         model.addAttribute("parts", cellphonePartsService.getAllCellphoneParts().stream()
                 .map(CellphonePartView::from).collect(Collectors.toList()));
 
-        // Chip list in enum order, every type shown even at 0 (as on /laptop and /computer).
+        // Chip list in enum order, every type shown even at 0 (as on /laptop and /computer). The
+        // chip's key is the slug, not t.name() - see LaptopPartsController's identical comment.
         List<Map<String, String>> partTypes = new ArrayList<>();
         for (CellphoneParts.PartType t : CellphoneParts.PartType.values()) {
             Map<String, String> chip = new LinkedHashMap<>();
-            chip.put("key", t.name());
+            chip.put("key", t.getSlug());
             chip.put("label", t.getLabel());
             partTypes.add(chip);
         }
@@ -118,6 +130,8 @@ public class CellphonePartsController {
         model.addAttribute("cellphonePartsDto", cellphonePartsDto);
         model.addAttribute("cellphonePartId", id);
         model.addAttribute("currentImage", product.getImageFileName());
+        // So the Cancel link can return to the type the part belongs to - see updateProduct.
+        model.addAttribute("partType", storedType(product));
 
         return "products/cellphoneEditParts";
     }
@@ -125,13 +139,21 @@ public class CellphonePartsController {
     @PutMapping("/update/{id}")
     public String updateProduct(@PathVariable("id") Long id,
                                 @Valid @ModelAttribute CellphonePartsDto cellphonePartsDto, BindingResult result, Model model){
+        // Fetched up front (not just on error) because the redirect on success also needs the
+        // part's type - it never changes here, since this form doesn't touch partType at all.
+        CellphoneParts product = cellphonePartsService.getCellphonePartById(id);
+        PartType type = storedType(product);
+
         if (result.hasErrors()){
             model.addAttribute("cellphonePartId", id);
-            model.addAttribute("currentImage", cellphonePartsService.getCellphonePartById(id).getImageFileName());
+            model.addAttribute("currentImage", product.getImageFileName());
+            model.addAttribute("partType", type);
             return "products/cellphoneEditParts";
         }
         cellphonePartsService.updateCellphonePart(id, cellphonePartsDto);
-        return "redirect:/cellphone";
+        // Return to the type the part belongs to, not always All - same mechanism as /computer's
+        // ?category= (allParts.html) and /laptop's ?type=.
+        return "redirect:/cellphone?type=" + type.getSlug();
     }
 
     @DeleteMapping("/removePhoto/{id}")

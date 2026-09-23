@@ -28,7 +28,7 @@
 
     <main class="content">
         <div class="pf-wrap">
-            <div th:replace="~{fragments/parts-form :: header(code='BAT', title=${#strings.isEmpty(laptopPartsDto.partName) ? 'Edit battery' : 'Edit ' + laptopPartsDto.partName}, subtitle='Changes apply to the laptop parts list as soon as you save.', backUrl=@{/laptop})}"></div>
+            <div th:replace="~{fragments/parts-form :: header(code='BAT', title=${#strings.isEmpty(laptopPartsDto.partName) ? 'Edit battery' : 'Edit ' + laptopPartsDto.partName}, subtitle='Changes apply to the laptop parts list as soon as you save.', backUrl=@{/laptop(type=${partType.slug})})}"></div>
 
             <form th:action="@{/laptop/update/{id}(id=${laptopPartId})}" th:object="${laptopPartsDto}" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="_method" value="put"/>

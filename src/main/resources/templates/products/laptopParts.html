@@ -590,6 +590,12 @@ var LOW_STOCK_LIMIT = /*[[${lowStockLimit}]]*/ 5;
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        // Same mechanism as /computer (allParts.html): an edit page's Back link and its update
+        // redirect send the admin back here with ?type=, so the list reopens on the type the
+        // part belongs to instead of always resetting to All.
+        var requested = new URLSearchParams(window.location.search).get('type');
+        if (requested && PART_TYPES.some(function (t) { return t.key === requested; })) state.type = requested;
+
         document.querySelectorAll('.parts-stat').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 state.stock = btn.dataset.stock;
