@@ -80,7 +80,9 @@ public class CellphonePartsDto {
 
     // ---- Common fields of the type-based model ----
 
-    @NotEmpty(message = "The compatible models are required!", groups = {PartType.Groups.Screen.class, PartType.Groups.Battery.class})
+    @NotEmpty(message = "The compatible models are required!", groups = {PartType.Groups.Screen.class,
+            PartType.Groups.Battery.class, PartType.Groups.ChargingBoard.class, PartType.Groups.BackGlass.class,
+            PartType.Groups.Housing.class, PartType.Groups.FlexCable.class})
     @Size(max = 500, message = "The compatible models cannot exceed 500 characters")
     private String compatibleModels;
 
@@ -118,6 +120,32 @@ public class CellphonePartsDto {
     private Double batteryVoltage;
     @Pattern(regexp = "Li-ion|Li-polymer|", message = "Invalid chemistry selected", groups = PartType.Groups.Battery.class)
     private String batteryChemistry;
+
+    // ---- CHARGING BOARD ----
+    @NotEmpty(message = "The connector is required!", groups = PartType.Groups.ChargingBoard.class)
+    @Pattern(regexp = "USB-C|Lightning|Micro-USB", message = "Invalid connector selected", groups = PartType.Groups.ChargingBoard.class)
+    private String portConnector;
+    private Boolean portOnFlex;
+    private Boolean portWithMic;
+
+    // ---- BACK GLASS ----
+    @NotEmpty(message = "The material is required!", groups = PartType.Groups.BackGlass.class)
+    @Pattern(regexp = "Glass|Plastic|Glass with frame", message = "Invalid material selected", groups = PartType.Groups.BackGlass.class)
+    private String coverMaterial;
+    @Pattern(regexp = "Black|White|Blue|Green|Gold|Silver|Purple|", message = "Invalid color selected", groups = PartType.Groups.BackGlass.class)
+    private String coverColor;
+    private Boolean coverWithLens;
+
+    // ---- HOUSING / FRAME ----
+    @Pattern(regexp = "Black|White|Blue|Green|Gold|Silver|Purple|", message = "Invalid color selected", groups = PartType.Groups.Housing.class)
+    private String housingColor;
+    private Boolean housingWithButtons;
+    private Boolean housingWithBackGlass;
+
+    // ---- FLEX CABLE ----
+    @NotEmpty(message = "The function is required!", groups = PartType.Groups.FlexCable.class)
+    @Pattern(regexp = "Power/volume|Home button|Proximity|Antenna|Main board|Loudspeaker", message = "Invalid function selected", groups = PartType.Groups.FlexCable.class)
+    private String flexFunction;
 
     public Long getCellphonePartId() {
         return cellphonePartId;
@@ -301,5 +329,85 @@ public class CellphonePartsDto {
 
     public void setBatteryChemistry(String batteryChemistry) {
         this.batteryChemistry = batteryChemistry;
+    }
+
+    public String getPortConnector() {
+        return portConnector;
+    }
+
+    public void setPortConnector(String portConnector) {
+        this.portConnector = portConnector;
+    }
+
+    public Boolean getPortOnFlex() {
+        return portOnFlex;
+    }
+
+    public void setPortOnFlex(Boolean portOnFlex) {
+        this.portOnFlex = portOnFlex;
+    }
+
+    public Boolean getPortWithMic() {
+        return portWithMic;
+    }
+
+    public void setPortWithMic(Boolean portWithMic) {
+        this.portWithMic = portWithMic;
+    }
+
+    public String getCoverMaterial() {
+        return coverMaterial;
+    }
+
+    public void setCoverMaterial(String coverMaterial) {
+        this.coverMaterial = coverMaterial;
+    }
+
+    public String getCoverColor() {
+        return coverColor;
+    }
+
+    public void setCoverColor(String coverColor) {
+        this.coverColor = coverColor;
+    }
+
+    public Boolean getCoverWithLens() {
+        return coverWithLens;
+    }
+
+    public void setCoverWithLens(Boolean coverWithLens) {
+        this.coverWithLens = coverWithLens;
+    }
+
+    public String getHousingColor() {
+        return housingColor;
+    }
+
+    public void setHousingColor(String housingColor) {
+        this.housingColor = housingColor;
+    }
+
+    public Boolean getHousingWithButtons() {
+        return housingWithButtons;
+    }
+
+    public void setHousingWithButtons(Boolean housingWithButtons) {
+        this.housingWithButtons = housingWithButtons;
+    }
+
+    public Boolean getHousingWithBackGlass() {
+        return housingWithBackGlass;
+    }
+
+    public void setHousingWithBackGlass(Boolean housingWithBackGlass) {
+        this.housingWithBackGlass = housingWithBackGlass;
+    }
+
+    public String getFlexFunction() {
+        return flexFunction;
+    }
+
+    public void setFlexFunction(String flexFunction) {
+        this.flexFunction = flexFunction;
     }
 }

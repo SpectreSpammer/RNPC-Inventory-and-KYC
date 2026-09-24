@@ -173,6 +173,16 @@ public class CellphonePartsService {
         cellphonePart.setBatteryCapacityMah(dto.getBatteryCapacityMah());
         cellphonePart.setBatteryVoltage(dto.getBatteryVoltage());
         cellphonePart.setBatteryChemistry(blankToNull(dto.getBatteryChemistry()));
+        cellphonePart.setPortConnector(blankToNull(dto.getPortConnector()));
+        cellphonePart.setPortOnFlex(dto.getPortOnFlex());
+        cellphonePart.setPortWithMic(dto.getPortWithMic());
+        cellphonePart.setCoverMaterial(blankToNull(dto.getCoverMaterial()));
+        cellphonePart.setCoverColor(blankToNull(dto.getCoverColor()));
+        cellphonePart.setCoverWithLens(dto.getCoverWithLens());
+        cellphonePart.setHousingColor(blankToNull(dto.getHousingColor()));
+        cellphonePart.setHousingWithButtons(dto.getHousingWithButtons());
+        cellphonePart.setHousingWithBackGlass(dto.getHousingWithBackGlass());
+        cellphonePart.setFlexFunction(blankToNull(dto.getFlexFunction()));
     }
 
     /** Nulls every spec field that does not belong to the part's own type. */
@@ -189,6 +199,24 @@ public class CellphonePartsService {
             cellphonePart.setBatteryCapacityMah(null);
             cellphonePart.setBatteryVoltage(null);
             cellphonePart.setBatteryChemistry(null);
+        }
+        if (type != PartType.CHARGING_BOARD) {
+            cellphonePart.setPortConnector(null);
+            cellphonePart.setPortOnFlex(null);
+            cellphonePart.setPortWithMic(null);
+        }
+        if (type != PartType.BACK_GLASS) {
+            cellphonePart.setCoverMaterial(null);
+            cellphonePart.setCoverColor(null);
+            cellphonePart.setCoverWithLens(null);
+        }
+        if (type != PartType.HOUSING) {
+            cellphonePart.setHousingColor(null);
+            cellphonePart.setHousingWithButtons(null);
+            cellphonePart.setHousingWithBackGlass(null);
+        }
+        if (type != PartType.FLEX_CABLE) {
+            cellphonePart.setFlexFunction(null);
         }
     }
 
@@ -212,6 +240,16 @@ public class CellphonePartsService {
         dto.setBatteryCapacityMah(cellphonePart.getBatteryCapacityMah());
         dto.setBatteryVoltage(cellphonePart.getBatteryVoltage());
         dto.setBatteryChemistry(cellphonePart.getBatteryChemistry());
+        dto.setPortConnector(cellphonePart.getPortConnector());
+        dto.setPortOnFlex(cellphonePart.getPortOnFlex());
+        dto.setPortWithMic(cellphonePart.getPortWithMic());
+        dto.setCoverMaterial(cellphonePart.getCoverMaterial());
+        dto.setCoverColor(cellphonePart.getCoverColor());
+        dto.setCoverWithLens(cellphonePart.getCoverWithLens());
+        dto.setHousingColor(cellphonePart.getHousingColor());
+        dto.setHousingWithButtons(cellphonePart.getHousingWithButtons());
+        dto.setHousingWithBackGlass(cellphonePart.getHousingWithBackGlass());
+        dto.setFlexFunction(cellphonePart.getFlexFunction());
         return dto;
     }
 

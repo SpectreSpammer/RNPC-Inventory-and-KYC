@@ -28,10 +28,11 @@
   under the Other chip - see CellphonePartView.typeOf. Chips, search, sort and the stock cards all
   combine.
 
-  BATCH 3: Screen and Battery now have their own create/edit forms, so the Add button is a
-  dropdown like /laptop's - one entry per type in addPartTypes (CellphonePartsController.
-  FORM_TEMPLATES). The remaining eight types still have no form; Edit still falls back to the old
-  untyped form (cellphoneEditParts.html) for any row without one of these two types.
+  BATCH 4: Screen, Battery, Charging board, Back glass, Housing and Flex cable now have their own
+  create/edit forms, so the Add button is a dropdown like /laptop's - one entry per type in
+  addPartTypes (CellphonePartsController.FORM_TEMPLATES). The remaining four types (Camera,
+  Fingerprint, Sensor, Other) still have no form; Edit still falls back to the old untyped form
+  (cellphoneEditParts.html) for any row without one of these six types.
 -->
 
 <div th:replace="~{fragments/layout-app :: sidebar(active='cellphone-parts', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>

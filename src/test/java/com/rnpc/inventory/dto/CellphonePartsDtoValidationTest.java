@@ -19,7 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * The cellphone DTO's validation groups, run exactly the way CellphonePartsController runs them:
  * SmartValidator.validate(dto, result, Default.class, group). Plain Hibernate Validator behind
  * Spring's adapter - no Spring context and no database. Mirrors LaptopPartsDtoValidationTest's
- * structure for cellphone batch 3's two types, Screen and Battery.
+ * structure, extended batch by batch as each type gets its own form: Screen and Battery (batch 3),
+ * Charging board, Back glass, Housing and Flex cable (batch 4).
  */
 class CellphonePartsDtoValidationTest {
 
@@ -57,6 +58,40 @@ class CellphonePartsDtoValidationTest {
         dto.setBatteryCapacityMah(5000);
         dto.setBatteryVoltage(3.87);
         dto.setBatteryChemistry("Li-ion");
+        return dto;
+    }
+
+    private CellphonePartsDto validChargingBoard() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 charging board");
+        dto.setPortConnector("USB-C");
+        dto.setPortOnFlex(true);
+        dto.setPortWithMic(false);
+        return dto;
+    }
+
+    private CellphonePartsDto validBackGlass() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 back glass");
+        dto.setCoverMaterial("Glass");
+        dto.setCoverColor("Black");
+        dto.setCoverWithLens(true);
+        return dto;
+    }
+
+    private CellphonePartsDto validHousing() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 housing");
+        dto.setHousingColor("Black");
+        dto.setHousingWithButtons(true);
+        dto.setHousingWithBackGlass(false);
+        return dto;
+    }
+
+    private CellphonePartsDto validFlexCable() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 flex cable");
+        dto.setFlexFunction("Power/volume");
         return dto;
     }
 
@@ -159,7 +194,79 @@ class CellphonePartsDtoValidationTest {
     }
 
     @Test
-    void compatibleModelsIsRequiredForBothNewTypes() {
+    void chargingBoardRequiresConnectorAndCompatibleModels() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 charging board");
+        dto.setCompatibleModels(null);
+        assertEquals(Set.of("portConnector", "compatibleModels"), errorFields(dto, PartType.CHARGING_BOARD.getGroup()));
+
+        dto.setCompatibleModels("Galaxy A12, A125F");
+        dto.setPortConnector("Micro-USB");
+        assertEquals(Set.of(), errorFields(dto, PartType.CHARGING_BOARD.getGroup()));
+
+        dto.setPortConnector("USB-A");
+        assertEquals(Set.of("portConnector"), errorFields(dto, PartType.CHARGING_BOARD.getGroup()));
+    }
+
+    @Test
+    void chargingBoardCheckboxesAreOptional() {
+        CellphonePartsDto dto = validChargingBoard();
+        dto.setPortOnFlex(null);
+        dto.setPortWithMic(null);
+        assertEquals(Set.of(), errorFields(dto, PartType.CHARGING_BOARD.getGroup()));
+    }
+
+    @Test
+    void backGlassRequiresMaterialAndCompatibleModelsButColorIsOptional() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 back glass");
+        dto.setCompatibleModels("");
+        assertEquals(Set.of("coverMaterial", "compatibleModels"), errorFields(dto, PartType.BACK_GLASS.getGroup()));
+
+        dto.setCompatibleModels("Galaxy A12, A125F");
+        dto.setCoverMaterial("Glass with frame");
+        dto.setCoverColor("");
+        assertEquals(Set.of(), errorFields(dto, PartType.BACK_GLASS.getGroup()));
+
+        dto.setCoverMaterial("Aluminum");
+        dto.setCoverColor("Rose Gold");
+        assertEquals(Set.of("coverMaterial", "coverColor"), errorFields(dto, PartType.BACK_GLASS.getGroup()));
+    }
+
+    @Test
+    void housingNeedsOnlyCompatibleModelsAndCondition() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 housing");
+        dto.setCompatibleModels(null);
+        dto.setHousingColor("");
+        assertEquals(Set.of("compatibleModels"), errorFields(dto, PartType.HOUSING.getGroup()));
+
+        dto.setCompatibleModels("Galaxy A12, A125F");
+        dto.setHousingColor("Silver");
+        dto.setHousingWithButtons(true);
+        assertEquals(Set.of(), errorFields(dto, PartType.HOUSING.getGroup()));
+
+        dto.setHousingColor("Rose Gold");   // Back glass offers this list too, but not this value
+        assertEquals(Set.of("housingColor"), errorFields(dto, PartType.HOUSING.getGroup()));
+    }
+
+    @Test
+    void flexCableRequiresFunctionAndCompatibleModels() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 flex cable");
+        dto.setCompatibleModels(null);
+        assertEquals(Set.of("flexFunction", "compatibleModels"), errorFields(dto, PartType.FLEX_CABLE.getGroup()));
+
+        dto.setCompatibleModels("Galaxy A12, A125F");
+        dto.setFlexFunction("Loudspeaker");
+        assertEquals(Set.of(), errorFields(dto, PartType.FLEX_CABLE.getGroup()));
+
+        dto.setFlexFunction("Speaker");
+        assertEquals(Set.of("flexFunction"), errorFields(dto, PartType.FLEX_CABLE.getGroup()));
+    }
+
+    @Test
+    void compatibleModelsIsRequiredForEveryTypedType() {
         CellphonePartsDto screen = validScreen();
         screen.setCompatibleModels(null);
         assertEquals(Set.of("compatibleModels"), errorFields(screen, PartType.SCREEN.getGroup()));
@@ -167,19 +274,39 @@ class CellphonePartsDtoValidationTest {
         CellphonePartsDto battery = validBattery();
         battery.setCompatibleModels("");
         assertEquals(Set.of("compatibleModels"), errorFields(battery, PartType.BATTERY.getGroup()));
+
+        CellphonePartsDto chargingBoard = validChargingBoard();
+        chargingBoard.setCompatibleModels(null);
+        assertEquals(Set.of("compatibleModels"), errorFields(chargingBoard, PartType.CHARGING_BOARD.getGroup()));
+
+        CellphonePartsDto backGlass = validBackGlass();
+        backGlass.setCompatibleModels("");
+        assertEquals(Set.of("compatibleModels"), errorFields(backGlass, PartType.BACK_GLASS.getGroup()));
+
+        CellphonePartsDto housing = validHousing();
+        housing.setCompatibleModels(null);
+        assertEquals(Set.of("compatibleModels"), errorFields(housing, PartType.HOUSING.getGroup()));
+
+        CellphonePartsDto flexCable = validFlexCable();
+        flexCable.setCompatibleModels("");
+        assertEquals(Set.of("compatibleModels"), errorFields(flexCable, PartType.FLEX_CABLE.getGroup()));
     }
 
     @Test
-    void legacyRulesDoNotApplyToScreenOrBattery() {
+    void legacyRulesDoNotApplyToAnyOfTheNewTypes() {
         // No category, storageSize or old partName pattern set - the Legacy-only rules must not fire.
         assertEquals(Set.of(), errorFields(validScreen(), PartType.SCREEN.getGroup()));
         assertEquals(Set.of(), errorFields(validBattery(), PartType.BATTERY.getGroup()));
+        assertEquals(Set.of(), errorFields(validChargingBoard(), PartType.CHARGING_BOARD.getGroup()));
+        assertEquals(Set.of(), errorFields(validBackGlass(), PartType.BACK_GLASS.getGroup()));
+        assertEquals(Set.of(), errorFields(validHousing(), PartType.HOUSING.getGroup()));
+        assertEquals(Set.of(), errorFields(validFlexCable(), PartType.FLEX_CABLE.getGroup()));
     }
 
     @Test
-    void screenAndBatteryRulesDoNotLeakIntoTheLegacyGroup() {
-        // A valid pre-redesign DTO stays valid even with typed fields left unset - Screen/Battery
-        // rules are scoped to their own groups.
+    void newTypeRulesDoNotLeakIntoTheLegacyGroup() {
+        // A valid pre-redesign DTO stays valid even with every typed field left unset - every
+        // type's rules are scoped to their own group.
         CellphonePartsDto dto = new CellphonePartsDto();
         dto.setBrand("Samsung");
         dto.setPartName("Super AMOLED Display");
@@ -193,15 +320,38 @@ class CellphonePartsDtoValidationTest {
 
     @Test
     void newTypeRulesDoNotLeakIntoOtherTypes() {
-        // A valid Screen with nothing set for Battery stays valid, and vice versa.
+        // A valid Screen with nothing set for any other type stays valid, and vice versa.
         CellphonePartsDto screen = validScreen();
         screen.setBatteryCapacityMah(1);
         screen.setBatteryVoltage(100.0);
+        screen.setPortConnector("Lightning");
+        screen.setCoverMaterial("Aluminum");
+        screen.setFlexFunction("Speaker");
         assertEquals(Set.of(), errorFields(screen, PartType.SCREEN.getGroup()));
 
         CellphonePartsDto battery = validBattery();
         battery.setScreenPanelType("Retina");
         battery.setScreenSizeInches(100.0);
         assertEquals(Set.of(), errorFields(battery, PartType.BATTERY.getGroup()));
+
+        CellphonePartsDto chargingBoard = validChargingBoard();
+        chargingBoard.setCoverMaterial("Aluminum");
+        chargingBoard.setHousingColor("Rose Gold");
+        assertEquals(Set.of(), errorFields(chargingBoard, PartType.CHARGING_BOARD.getGroup()));
+
+        CellphonePartsDto backGlass = validBackGlass();
+        backGlass.setFlexFunction("Speaker");
+        backGlass.setPortConnector("USB-A");
+        assertEquals(Set.of(), errorFields(backGlass, PartType.BACK_GLASS.getGroup()));
+
+        CellphonePartsDto housing = validHousing();
+        housing.setCoverMaterial("Aluminum");
+        housing.setScreenGrade("Refurbished");
+        assertEquals(Set.of(), errorFields(housing, PartType.HOUSING.getGroup()));
+
+        CellphonePartsDto flexCable = validFlexCable();
+        flexCable.setHousingColor("Rose Gold");
+        flexCable.setBatteryCapacityMah(1);
+        assertEquals(Set.of(), errorFields(flexCable, PartType.FLEX_CABLE.getGroup()));
     }
 }

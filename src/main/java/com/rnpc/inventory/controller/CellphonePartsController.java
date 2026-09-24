@@ -54,6 +54,10 @@ public class CellphonePartsController {
     static {
         FORM_TEMPLATES.put(PartType.SCREEN, "screen");
         FORM_TEMPLATES.put(PartType.BATTERY, "battery");
+        FORM_TEMPLATES.put(PartType.CHARGING_BOARD, "chargingBoard");
+        FORM_TEMPLATES.put(PartType.BACK_GLASS, "backGlass");
+        FORM_TEMPLATES.put(PartType.HOUSING, "housing");
+        FORM_TEMPLATES.put(PartType.FLEX_CABLE, "flexCable");
     }
 
     private final CellphonePartsService cellphonePartsService;

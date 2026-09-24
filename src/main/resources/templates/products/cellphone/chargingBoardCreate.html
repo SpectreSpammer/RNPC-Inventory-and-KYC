@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Add charging board - RN PC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/parts-form :: assets}"></th:block>
+</head>
+<body class="pf-page">
+
+<!--
+  Type-based create form for Charging board parts (cellphone redesign batch 4), same shape as
+  screenCreate.html/batteryCreate.html on fragments/parts-form.html and parts-form.css.
+
+  Posts to /cellphone/charging-board/create. The part type comes from that path, never from a
+  form field - there is deliberately no partType input. The controller validates
+  Default + this type's PartType.Groups group through a SmartValidator; each type group
+  extends Typed, which makes Condition required on every form.
+
+  Brand and Condition options come from the controller (brandOptions, conditionOptions);
+  the spec selects are hard-coded and mirror the @Pattern allow-lists on CellphonePartsDto.
+  "Notes" binds to description - the same column (CellphoneParts.notes).
+-->
+
+<div th:replace="~{fragments/layout-app :: sidebar(active='cellphone-parts', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+
+    <main class="content">
+        <div class="pf-wrap">
+            <div th:replace="~{fragments/parts-form :: header(code='CHG', title='Add charging board', subtitle='Fields marked optional can be filled in later.', backUrl=@{/cellphone})}"></div>
+
+            <form action="#" th:action="@{/cellphone/charging-board/create}" th:object="${cellphonePartsDto}" method="post" enctype="multipart/form-data">
+                <th:block th:if="${#fields.hasAnyErrors()}">
+                    <div th:replace="~{fragments/parts-form :: errors(messages=${#fields.allErrors()})}"></div>
+                </th:block>
+
+                <div class="pf-card">
+
+                    <section class="pf-section">
+                        <h2>Part details</h2>
+                        <div class="pf-grid">
+                            <div class="pf-field">
+                                <label for="brand">Brand</label>
+                                <select th:field="*{brand}" id="brand">
+                                    <option value="">Select brand</option>
+                                    <option th:each="opt : ${brandOptions}" th:value="${opt}" th:text="${opt}"></option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="partName">Part name</label>
+                                <input type="text" th:field="*{partName}" id="partName" placeholder="e.g. Galaxy A12 charging board"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('partName')}" th:errors="*{partName}"></span>
+                            </div>
+                            <div class="pf-field pf-full">
+                                <label for="compatibleModels">Compatible models</label>
+                                <input type="text" th:field="*{compatibleModels}" id="compatibleModels" placeholder="e.g. Galaxy A12, A125F"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('compatibleModels')}" th:errors="*{compatibleModels}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="partNumber">Part number <span class="pf-optional">(optional)</span></label>
+                                <input type="text" th:field="*{partNumber}" id="partNumber" placeholder="e.g. GH59-15234A"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('partNumber')}" th:errors="*{partNumber}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="partCondition">Condition</label>
+                                <select th:field="*{partCondition}" id="partCondition">
+                                    <option value="">Select condition</option>
+                                    <option th:each="c : ${conditionOptions}" th:value="${c.name()}" th:text="${c.label}"></option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('partCondition')}" th:errors="*{partCondition}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="warrantyDays">Warranty days <span class="pf-optional">(optional)</span></label>
+                                <input type="number" th:field="*{warrantyDays}" id="warrantyDays" min="0" placeholder="e.g. 30"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('warrantyDays')}" th:errors="*{warrantyDays}"></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>Charging board specs</h2>
+                        <div class="pf-grid">
+                            <div class="pf-field">
+                                <label for="portConnector">Connector</label>
+                                <select th:field="*{portConnector}" id="portConnector">
+                                    <option value="">Select connector</option>
+                                    <option value="USB-C">USB-C</option>
+                                    <option value="Lightning">Lightning</option>
+                                    <option value="Micro-USB">Micro-USB</option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('portConnector')}" th:errors="*{portConnector}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <span class="pf-label">Flex cable</span>
+                                <label class="pf-check"><input type="checkbox" th:field="*{portOnFlex}"/>On flex cable</label>
+                                <span class="pf-error" th:if="${#fields.hasErrors('portOnFlex')}" th:errors="*{portOnFlex}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <span class="pf-label">Microphone</span>
+                                <label class="pf-check"><input type="checkbox" th:field="*{portWithMic}"/>With microphone</label>
+                                <span class="pf-error" th:if="${#fields.hasErrors('portWithMic')}" th:errors="*{portWithMic}"></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>Stock and price</h2>
+                        <div class="pf-grid">
+                            <div class="pf-field">
+                                <label for="stocks">Stocks</label>
+                                <input type="number" th:field="*{stocks}" id="stocks" min="0" placeholder="Enter stocks"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('stocks')}" th:errors="*{stocks}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="price">Price</label>
+                                <div class="pf-prefix">
+                                    <span>Php</span>
+                                    <input type="number" th:field="*{price}" id="price" placeholder="Enter price" step="0.01" min="0"/>
+                                </div>
+                                <span class="pf-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>Notes <span class="pf-optional">(optional)</span></h2>
+                        <div class="pf-grid">
+                            <div class="pf-field pf-full">
+                                <label for="description">Notes</label>
+                                <textarea th:field="*{description}" id="description" rows="3" placeholder="Anything else worth knowing: markings, defects, where it came from"></textarea>
+                                <span class="pf-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>Photo <span class="pf-optional">(optional)</span></h2>
+                        <div class="pf-upload">
+                            <span class="pf-upload-icon"><i data-feather="image"></i></span>
+                            <div class="pf-upload-text">
+                                <strong>Choose a photo for this part</strong>
+                                <input type="file" th:field="*{imageFile}" id="imageFile"/>
+                            </div>
+                        </div>
+                        <span class="pf-error" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></span>
+                    </section>
+
+                    <div th:replace="~{fragments/parts-form :: actions(cancelUrl=@{/cellphone}, saveLabel='Save part')}"></div>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+</body>
+</html>
