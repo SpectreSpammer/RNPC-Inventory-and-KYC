@@ -2,6 +2,7 @@ package com.rnpc.inventory.service;
 
 import com.rnpc.inventory.dto.CellphonePartsDto;
 import com.rnpc.inventory.entity.CellphoneParts;
+import com.rnpc.inventory.entity.CellphoneParts.PartType;
 import com.rnpc.inventory.repository.CellphonePartsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -43,6 +44,20 @@ public class CellphonePartsService {
         return cellphonePartsRepository.save(cellphoneParts);
     }
 
+    /**
+     * Type-based create (/cellphone/{type}/create). The type comes from the route, never from the
+     * form. Spec fields belonging to other types are nulled before saving.
+     */
+    public CellphoneParts saveTypedPart(PartType type, CellphonePartsDto dto) {
+        CellphoneParts cellphonePart = new CellphoneParts();
+        cellphonePart.setPartType(type);
+        copyTypedFields(cellphonePart, dto);
+        clearOtherTypesSpecs(cellphonePart);
+        cellphonePart.setCreatedAt(new Date());
+        cellphonePart.setImageFileName(handleFileUpload(dto.getImageFile()));
+        return cellphonePartsRepository.save(cellphonePart);
+    }
+
     private String handleFileUpload(MultipartFile imageFile) {
         if (imageFile == null || imageFile.isEmpty()){
             return null;
@@ -81,10 +96,19 @@ public class CellphonePartsService {
         return cellphonePart;
     }
 
-
+    /**
+     * Update for both models. A pre-redesign row (partType null) is updated from the old form's
+     * fields exactly as before; a typed row takes the new fields, keeps its type, and has other
+     * types' spec fields nulled.
+     */
     public CellphoneParts updateCellphonePart(Long id, CellphonePartsDto cellphonePartsDto){
         CellphoneParts cellphonePart = getCellphonePartById(id);
-        updateEntity(cellphonePart, cellphonePartsDto);
+        if (cellphonePart.getPartType() == null) {
+            updateEntity(cellphonePart, cellphonePartsDto);
+        } else {
+            copyTypedFields(cellphonePart, cellphonePartsDto);
+            clearOtherTypesSpecs(cellphonePart);
+        }
 
         if (cellphonePartsDto.getImageFile() != null && !cellphonePartsDto.getImageFile().isEmpty()) {
             deleteImageFile(cellphonePart.getImageFileName());
@@ -128,5 +152,72 @@ public class CellphonePartsService {
                 System.out.println("Error deleting file: " + e.getMessage());
             }
         }
+    }
+
+    /** New-model fields, DTO to entity. Strings are trimmed and blank ones stored as null. */
+    private void copyTypedFields(CellphoneParts cellphonePart, CellphonePartsDto dto) {
+        cellphonePart.setBrand(blankToNull(dto.getBrand()));
+        cellphonePart.setPartName(blankToNull(dto.getPartName()));
+        cellphonePart.setStocks(dto.getStocks());
+        cellphonePart.setPrice(dto.getPrice());
+        cellphonePart.setCompatibleModels(blankToNull(dto.getCompatibleModels()));
+        cellphonePart.setPartNumber(blankToNull(dto.getPartNumber()));
+        cellphonePart.setPartCondition(dto.getPartCondition());
+        cellphonePart.setWarrantyDays(dto.getWarrantyDays());
+        cellphonePart.setNotes(blankToNull(dto.getDescription()));
+        cellphonePart.setScreenPanelType(blankToNull(dto.getScreenPanelType()));
+        cellphonePart.setScreenGrade(blankToNull(dto.getScreenGrade()));
+        cellphonePart.setScreenSizeInches(dto.getScreenSizeInches());
+        cellphonePart.setScreenWithFrame(dto.getScreenWithFrame());
+        cellphonePart.setScreenTouchIncluded(dto.getScreenTouchIncluded());
+        cellphonePart.setBatteryCapacityMah(dto.getBatteryCapacityMah());
+        cellphonePart.setBatteryVoltage(dto.getBatteryVoltage());
+        cellphonePart.setBatteryChemistry(blankToNull(dto.getBatteryChemistry()));
+    }
+
+    /** Nulls every spec field that does not belong to the part's own type. */
+    private static void clearOtherTypesSpecs(CellphoneParts cellphonePart) {
+        PartType type = cellphonePart.getPartType();
+        if (type != PartType.SCREEN) {
+            cellphonePart.setScreenPanelType(null);
+            cellphonePart.setScreenGrade(null);
+            cellphonePart.setScreenSizeInches(null);
+            cellphonePart.setScreenWithFrame(null);
+            cellphonePart.setScreenTouchIncluded(null);
+        }
+        if (type != PartType.BATTERY) {
+            cellphonePart.setBatteryCapacityMah(null);
+            cellphonePart.setBatteryVoltage(null);
+            cellphonePart.setBatteryChemistry(null);
+        }
+    }
+
+    /** Entity to DTO for the type-based edit forms. */
+    public CellphonePartsDto toDto(CellphoneParts cellphonePart) {
+        CellphonePartsDto dto = new CellphonePartsDto();
+        dto.setBrand(cellphonePart.getBrand());
+        dto.setPartName(cellphonePart.getPartName());
+        dto.setStocks(cellphonePart.getStocks());
+        dto.setPrice(cellphonePart.getPrice());
+        dto.setCompatibleModels(cellphonePart.getCompatibleModels());
+        dto.setPartNumber(cellphonePart.getPartNumber());
+        dto.setPartCondition(cellphonePart.getPartCondition());
+        dto.setWarrantyDays(cellphonePart.getWarrantyDays());
+        dto.setDescription(cellphonePart.getNotes());
+        dto.setScreenPanelType(cellphonePart.getScreenPanelType());
+        dto.setScreenGrade(cellphonePart.getScreenGrade());
+        dto.setScreenSizeInches(cellphonePart.getScreenSizeInches());
+        dto.setScreenWithFrame(cellphonePart.getScreenWithFrame());
+        dto.setScreenTouchIncluded(cellphonePart.getScreenTouchIncluded());
+        dto.setBatteryCapacityMah(cellphonePart.getBatteryCapacityMah());
+        dto.setBatteryVoltage(cellphonePart.getBatteryVoltage());
+        dto.setBatteryChemistry(cellphonePart.getBatteryChemistry());
+        return dto;
+    }
+
+    private static String blankToNull(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

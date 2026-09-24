@@ -28,10 +28,10 @@
   under the Other chip - see CellphonePartView.typeOf. Chips, search, sort and the stock cards all
   combine.
 
-  BATCH 2 SCOPE: Add and Edit still point at the existing untyped forms
-  (cellphoneCreateParts.html, cellphoneEditParts.html) - there is no per-type form yet, so unlike
-  /laptop's header there is no Add dropdown here, just a plain link to /cellphone/create. The
-  per-type forms come in the next batch, at which point this becomes a dropdown like /laptop's.
+  BATCH 3: Screen and Battery now have their own create/edit forms, so the Add button is a
+  dropdown like /laptop's - one entry per type in addPartTypes (CellphonePartsController.
+  FORM_TEMPLATES). The remaining eight types still have no form; Edit still falls back to the old
+  untyped form (cellphoneEditParts.html) for any row without one of these two types.
 -->
 
 <div th:replace="~{fragments/layout-app :: sidebar(active='cellphone-parts', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
@@ -47,10 +47,18 @@
                 <p class="rn-page-header-subtitle">Screens, batteries, camera modules and other phone spares held in stock.</p>
             </div>
             <div class="rn-page-header-actions">
-                <!-- Plain link to the existing untyped create form - see the header comment. -->
-                <a class="parts-add" th:href="@{/cellphone/create}">
-                    <i data-feather="plus"></i>Add cellphone part
-                </a>
+                <!-- One entry per part type that has its own form so far (addPartTypes, from
+                     CellphonePartsController.FORM_TEMPLATES), same dropdown as /laptop's Add part. -->
+                <div class="dropdown">
+                    <button class="parts-add" type="button" id="addPartBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i data-feather="plus"></i>Add cellphone part<i data-feather="chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end parts-add-menu" aria-labelledby="addPartBtn">
+                        <li th:each="t : ${addPartTypes}">
+                            <a class="dropdown-item" th:href="@{/cellphone/{slug}/create(slug=${t.slug})}" th:text="${t.label}">LCD / Screen</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
 
@@ -121,15 +129,21 @@
                 </table>
             </div>
 
-            <!-- No cellphone parts at all. The button is a plain link, matching the header - see
-                 the header comment on why there is no dropdown yet. -->
+            <!-- No cellphone parts at all. Same Add dropdown as the header. -->
             <div class="parts-empty parts-empty-state" id="partsEmptyAll" hidden>
                 <span class="parts-empty-icon"><i data-feather="box"></i></span>
                 <p class="parts-empty-title">No cellphone parts yet</p>
                 <p class="parts-empty-text">Add the spares you keep on hand so they show up in repairs and orders.</p>
-                <a class="parts-add parts-empty-add" th:href="@{/cellphone/create}">
-                    <i data-feather="plus"></i>Add cellphone part
-                </a>
+                <div class="dropdown">
+                    <button class="parts-add parts-empty-add" type="button" id="addPartEmptyBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i data-feather="plus"></i>Add cellphone part<i data-feather="chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu parts-add-menu" aria-labelledby="addPartEmptyBtn">
+                        <li th:each="t : ${addPartTypes}">
+                            <a class="dropdown-item" th:href="@{/cellphone/{slug}/create(slug=${t.slug})}" th:text="${t.label}">LCD / Screen</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
             <!-- Parts exist, but none match the current filters. -->

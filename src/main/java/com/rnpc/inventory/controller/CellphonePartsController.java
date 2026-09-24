@@ -4,19 +4,24 @@ import com.rnpc.inventory.dto.CellphonePartView;
 import com.rnpc.inventory.dto.CellphonePartsDto;
 import com.rnpc.inventory.entity.CellphoneParts;
 import com.rnpc.inventory.entity.CellphoneParts.PartType;
+import com.rnpc.inventory.entity.PartCondition;
 import com.rnpc.inventory.service.AdminDashboardService;
 import com.rnpc.inventory.service.CellphonePartsService;
 import com.rnpc.inventory.service.NotificationService;
-import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
+import org.springframework.validation.SmartValidator;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,22 +32,41 @@ import java.util.stream.Collectors;
 public class CellphonePartsController {
 
     /*
-     * Cellphone parts, mid-redesign (batch 2: list page and view model only). The list page is
-     * driven by CellphoneParts.PartType, the same way /laptop is, but Add and Edit still point at
-     * the existing untyped forms (cellphoneCreateParts.html, cellphoneEditParts.html) - the
-     * per-type forms come in the next batch. Every row today has a null part_type (batch 1 added
-     * the column without backfilling it), so every part shows as Other until then; see
-     * CellphonePartView.typeOf.
+     * Cellphone parts, mid-redesign (batch 3: type-based create/edit for Screen and Battery).
+     * Two models live side by side, same coexistence as laptop batch 2:
+     *
+     *  - Type-based parts (partType set): created at /cellphone/{slug}/create, edited with the
+     *    type's own template under products/cellphone/. Validated as Default + the type's group.
+     *  - Pre-redesign parts (partType null): the old /cellphone/create form and old edit template,
+     *    validated as Default + Legacy, exactly the rules they had before.
+     *
+     * Validation runs through the injected SmartValidator rather than @Valid, because the groups
+     * depend on the type, which is only known inside the handler. Boot marks its defaultValidator
+     * bean primary, so this injection is unambiguous.
      */
+
+    /**
+     * The types that have create/edit templates so far, and each one's template prefix
+     * (products/cellphone/<prefix>Create and <prefix>Edit). A later batch adds the rest; until
+     * then any other slug is a 404. Also the order of the Add cellphone part dropdown.
+     */
+    private static final Map<PartType, String> FORM_TEMPLATES = new EnumMap<>(PartType.class);
+    static {
+        FORM_TEMPLATES.put(PartType.SCREEN, "screen");
+        FORM_TEMPLATES.put(PartType.BATTERY, "battery");
+    }
 
     private final CellphonePartsService cellphonePartsService;
     private final NotificationService notificationService;
+    private final SmartValidator validator;
 
 
     @Autowired
-    public CellphonePartsController(CellphonePartsService cellphonePartsService, NotificationService notificationService) {
+    public CellphonePartsController(CellphonePartsService cellphonePartsService, NotificationService notificationService,
+                                    SmartValidator validator) {
         this.cellphonePartsService = cellphonePartsService;
         this.notificationService = notificationService;
+        this.validator = validator;
     }
 
     // Topbar chrome for the shared layout-app shell, same shape as LaptopPartsController's.
@@ -54,6 +78,25 @@ public class CellphonePartsController {
         model.addAttribute("unreadNotifications", notificationService.getUnreadCountForAdmin());
         model.addAttribute("recentNotifications",
                 notificationService.getForAdmin().stream().limit(15).collect(Collectors.toList()));
+    }
+
+    // Dropdown options shared by the old and the type-based forms. Passed in rather than read in
+    // the template, because T(...) static calls are avoided in templates here.
+    private void addFormOptions(Model model) {
+        model.addAttribute("brandOptions", CellphonePartsDto.BRAND_OPTIONS);
+        model.addAttribute("conditionOptions", Arrays.asList(PartCondition.values()));
+    }
+
+    private static PartType formTypeForSlug(String slug) {
+        PartType type = PartType.fromSlug(slug);
+        if (type == null || !FORM_TEMPLATES.containsKey(type)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        return type;
+    }
+
+    private static String typedTemplate(PartType type, String suffix) {
+        return "products/cellphone/" + FORM_TEMPLATES.get(type) + suffix;
     }
 
     /**
@@ -85,16 +128,45 @@ public class CellphonePartsController {
         model.addAttribute("partTypes", partTypes);
         // Same low-stock rule as the admin dashboard and /computer, reused rather than restated.
         model.addAttribute("lowStockLimit", AdminDashboardService.LOW_STOCK_LIMIT);
+        model.addAttribute("addPartTypes", new ArrayList<>(FORM_TEMPLATES.keySet()));
         addShellAttributes(authentication, model);
         return "products/cellphoneParts";
     }
 
-    @PostMapping("/create")
-    public String createCellphonePart(@Valid @ModelAttribute CellphonePartsDto cellphonePartsDto, BindingResult result){
-        if (cellphonePartsDto.getImageFile().isEmpty()) {
-            result.addError(new FieldError("cellphonePartsDto", "imageFile", "The image file is required!"));
+    // ---- Type-based create ----------------------------------------------------------------
+
+    @GetMapping("/{type}/create")
+    public String showTypedCreateForm(@PathVariable("type") String slug, Authentication authentication, Model model) {
+        PartType type = formTypeForSlug(slug);
+        model.addAttribute("cellphonePartsDto", new CellphonePartsDto());
+        model.addAttribute("partType", type);
+        addFormOptions(model);
+        addShellAttributes(authentication, model);
+        return typedTemplate(type, "Create");
+    }
+
+    @PostMapping("/{type}/create")
+    public String createTypedPart(@PathVariable("type") String slug,
+                                  @ModelAttribute CellphonePartsDto cellphonePartsDto, BindingResult result,
+                                  Authentication authentication, Model model) {
+        PartType type = formTypeForSlug(slug);
+        validator.validate(cellphonePartsDto, result, Default.class, type.getGroup());
+        if (result.hasErrors()) {
+            model.addAttribute("partType", type);
+            addFormOptions(model);
+            addShellAttributes(authentication, model);
+            return typedTemplate(type, "Create");
         }
 
+        cellphonePartsService.saveTypedPart(type, cellphonePartsDto);
+        return "redirect:/cellphone";
+    }
+
+    // ---- Pre-redesign create, kept working until every type has a form -----------------------
+
+    @PostMapping("/create")
+    public String createCellphonePart(@ModelAttribute CellphonePartsDto cellphonePartsDto, BindingResult result){
+        validator.validate(cellphonePartsDto, result, Default.class, PartType.Groups.Legacy.class);
         if (result.hasErrors()) {
             return "products/cellphoneCreateParts";
         }
@@ -114,10 +186,27 @@ public class CellphonePartsController {
         return "redirect:/cellphone";
     }
 
-    @GetMapping("/edit/{id}")
-    public String showEditProductForm(@PathVariable("id") Long id, Model model){
-        CellphoneParts product = cellphonePartsService.getCellphonePartById(id);
+    // ---- Edit: the template follows the part's own type ------------------------------------
 
+    @GetMapping("/edit/{id}")
+    public String showEditProductForm(@PathVariable("id") Long id, Authentication authentication, Model model){
+        CellphoneParts product = cellphonePartsService.getCellphonePartById(id);
+        PartType rawType = product.getPartType();
+        boolean typed = rawType != null && FORM_TEMPLATES.containsKey(rawType);
+
+        model.addAttribute("cellphonePartId", id);
+        model.addAttribute("currentImage", product.getImageFileName());
+        // So the Cancel link can return to the type the part belongs to - see updateProduct.
+        model.addAttribute("partType", storedType(product));
+
+        if (typed) {
+            model.addAttribute("cellphonePartsDto", cellphonePartsService.toDto(product));
+            addFormOptions(model);
+            addShellAttributes(authentication, model);
+            return typedTemplate(rawType, "Edit");
+        }
+
+        // Pre-redesign row (partType null): the old edit form, populated as before.
         CellphonePartsDto cellphonePartsDto = new CellphonePartsDto();
         cellphonePartsDto.setBrand(product.getBrand());
         cellphonePartsDto.setPartName(product.getPartName());
@@ -126,28 +215,33 @@ public class CellphonePartsController {
         cellphonePartsDto.setStocks(product.getStocks());
         cellphonePartsDto.setPrice(product.getPrice());
         cellphonePartsDto.setDescription(product.getDescription());
-
         model.addAttribute("cellphonePartsDto", cellphonePartsDto);
-        model.addAttribute("cellphonePartId", id);
-        model.addAttribute("currentImage", product.getImageFileName());
-        // So the Cancel link can return to the type the part belongs to - see updateProduct.
-        model.addAttribute("partType", storedType(product));
 
         return "products/cellphoneEditParts";
     }
 
     @PutMapping("/update/{id}")
     public String updateProduct(@PathVariable("id") Long id,
-                                @Valid @ModelAttribute CellphonePartsDto cellphonePartsDto, BindingResult result, Model model){
+                                @ModelAttribute CellphonePartsDto cellphonePartsDto, BindingResult result,
+                                Authentication authentication, Model model){
         // Fetched up front (not just on error) because the redirect on success also needs the
-        // part's type - it never changes here, since this form doesn't touch partType at all.
+        // part's type - it never changes here, since these forms don't touch partType at all.
         CellphoneParts product = cellphonePartsService.getCellphonePartById(id);
+        PartType rawType = product.getPartType();
+        boolean typed = rawType != null && FORM_TEMPLATES.containsKey(rawType);
         PartType type = storedType(product);
 
+        validator.validate(cellphonePartsDto, result, Default.class,
+                typed ? rawType.getGroup() : PartType.Groups.Legacy.class);
         if (result.hasErrors()){
             model.addAttribute("cellphonePartId", id);
             model.addAttribute("currentImage", product.getImageFileName());
             model.addAttribute("partType", type);
+            if (typed) {
+                addFormOptions(model);
+                addShellAttributes(authentication, model);
+                return typedTemplate(rawType, "Edit");
+            }
             return "products/cellphoneEditParts";
         }
         cellphonePartsService.updateCellphonePart(id, cellphonePartsDto);
