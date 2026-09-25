@@ -82,7 +82,8 @@ public class CellphonePartsDto {
 
     @NotEmpty(message = "The compatible models are required!", groups = {PartType.Groups.Screen.class,
             PartType.Groups.Battery.class, PartType.Groups.ChargingBoard.class, PartType.Groups.BackGlass.class,
-            PartType.Groups.Housing.class, PartType.Groups.FlexCable.class})
+            PartType.Groups.Housing.class, PartType.Groups.FlexCable.class, PartType.Groups.Camera.class,
+            PartType.Groups.Fingerprint.class, PartType.Groups.Sensor.class})
     @Size(max = 500, message = "The compatible models cannot exceed 500 characters")
     private String compatibleModels;
 
@@ -146,6 +147,31 @@ public class CellphonePartsDto {
     @NotEmpty(message = "The function is required!", groups = PartType.Groups.FlexCable.class)
     @Pattern(regexp = "Power/volume|Home button|Proximity|Antenna|Main board|Loudspeaker", message = "Invalid function selected", groups = PartType.Groups.FlexCable.class)
     private String flexFunction;
+
+    // ---- CAMERA ----
+    @NotEmpty(message = "The position is required!", groups = PartType.Groups.Camera.class)
+    @Pattern(regexp = "Rear main|Rear ultrawide|Rear telephoto|Front", message = "Invalid position selected", groups = PartType.Groups.Camera.class)
+    private String cameraPosition;
+    // Sanity range, not a specification: wide enough for any phone camera module.
+    @DecimalMin(value = "0.3", message = "The resolution must be between 0.3 and 200 MP", groups = PartType.Groups.Camera.class)
+    @DecimalMax(value = "200", message = "The resolution must be between 0.3 and 200 MP", groups = PartType.Groups.Camera.class)
+    private Double cameraMegapixels;
+    private Boolean cameraModule;
+
+    // ---- FINGERPRINT ----
+    @NotEmpty(message = "The position is required!", groups = PartType.Groups.Fingerprint.class)
+    @Pattern(regexp = "Rear-mounted|Side / power button|Under display optical|Under display ultrasonic",
+            message = "Invalid position selected", groups = PartType.Groups.Fingerprint.class)
+    private String fingerprintPosition;
+    private Boolean fingerprintWithFlex;
+
+    // ---- SENSOR ----
+    @NotEmpty(message = "The kind is required!", groups = PartType.Groups.Sensor.class)
+    @Pattern(regexp = "Proximity|Face ID dot projector|Gyroscope|Ambient light", message = "Invalid kind selected", groups = PartType.Groups.Sensor.class)
+    private String sensorKind;
+    private Boolean sensorUnderDisplay;
+
+    // ---- OTHER has no spec fields ----
 
     public Long getCellphonePartId() {
         return cellphonePartId;
@@ -409,5 +435,61 @@ public class CellphonePartsDto {
 
     public void setFlexFunction(String flexFunction) {
         this.flexFunction = flexFunction;
+    }
+
+    public String getCameraPosition() {
+        return cameraPosition;
+    }
+
+    public void setCameraPosition(String cameraPosition) {
+        this.cameraPosition = cameraPosition;
+    }
+
+    public Double getCameraMegapixels() {
+        return cameraMegapixels;
+    }
+
+    public void setCameraMegapixels(Double cameraMegapixels) {
+        this.cameraMegapixels = cameraMegapixels;
+    }
+
+    public Boolean getCameraModule() {
+        return cameraModule;
+    }
+
+    public void setCameraModule(Boolean cameraModule) {
+        this.cameraModule = cameraModule;
+    }
+
+    public String getFingerprintPosition() {
+        return fingerprintPosition;
+    }
+
+    public void setFingerprintPosition(String fingerprintPosition) {
+        this.fingerprintPosition = fingerprintPosition;
+    }
+
+    public Boolean getFingerprintWithFlex() {
+        return fingerprintWithFlex;
+    }
+
+    public void setFingerprintWithFlex(Boolean fingerprintWithFlex) {
+        this.fingerprintWithFlex = fingerprintWithFlex;
+    }
+
+    public String getSensorKind() {
+        return sensorKind;
+    }
+
+    public void setSensorKind(String sensorKind) {
+        this.sensorKind = sensorKind;
+    }
+
+    public Boolean getSensorUnderDisplay() {
+        return sensorUnderDisplay;
+    }
+
+    public void setSensorUnderDisplay(Boolean sensorUnderDisplay) {
+        this.sensorUnderDisplay = sensorUnderDisplay;
     }
 }

@@ -183,6 +183,13 @@ public class CellphonePartsService {
         cellphonePart.setHousingWithButtons(dto.getHousingWithButtons());
         cellphonePart.setHousingWithBackGlass(dto.getHousingWithBackGlass());
         cellphonePart.setFlexFunction(blankToNull(dto.getFlexFunction()));
+        cellphonePart.setCameraPosition(blankToNull(dto.getCameraPosition()));
+        cellphonePart.setCameraMegapixels(dto.getCameraMegapixels());
+        cellphonePart.setCameraModule(dto.getCameraModule());
+        cellphonePart.setFingerprintPosition(blankToNull(dto.getFingerprintPosition()));
+        cellphonePart.setFingerprintWithFlex(dto.getFingerprintWithFlex());
+        cellphonePart.setSensorKind(blankToNull(dto.getSensorKind()));
+        cellphonePart.setSensorUnderDisplay(dto.getSensorUnderDisplay());
     }
 
     /** Nulls every spec field that does not belong to the part's own type. */
@@ -218,6 +225,20 @@ public class CellphonePartsService {
         if (type != PartType.FLEX_CABLE) {
             cellphonePart.setFlexFunction(null);
         }
+        if (type != PartType.CAMERA) {
+            cellphonePart.setCameraPosition(null);
+            cellphonePart.setCameraMegapixels(null);
+            cellphonePart.setCameraModule(null);
+        }
+        if (type != PartType.FINGERPRINT) {
+            cellphonePart.setFingerprintPosition(null);
+            cellphonePart.setFingerprintWithFlex(null);
+        }
+        if (type != PartType.SENSOR) {
+            cellphonePart.setSensorKind(null);
+            cellphonePart.setSensorUnderDisplay(null);
+        }
+        // OTHER has no spec fields of its own - the blocks above already clear every other type's.
     }
 
     /** Entity to DTO for the type-based edit forms. */
@@ -250,6 +271,13 @@ public class CellphonePartsService {
         dto.setHousingWithButtons(cellphonePart.getHousingWithButtons());
         dto.setHousingWithBackGlass(cellphonePart.getHousingWithBackGlass());
         dto.setFlexFunction(cellphonePart.getFlexFunction());
+        dto.setCameraPosition(cellphonePart.getCameraPosition());
+        dto.setCameraMegapixels(cellphonePart.getCameraMegapixels());
+        dto.setCameraModule(cellphonePart.getCameraModule());
+        dto.setFingerprintPosition(cellphonePart.getFingerprintPosition());
+        dto.setFingerprintWithFlex(cellphonePart.getFingerprintWithFlex());
+        dto.setSensorKind(cellphonePart.getSensorKind());
+        dto.setSensorUnderDisplay(cellphonePart.getSensorUnderDisplay());
         return dto;
     }
 

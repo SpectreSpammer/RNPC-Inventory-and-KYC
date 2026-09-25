@@ -58,6 +58,10 @@ public class CellphonePartsController {
         FORM_TEMPLATES.put(PartType.BACK_GLASS, "backGlass");
         FORM_TEMPLATES.put(PartType.HOUSING, "housing");
         FORM_TEMPLATES.put(PartType.FLEX_CABLE, "flexCable");
+        FORM_TEMPLATES.put(PartType.CAMERA, "camera");
+        FORM_TEMPLATES.put(PartType.FINGERPRINT, "fingerprint");
+        FORM_TEMPLATES.put(PartType.SENSOR, "sensor");
+        FORM_TEMPLATES.put(PartType.OTHER, "other");
     }
 
     private final CellphonePartsService cellphonePartsService;

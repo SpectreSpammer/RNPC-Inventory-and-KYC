@@ -20,7 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * SmartValidator.validate(dto, result, Default.class, group). Plain Hibernate Validator behind
  * Spring's adapter - no Spring context and no database. Mirrors LaptopPartsDtoValidationTest's
  * structure, extended batch by batch as each type gets its own form: Screen and Battery (batch 3),
- * Charging board, Back glass, Housing and Flex cable (batch 4).
+ * Charging board, Back glass, Housing and Flex cable (batch 4), Camera, Fingerprint, Sensor and
+ * Other (batch 5) - the last four, so every PartType now has a form.
  */
 class CellphonePartsDtoValidationTest {
 
@@ -92,6 +93,38 @@ class CellphonePartsDtoValidationTest {
         CellphonePartsDto dto = common();
         dto.setPartName("Galaxy A12 flex cable");
         dto.setFlexFunction("Power/volume");
+        return dto;
+    }
+
+    private CellphonePartsDto validCamera() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 rear camera");
+        dto.setCameraPosition("Rear main");
+        dto.setCameraMegapixels(50.0);
+        dto.setCameraModule(true);
+        return dto;
+    }
+
+    private CellphonePartsDto validFingerprint() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 fingerprint sensor");
+        dto.setFingerprintPosition("Side / power button");
+        dto.setFingerprintWithFlex(true);
+        return dto;
+    }
+
+    private CellphonePartsDto validSensor() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 proximity sensor");
+        dto.setSensorKind("Proximity");
+        dto.setSensorUnderDisplay(false);
+        return dto;
+    }
+
+    private CellphonePartsDto validOther() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 SIM tray");
+        dto.setCompatibleModels(null);
         return dto;
     }
 
@@ -266,6 +299,80 @@ class CellphonePartsDtoValidationTest {
     }
 
     @Test
+    void cameraRequiresPositionAndCompatibleModelsButResolutionAndModuleAreOptional() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 rear camera");
+        dto.setCompatibleModels(null);
+        assertEquals(Set.of("cameraPosition", "compatibleModels"), errorFields(dto, PartType.CAMERA.getGroup()));
+
+        dto.setCompatibleModels("Galaxy A12, A125F");
+        dto.setCameraPosition("Front");
+        assertEquals(Set.of(), errorFields(dto, PartType.CAMERA.getGroup()));
+
+        dto.setCameraPosition("Rear wide");
+        assertEquals(Set.of("cameraPosition"), errorFields(dto, PartType.CAMERA.getGroup()));
+    }
+
+    @Test
+    void cameraResolutionRangeCatchesImplausibleValues() {
+        CellphonePartsDto dto = validCamera();
+        dto.setCameraMegapixels(0.2);
+        assertEquals(Set.of("cameraMegapixels"), errorFields(dto, PartType.CAMERA.getGroup()));
+
+        dto.setCameraMegapixels(200.1);
+        assertEquals(Set.of("cameraMegapixels"), errorFields(dto, PartType.CAMERA.getGroup()));
+
+        dto.setCameraMegapixels(0.3);   // both ends inclusive
+        assertEquals(Set.of(), errorFields(dto, PartType.CAMERA.getGroup()));
+        dto.setCameraMegapixels(200.0);
+        assertEquals(Set.of(), errorFields(dto, PartType.CAMERA.getGroup()));
+
+        dto.setCameraMegapixels(null);  // optional
+        assertEquals(Set.of(), errorFields(dto, PartType.CAMERA.getGroup()));
+    }
+
+    @Test
+    void fingerprintRequiresPositionAndCompatibleModelsButFlexIsOptional() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 fingerprint sensor");
+        dto.setCompatibleModels("");
+        assertEquals(Set.of("fingerprintPosition", "compatibleModels"), errorFields(dto, PartType.FINGERPRINT.getGroup()));
+
+        dto.setCompatibleModels("Galaxy A12, A125F");
+        dto.setFingerprintPosition("Under display ultrasonic");
+        assertEquals(Set.of(), errorFields(dto, PartType.FINGERPRINT.getGroup()));
+
+        dto.setFingerprintPosition("In-screen");
+        assertEquals(Set.of("fingerprintPosition"), errorFields(dto, PartType.FINGERPRINT.getGroup()));
+    }
+
+    @Test
+    void sensorRequiresKindAndCompatibleModelsButUnderDisplayIsOptional() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 proximity sensor");
+        dto.setCompatibleModels(null);
+        assertEquals(Set.of("sensorKind", "compatibleModels"), errorFields(dto, PartType.SENSOR.getGroup()));
+
+        dto.setCompatibleModels("Galaxy A12, A125F");
+        dto.setSensorKind("Gyroscope");
+        assertEquals(Set.of(), errorFields(dto, PartType.SENSOR.getGroup()));
+
+        dto.setSensorKind("Barometer");
+        assertEquals(Set.of("sensorKind"), errorFields(dto, PartType.SENSOR.getGroup()));
+    }
+
+    @Test
+    void otherHasNoRulesBeyondConditionAndCompatibleModelsStaysOptional() {
+        CellphonePartsDto dto = common();
+        dto.setPartName("Galaxy A12 SIM tray");
+        dto.setCompatibleModels(null);
+        assertEquals(Set.of(), errorFields(dto, PartType.OTHER.getGroup()));
+
+        dto.setPartCondition(null);   // still a typed part: condition is required
+        assertEquals(Set.of("partCondition"), errorFields(dto, PartType.OTHER.getGroup()));
+    }
+
+    @Test
     void compatibleModelsIsRequiredForEveryTypedType() {
         CellphonePartsDto screen = validScreen();
         screen.setCompatibleModels(null);
@@ -290,6 +397,24 @@ class CellphonePartsDtoValidationTest {
         CellphonePartsDto flexCable = validFlexCable();
         flexCable.setCompatibleModels("");
         assertEquals(Set.of("compatibleModels"), errorFields(flexCable, PartType.FLEX_CABLE.getGroup()));
+
+        CellphonePartsDto camera = validCamera();
+        camera.setCompatibleModels(null);
+        assertEquals(Set.of("compatibleModels"), errorFields(camera, PartType.CAMERA.getGroup()));
+
+        CellphonePartsDto fingerprint = validFingerprint();
+        fingerprint.setCompatibleModels("");
+        assertEquals(Set.of("compatibleModels"), errorFields(fingerprint, PartType.FINGERPRINT.getGroup()));
+
+        CellphonePartsDto sensor = validSensor();
+        sensor.setCompatibleModels(null);
+        assertEquals(Set.of("compatibleModels"), errorFields(sensor, PartType.SENSOR.getGroup()));
+    }
+
+    @Test
+    void compatibleModelsStaysOptionalForOther() {
+        // Other is the one typed group deliberately left off the compatibleModels @NotEmpty list.
+        assertEquals(Set.of(), errorFields(validOther(), PartType.OTHER.getGroup()));
     }
 
     @Test
@@ -301,6 +426,10 @@ class CellphonePartsDtoValidationTest {
         assertEquals(Set.of(), errorFields(validBackGlass(), PartType.BACK_GLASS.getGroup()));
         assertEquals(Set.of(), errorFields(validHousing(), PartType.HOUSING.getGroup()));
         assertEquals(Set.of(), errorFields(validFlexCable(), PartType.FLEX_CABLE.getGroup()));
+        assertEquals(Set.of(), errorFields(validCamera(), PartType.CAMERA.getGroup()));
+        assertEquals(Set.of(), errorFields(validFingerprint(), PartType.FINGERPRINT.getGroup()));
+        assertEquals(Set.of(), errorFields(validSensor(), PartType.SENSOR.getGroup()));
+        assertEquals(Set.of(), errorFields(validOther(), PartType.OTHER.getGroup()));
     }
 
     @Test
@@ -353,5 +482,25 @@ class CellphonePartsDtoValidationTest {
         flexCable.setHousingColor("Rose Gold");
         flexCable.setBatteryCapacityMah(1);
         assertEquals(Set.of(), errorFields(flexCable, PartType.FLEX_CABLE.getGroup()));
+
+        CellphonePartsDto camera = validCamera();
+        camera.setFingerprintPosition("In-screen");
+        camera.setSensorKind("Barometer");
+        assertEquals(Set.of(), errorFields(camera, PartType.CAMERA.getGroup()));
+
+        CellphonePartsDto fingerprint = validFingerprint();
+        fingerprint.setCameraPosition("Rear wide");
+        fingerprint.setCameraMegapixels(1000.0);
+        assertEquals(Set.of(), errorFields(fingerprint, PartType.FINGERPRINT.getGroup()));
+
+        CellphonePartsDto sensor = validSensor();
+        sensor.setFlexFunction("Speaker");
+        sensor.setFingerprintPosition("In-screen");
+        assertEquals(Set.of(), errorFields(sensor, PartType.SENSOR.getGroup()));
+
+        CellphonePartsDto other = validOther();
+        other.setCameraPosition("Rear wide");
+        other.setSensorKind("Barometer");
+        assertEquals(Set.of(), errorFields(other, PartType.OTHER.getGroup()));
     }
 }
