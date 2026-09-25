@@ -274,6 +274,101 @@ of what ran, not as work outstanding:
   `NOT NULL`. The `fan_*` / `mb_*` columns never existed there - the entity stopped mapping them
   before the redesign's first deploy, so `ddl-auto` never created them.
 
+**`rnpc_cellphone_parts`, redesigned** (the cellphone redesign, batches 1-6 - see Cellphone parts
+below). The table predates the redesign: `cellphone_part_id`, `brand`, `part_name`, `category`,
+`storage_size`, `stocks`, `price`, `description`, `created_at` and `image_file_name` are the original
+columns, and `ddl-auto` added the rest, all nullable. `description` was created as Hibernate's
+default `VARCHAR(255)`; the entity now says `TEXT` via `columnDefinition`, but `ddl-auto` will not
+alter an existing column (see the optional `MODIFY` below). On a fresh database `ddl-auto` creates
+the whole table as below (Hibernate 6.5's own DDL, reordered by group; `FLOAT(53)` is a `DOUBLE`,
+`BIT` a boolean). `category` and `storage_size` are not in it because the entity no longer maps them:
+
+```sql
+CREATE TABLE rnpc_cellphone_parts (
+    cellphone_part_id        BIGINT NOT NULL AUTO_INCREMENT,
+    part_type                VARCHAR(32) NULL,
+    part_condition           VARCHAR(32) NULL,
+    brand                    VARCHAR(255) NULL,
+    part_name                VARCHAR(255) NULL,
+    compatible_models        VARCHAR(500) NULL,
+    part_number              VARCHAR(64) NULL,
+    warranty_days            INTEGER NULL,
+    stocks                   INTEGER NOT NULL,
+    price                    FLOAT(53) NOT NULL,
+    description              TEXT NULL,
+    created_at               DATETIME(6) NULL,
+    image_file_name          VARCHAR(255) NULL,
+    screen_panel_type        VARCHAR(255) NULL,
+    screen_grade             VARCHAR(255) NULL,
+    screen_size_inches       FLOAT(53) NULL,
+    screen_with_frame        BIT NULL,
+    screen_touch_included    BIT NULL,
+    battery_capacity_mah     INTEGER NULL,
+    battery_voltage          FLOAT(53) NULL,
+    battery_chemistry        VARCHAR(255) NULL,
+    port_connector           VARCHAR(255) NULL,
+    port_on_flex             BIT NULL,
+    port_with_mic            BIT NULL,
+    cover_material           VARCHAR(255) NULL,
+    cover_color              VARCHAR(255) NULL,
+    cover_with_lens          BIT NULL,
+    housing_color            VARCHAR(255) NULL,
+    housing_with_buttons     BIT NULL,
+    housing_with_back_glass  BIT NULL,
+    flex_function            VARCHAR(255) NULL,
+    camera_position          VARCHAR(255) NULL,
+    camera_megapixels        FLOAT(53) NULL,
+    camera_module            BIT NULL,
+    fingerprint_position     VARCHAR(255) NULL,
+    fingerprint_with_flex    BIT NULL,
+    sensor_kind              VARCHAR(255) NULL,
+    sensor_under_display     BIT NULL,
+    PRIMARY KEY (cellphone_part_id)
+) ENGINE=InnoDB;
+```
+
+The same two deliberate choices as the laptop table: `part_type` / `part_condition` are
+`VARCHAR(32)` via `columnDefinition` rather than a native `ENUM`, and every redesign column is
+nullable in the entity, so those two are made `NOT NULL` by hand.
+
+**To apply by hand** (cellphone batch 6 - **not yet run on either database**). `ddl-auto` never drops
+or alters, and Hibernate ignores unmapped columns, so `category` and `storage_size` are harmless
+until dropped. Run these in order, and read the timing notes below the block first:
+
+```sql
+-- 1. Anywhere, any time (widening VARCHAR(255) -> TEXT is compatible with the old build too).
+--    Check first: SHOW COLUMNS FROM rnpc_cellphone_parts LIKE 'description';  - skip if already text.
+ALTER TABLE rnpc_cellphone_parts MODIFY COLUMN description TEXT NULL;
+
+-- 2. Only once the running build is cellphone batch 6 or later: the pre-redesign model.
+ALTER TABLE rnpc_cellphone_parts
+    DROP COLUMN category,
+    DROP COLUMN storage_size;
+
+-- 3. Must return 0 before the next statement.
+SELECT COUNT(*) FROM rnpc_cellphone_parts WHERE part_type IS NULL OR part_condition IS NULL;
+
+-- 3a. Only if step 3 returned rows (expected on Railway if it holds pre-redesign parts): give them a
+--     type and a condition. OTHER / NEW is the neutral choice; pick real values per row if you prefer.
+UPDATE rnpc_cellphone_parts SET part_type = 'OTHER' WHERE part_type IS NULL;
+UPDATE rnpc_cellphone_parts SET part_condition = 'NEW' WHERE part_condition IS NULL;
+
+-- 4. Only once step 3 (or 3a) leaves nothing null.
+ALTER TABLE rnpc_cellphone_parts
+    MODIFY COLUMN part_type      VARCHAR(32) NOT NULL,
+    MODIFY COLUMN part_condition VARCHAR(32) NOT NULL;
+```
+
+Timing. **Local (XAMPP MariaDB):** the columns already exist (the redesign's typed rows were created
+there), so steps 1-4 all work - but only after IntelliJ has been stopped and restarted on the batch 6
+code. The old build still maps `category` / `storage_size` (dropping them breaks every `/cellphone`
+query) and its `/cellphone/create` form inserts a null `part_type`. **Railway (MySQL):** nothing is
+safe *before the push* except step 1. The redesign's columns (`part_type`, `part_condition` and all
+the spec columns) **do not exist there until the new build has started once**, because `ddl-auto`
+adds them at startup - so step 3's `SELECT` and step 4 fail with "unknown column" if run early. Wait
+for the deployment to show **ACTIVE**, then run 2, 3, (3a) and 4. Any pre-redesign row on Railway
+will have a null `part_type` / `part_condition` at that point, which is what 3a is for.
+
 ## Sign-in and authorization
 
 Google-only OAuth2/OIDC. There is no username/password login, no local sign-up, and no passwords
@@ -376,9 +471,9 @@ Controller (@Controller) → Service (business logic + file I/O) → Repository 
 `PsuPartsController` (`/psu`), `CasePartsController` (`/case`), `CoolerPartsController` (`/cooler`),
 `CellphonePartsController` (`/cellphone`), and `LaptopPartsController` (`/laptop`).
 
-**Laptop is no longer one of the near-identical slices.** Since the laptop redesign it is one
-controller over twelve part types, with per-type forms and validation groups - see Laptop parts
-below. Everything else in this section describes the other nine.
+**Laptop and Cellphone are no longer near-identical slices.** Since their redesigns each is one
+controller over many part types (twelve and ten), with per-type forms and validation groups - see
+Laptop parts and Cellphone parts below. Everything else in this section describes the other eight.
 
 Each has the identical route set: `GET /` (list), `GET /create` + `POST /create`,
 `GET /edit/{id}` + `PUT /update/{id}`, `DELETE /delete/{id}`, and most also
@@ -395,9 +490,8 @@ These controllers carry no admin check of their own, so a new one is world-writa
 entry exists - see the filter-chain exception under Sign-in and authorization.
 
 DTOs carry the Bean Validation (`@NotEmpty`, `@Pattern` allow-lists for dropdowns, `@Min`, `@Size`)
-plus a `MultipartFile imageFile`. Controllers validate with `@Valid` + `BindingResult`. The photo
-is optional everywhere except Cellphone, whose create handler still rejects an empty `imageFile`
-by hand.
+plus a `MultipartFile imageFile`. Controllers validate with `@Valid` + `BindingResult` (Laptop and
+Cellphone use a `SmartValidator` instead). The photo is optional everywhere.
 
 `PartsController` is separate and owns just `GET /computer`, a read-only combined view of all eight
 PC-component catalogs. There is no `ComputerPartsController` and no `Computers` entity.
@@ -551,6 +645,109 @@ with the Other form, and saved back as `OTHER`. Nothing throws.
 
 Tests (context-free, run by name): `LaptopPartsDtoValidationTest`, `LaptopPartViewTest`,
 `LaptopPartsServiceTest`.
+
+### Cellphone parts (`/cellphone`)
+
+One table (`rnpc_cellphone_parts`), one entity (`CellphoneParts`), one DTO, one controller - over ten
+part types, built batch-for-batch on the laptop redesign and deliberately **not** sharing code with
+it (`CellphonePartView` duplicates `LaptopPartView`, and so on). The redesign replaced a single
+untyped form whose "part name" was a fixed list (`Super AMOLED Display|Li-Ion Battery|...`) and
+whose "category" and "storage size" described the same thing twice. Those two fields, the old
+templates (`cellphoneCreateParts.html`, `cellphoneEditParts.html`) and `GET/POST /cellphone/create`
+are gone.
+
+**`CellphoneParts.PartType`** - label, URL slug and a Bean Validation group per constant, in this
+order (also the order of the Add dropdown, the chips and the Type sort). Bold = required:
+
+| Type (slug) | Spec fields | Compatible models |
+|---|---|---|
+| LCD / Screen (`lcd`) | **panel type** (OLED, AMOLED, Super AMOLED, LCD IPS, TFT), **grade** (Original, Service pack, Aftermarket incell, Aftermarket OLED), size (3-8 in), with frame, touch included | required |
+| Battery (`battery`) | **capacity mAh** (500-10000), voltage V (3-5), chemistry (Li-ion, Li-polymer) | required |
+| Charging board (`charging-board`) | **connector** (USB-C, Lightning, Micro-USB), on flex cable, with microphone | required |
+| Back glass (`back-glass`) | **material** (Glass, Plastic, Glass with frame), color (Black, White, Blue, Green, Gold, Silver, Purple), with camera lens | required |
+| Housing / frame (`housing`) | color (same list as Back glass), with buttons, with back glass | required |
+| Flex cable (`flex-cable`) | **function** (Power/volume, Home button, Proximity, Antenna, Main board, Loudspeaker) | required |
+| Camera (`camera`) | **position** (Rear main, Rear ultrawide, Rear telephoto, Front), resolution MP (0.3-200), full module | required |
+| Fingerprint (`fingerprint`) | **position** (Rear-mounted, Side / power button, Under display optical, Under display ultrasonic), with flex cable | required |
+| Sensor (`sensor`) | **kind** (Proximity, Face ID dot projector, Gyroscope, Ambient light), under display | required |
+| Other (`other`) | none - its forms have no specs section | optional |
+
+⚠️ **SCREEN's slug is `lcd`, not `screen`.** It was copied from the laptop enum in batch 1, so the
+routes are `/cellphone/lcd/create` and the chip key / `?type=` value is `lcd`, while the template
+prefix in `FORM_TEMPLATES` is `screen` (`screenCreate.html`). The Add dropdown builds its links from
+`t.slug`, so it is always right; hand-written URLs and tests have to use `lcd`. The dropdown label
+is likewise "LCD / Screen".
+
+**Common fields**, on every type: brand (dropdown of Samsung, Apple, Xiaomi, Oppo, Vivo, OnePlus,
+Realme; `CellphonePartsDto.BRAND_PATTERN` is the one source for both the allow-list and the
+options), part name (free text, e.g. "Galaxy A12 battery"), compatible models, part number
+(optional), **condition** (the shared `PartCondition` enum: New, OEM pull, Refurbished - column
+`part_condition`, because `CONDITION` is reserved in MySQL), warranty days (optional), notes, stock
+(`@Min(0)`), price and an optional photo. Notes is the entity's `notes` field, mapped onto the
+pre-existing `description` column and bound on the forms as the DTO's `description`.
+
+**Routes.** `GET/POST /cellphone/{slug}/create` resolves the type with `PartType.fromSlug`; an
+unknown slug is a 404. The type comes **only** from the path: the DTO has no `partType` field, so a
+posted one is ignored. `GET /cellphone/edit/{id}` and `PUT /cellphone/update/{id}` keep their id-only
+URLs and dispatch on the **stored** type, so an edit can never change it. `FORM_TEMPLATES` in the
+controller maps each type to its template prefix: `products/cellphone/<prefix>Create.html` /
+`<prefix>Edit.html` (`screen`, `battery`, `chargingBoard`, `backGlass`, `housing`, `flexCable`,
+`camera`, `fingerprint`, `sensor`, `other`), 20 templates, all on `fragments/parts-form.html`. They
+are deliberately identical in shape (Part details, "<Type> specs", Stock and price, Notes, Photo;
+Other has no specs section) - when changing one, change them all. The photo is optional on every
+form. Delete and remove-photo keep their id-only routes.
+
+**Validation** runs through an injected `SmartValidator`, not `@Valid`, because the group depends on
+the type: `validate(dto, result, Default.class, type.getGroup())`. `Default` holds the shared rules
+(brand, lengths, stock, price); every type group in `PartType.Groups` extends `Typed`, which makes
+condition required. `compatibleModels` is `@NotEmpty` for every group except Other. String
+dropdowns have exact `@Pattern` allow-lists that mirror the templates' options (with an empty
+alternative for optional ones). Sanity ranges, both ends inclusive: screen size 3-8 in, battery
+capacity 500-10000 mAh, battery voltage 3-5 V, camera resolution 0.3-200 MP - plausibility guards
+against a slipped decimal or a wrong-form value, not sold options.
+
+**Service.** `CellphonePartsService` stores blank text as null and, before every save, nulls each
+spec field that belongs to another type - a tampered or stale form can never leave another type's
+specs on a part. Other has no fields of its own, so it needs no block: the per-type `!=` clauses
+already clear everything for it.
+
+**`CellphonePartView`** builds everything the list page and View modal show, in Java: the type label
+and tile code (`SCR`, `BAT`, `CHG`, `BAK`, `HSG`, `FLX`, `CAM`, `FGR`, `SNS`, `OTH`), the Key spec
+line, the spec rows with units and Yes/No, and three key-spec tiles. Unlike the laptop view there is
+no `TILE_ROWS` override: tiles are always the type's first three spec rows, and a type with fewer
+than three is padded with Condition, Warranty, Part number. A spec shown as a tile is not repeated
+in the "<Type> specs" list, and the modal hides that list when it ends up empty.
+
+| Type | Key spec (blank parts skipped) | Tiles |
+|---|---|---|
+| Screen | `AMOLED 6.1", Service pack` | Panel type, Size, Grade (the list keeps With frame, Touch included) |
+| Battery | `4000 mAh, 3.85 V` | Capacity, Voltage, Chemistry |
+| Charging board | `USB-C, on flex` | Connector, On flex, With microphone |
+| Back glass | `Glass, Black` | Material, Color, With camera lens |
+| Housing / frame | `Black, with buttons` | Color, With buttons, With back glass |
+| Flex cable | `Power/volume` | Function, Condition, Warranty |
+| Camera | `Rear main, 50 MP` | Position, Resolution, Full module |
+| Fingerprint | `Under display optical` | Position, With flex cable, Condition |
+| Sensor | `Proximity, under display` | Kind, Under display, Condition |
+| Other | (empty, shown as "Not set") | Condition, Warranty, Part number |
+
+**List page** (`products/cellphoneParts.html`, styled from `parts.css`) works like `/laptop`: the
+controller serializes `CellphonePartView` rows into `ALL_PARTS` and the page filters, sorts and
+pages them client-side. Stock cards (`LOW_STOCK_LIMIT` reused), one chip per type in enum order with
+its count (shown at 0, recounted by the stock filter), search over brand, part name, part number
+and compatible models, the same sort options as `/computer`, 25 rows a page, a Clear filters empty
+state, and an Add dropdown in both the header and the no-parts empty state. `?type=<slug>` is
+honoured on load (an unknown one falls back to All); the edit pages' back link and the update
+redirect use it to return to the part's own type, and the chip key is the slug for exactly that
+reason.
+
+**A null `part_type` should not exist** - the untyped form is gone and the column is `NOT NULL`
+once the hand-run SQL is applied. If one appears anyway it is treated as Other everywhere
+(`CellphonePartView.typeOf`, `CellphonePartsController.storedType`): listed and viewed as Other,
+edited with the Other form, and saved back as `OTHER`. Nothing throws.
+
+Tests (context-free, run by name): `CellphonePartsDtoValidationTest`, `CellphonePartViewTest`,
+`CellphonePartsServiceTest`.
 
 ### Feature slices
 
@@ -723,22 +920,22 @@ Current nav layout, which is not symmetric between the two menus:
 **The migration to it is well past half done.** Converted: `dashboard.html`, `admin/dashboard.html`,
 all five `appointments/`, both `orders/` index pages, `build/`, `repairs/repairIndex.html`,
 `sales/salesReport.html`, `search/searchResults.html`, `profile/profileEdit.html`, all three
-`support/`, and **42 of the 53** `products/` templates (below). Still unconverted: the other 11
+`support/`, and **63 of the 71** `products/` templates (below). Still unconverted: the other 8
 `products/` pages, `orders/orderCheckout.html` and `orderConfirmation.html`, the three other
 `repairs/` pages, all three `clients/`, both `tickets/`, `login/login.html`, and
 `notifications/notificationIndex.html`.
 When converting a page, follow one that's already done rather than inventing a new structure.
 
-`products/` holds 53 templates: 29 at the top level and 24 in `products/laptop/`.
+`products/` holds 71 templates: 27 at the top level, 24 in `products/laptop/` and 20 in
+`products/cellphone/`.
 
-- **Converted (42):** `allParts.html`; the 16 create and edit forms of the eight PC categories
+- **Converted (63):** `allParts.html`; the 16 create and edit forms of the eight PC categories
   (`cpuCreateParts.html` / `cpuEditParts.html` and so on, all on `fragments/parts-form.html`, CPU
-  being the reference pair); `laptopParts.html`; and the 24 per-type laptop forms in
-  `products/laptop/`.
-- **Still old Bootstrap (11):** the eight PC list pages (`cpuParts.html` at `/cpu`, `gpuParts.html`
-  at `/gpu`, and so on) and `cellphoneParts.html` / `cellphoneCreateParts.html`, all on the old
-  `fragments/nav.html` shell; and `cellphoneEditParts.html`, which has **no shell at all** - no
-  sidebar, no topbar, just a centered Bootstrap form.
+  being the reference pair); `laptopParts.html` and the 24 per-type laptop forms in
+  `products/laptop/`; `cellphoneParts.html` and the 20 per-type cellphone forms in
+  `products/cellphone/`.
+- **Still old Bootstrap (8):** the eight PC list pages (`cpuParts.html` at `/cpu`, `gpuParts.html`
+  at `/gpu`, and so on), all on the old `fragments/nav.html` shell.
 
 Page-specific CSS goes in `static/css/<page>.css` (see `profile.css`, `sales-report.css`,
 `support.css`, `parts.css`); shared tokens live in `theme.css`. **No inline `style` attributes** -
