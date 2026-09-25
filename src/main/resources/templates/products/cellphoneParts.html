@@ -13,25 +13,22 @@
 <body class="parts-page">
 
 <!--
-  Cellphone parts list, driven by part type (cellphone redesign batch 2), copying /laptop's list
-  page (products/laptopParts.html) exactly - same shape and behaviour as /computer, styled from
-  static/css/parts.css. CellphonePartView is a duplicate of LaptopPartView for CellphoneParts's own
-  ten types, not a shared class - this codebase copies the parts-slice pattern per category.
+  Cellphone parts list, driven by part type, copying /laptop's list page (products/laptopParts.html)
+  exactly - same shape and behaviour as /computer, styled from static/css/parts.css.
+  CellphonePartView is a duplicate of LaptopPartView for CellphoneParts's own ten types, not a
+  shared class - this codebase copies the parts-slice pattern per category.
 
   Like /laptop, the page is client-side: CellphonePartsController serializes the catalog into
   ALL_PARTS as CellphonePartView rows, and this page filters, sorts and paginates them in the
   browser. Every label, key spec, unit and "Not set" is decided in Java (CellphonePartView), so the
   script below only lays values out - it formats nothing but money.
 
-  Chips come from PART_TYPES: every PartType in enum order, shown even at 0. Every row today has a
-  null part type (batch 1 added the column without backfilling it), so every part currently shows
-  under the Other chip - see CellphonePartView.typeOf. Chips, search, sort and the stock cards all
-  combine.
+  Chips come from PART_TYPES: every PartType in enum order, shown even at 0. A row with a null part
+  type (should not exist) is listed under Other - see CellphonePartView.typeOf. Chips, search,
+  sort and the stock cards all combine.
 
-  BATCH 5: all ten types now have their own create/edit forms (CellphonePartsController.
-  FORM_TEMPLATES), so the Add button is a dropdown like /laptop's with one entry per type. Edit
-  still falls back to the old untyped form (cellphoneEditParts.html), but only for a row whose
-  partType is still null - every part created since batch 1 backfilled the column has a real type.
+  The Add button is a dropdown with one entry per type in addPartTypes (CellphonePartsController.
+  FORM_TEMPLATES), each linking to /cellphone/{slug}/create - SCREEN's slug is "lcd".
 -->
 
 <div th:replace="~{fragments/layout-app :: sidebar(active='cellphone-parts', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>

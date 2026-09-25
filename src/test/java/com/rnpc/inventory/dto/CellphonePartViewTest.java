@@ -235,7 +235,7 @@ class CellphonePartViewTest {
 
     @Test
     void aStrayNullTypeRowIsShownAsOtherWithoutThrowing() {
-        // Every row today has a null part_type (batch 1 added the column without backfilling it).
+        // part_type is NOT NULL once the hand-run SQL has been applied, but a stray null must not throw.
         CellphoneParts stray = new CellphoneParts();
         stray.setPartName("Unknown part");
         stray.setPartCondition(PartCondition.NEW);

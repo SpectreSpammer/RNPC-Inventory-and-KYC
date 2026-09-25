@@ -35,18 +35,9 @@ public class CellphonePartsService {
                 .orElseThrow(() -> new IllegalArgumentException("Cellphone part with ID " + id + " not found"));
     }
 
-    public CellphoneParts saveCellphonePart(CellphonePartsDto cellphonePartsDto){
-        String storageFileName = handleFileUpload(cellphonePartsDto.getImageFile());
-        CellphoneParts cellphoneParts = mapToEntity(cellphonePartsDto);
-        cellphoneParts.setCreatedAt(new Date());
-        cellphoneParts.setImageFileName(storageFileName);
-
-        return cellphonePartsRepository.save(cellphoneParts);
-    }
-
     /**
-     * Type-based create (/cellphone/{type}/create). The type comes from the route, never from the
-     * form. Spec fields belonging to other types are nulled before saving.
+     * Create (/cellphone/{type}/create). The type comes from the route, never from the form. Spec
+     * fields belonging to other types are nulled before saving.
      */
     public CellphoneParts saveTypedPart(PartType type, CellphonePartsDto dto) {
         CellphoneParts cellphonePart = new CellphoneParts();
@@ -83,32 +74,17 @@ public class CellphonePartsService {
         }
     }
 
-    private CellphoneParts mapToEntity(CellphonePartsDto cellphonePartsDto) {
-        CellphoneParts cellphonePart = new CellphoneParts();
-        cellphonePart.setBrand(cellphonePartsDto.getBrand());
-        cellphonePart.setPartName(cellphonePartsDto.getPartName());
-        cellphonePart.setCategory(cellphonePartsDto.getCategory());
-        cellphonePart.setStorageSize(cellphonePartsDto.getStorageSize());
-        cellphonePart.setStocks(cellphonePartsDto.getStocks());
-        cellphonePart.setPrice(cellphonePartsDto.getPrice());
-        cellphonePart.setDescription(cellphonePartsDto.getDescription());
-
-        return cellphonePart;
-    }
-
     /**
-     * Update for both models. A pre-redesign row (partType null) is updated from the old form's
-     * fields exactly as before; a typed row takes the new fields, keeps its type, and has other
-     * types' spec fields nulled.
+     * Update. The part keeps its stored type and has other types' spec fields nulled. A stray row
+     * with a null part_type (should not exist) is saved back as OTHER, the type it is shown as.
      */
     public CellphoneParts updateCellphonePart(Long id, CellphonePartsDto cellphonePartsDto){
         CellphoneParts cellphonePart = getCellphonePartById(id);
         if (cellphonePart.getPartType() == null) {
-            updateEntity(cellphonePart, cellphonePartsDto);
-        } else {
-            copyTypedFields(cellphonePart, cellphonePartsDto);
-            clearOtherTypesSpecs(cellphonePart);
+            cellphonePart.setPartType(PartType.OTHER);
         }
+        copyTypedFields(cellphonePart, cellphonePartsDto);
+        clearOtherTypesSpecs(cellphonePart);
 
         if (cellphonePartsDto.getImageFile() != null && !cellphonePartsDto.getImageFile().isEmpty()) {
             deleteImageFile(cellphonePart.getImageFileName());
@@ -124,16 +100,6 @@ public class CellphonePartsService {
         deleteImageFile(cellphonePart.getImageFileName());
         cellphonePart.setImageFileName(null);
         cellphonePartsRepository.save(cellphonePart);
-    }
-
-    private void updateEntity(CellphoneParts cellphonePart, CellphonePartsDto cellphonePartsDto){
-        cellphonePart.setBrand(cellphonePartsDto.getBrand());
-        cellphonePart.setPartName(cellphonePartsDto.getPartName());
-        cellphonePart.setCategory(cellphonePartsDto.getCategory());
-        cellphonePart.setStorageSize(cellphonePartsDto.getStorageSize());
-        cellphonePart.setStocks(cellphonePartsDto.getStocks());
-        cellphonePart.setPrice(cellphonePartsDto.getPrice());
-        cellphonePart.setDescription(cellphonePartsDto.getDescription());
     }
 
     public void deleteCellphonePart(Long id){
@@ -154,7 +120,7 @@ public class CellphonePartsService {
         }
     }
 
-    /** New-model fields, DTO to entity. Strings are trimmed and blank ones stored as null. */
+    /** DTO to entity. Strings are trimmed and blank ones stored as null. */
     private void copyTypedFields(CellphoneParts cellphonePart, CellphonePartsDto dto) {
         cellphonePart.setBrand(blankToNull(dto.getBrand()));
         cellphonePart.setPartName(blankToNull(dto.getPartName()));
@@ -241,7 +207,7 @@ public class CellphonePartsService {
         // OTHER has no spec fields of its own - the blocks above already clear every other type's.
     }
 
-    /** Entity to DTO for the type-based edit forms. */
+    /** Entity to DTO for the edit forms. */
     public CellphonePartsDto toDto(CellphoneParts cellphonePart) {
         CellphonePartsDto dto = new CellphonePartsDto();
         dto.setBrand(cellphonePart.getBrand());

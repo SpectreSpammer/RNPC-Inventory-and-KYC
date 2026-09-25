@@ -10,24 +10,23 @@ import java.util.Date;
 public class CellphoneParts {
 
     /*
-     * Cellphone parts redesign, batch 1: additive only, and the same shape as LaptopParts - one
-     * table, common fields plus nullable per-type spec columns. Every column added here is
-     * NULLABLE (wrapper types, no nullable = false), because ddl-auto=update only ever adds, and a
-     * NOT NULL column added to a populated table would be filled with '' or 0 - which an enum
-     * cannot load. part_type and part_condition are made NOT NULL by hand in the retirement batch.
+     * One table, common fields plus nullable per-type spec columns - the same shape as LaptopParts.
+     * Every redesign column is NULLABLE (wrapper types, no nullable = false), because
+     * ddl-auto=update only ever adds, and a NOT NULL column added to a populated table would be
+     * filled with '' or 0 - which an enum cannot load. part_type and part_condition are made NOT
+     * NULL by hand instead (see "Database changes not in migrations" in CLAUDE.md).
      *
-     * Every new column is named explicitly. Spring's default naming never splits a trailing
-     * capital, and explicit names keep the DDL in CLAUDE.md honest.
+     * Every column is named explicitly. Spring's default naming never splits a trailing capital,
+     * and explicit names keep the DDL in CLAUDE.md honest.
      *
-     * category and storageSize are the pre-redesign model and stay until the retirement batch
-     * replaces the current forms. Their columns stay in the table after that either way:
-     * ddl-auto never drops.
+     * The pre-redesign category and storage_size columns are no longer mapped; they stay in the
+     * table until dropped by hand, because ddl-auto never drops.
      */
 
     /**
-     * The ten part types a phone repair shop stocks. The slug is the URL segment the per-type
-     * create routes will use (/cellphone/{slug}/create); group is the Bean Validation group
-     * carrying that type's required-field rules on the DTO.
+     * The ten part types a phone repair shop stocks. The slug is the URL segment of the per-type
+     * create routes (/cellphone/{slug}/create) - note SCREEN's is "lcd", not "screen"; group is the
+     * Bean Validation group carrying that type's required-field rules on the DTO.
      *
      * Stored as VARCHAR(32), not a native MySQL ENUM: Hibernate 6 can generate ENUM('SCREEN', ...)
      * for @Enumerated(STRING), and ddl-auto=update cannot alter it when a constant is added.
@@ -48,14 +47,9 @@ public class CellphoneParts {
          * Bean Validation group markers, one per type. Every type group extends Typed, so a rule
          * in Typed (e.g. partCondition required) applies to every type-based form: validating a
          * group also validates the groups it extends.
-         *
-         * Legacy carries the pre-redesign rules (category, storageSize, the old partName
-         * allow-list, description's 10-character minimum). It is validated only on the old
-         * /cellphone/create path, and goes with it in the retirement batch.
          */
         public interface Groups {
             interface Typed {}
-            interface Legacy {}
             interface Screen extends Typed {}
             interface Battery extends Typed {}
             interface ChargingBoard extends Typed {}
@@ -97,20 +91,12 @@ public class CellphoneParts {
     private Long cellphonePartId;
 
     private String brand;
-    /** Existing column. Old model: the part type. New model: free text. */
+    /** Free text, e.g. "Galaxy A12 battery". */
     private String partName;
-    /** Old model (the part type, e.g. Display). Kept until the retirement batch. */
-    private String category;
-    /** Old model. Kept until the retirement batch. */
-    private String storageSize;
     private int stocks;
     private double price;
 
-    /**
-     * The redesign's "notes", mapped onto the existing description column rather than renamed -
-     * ddl-auto cannot rename. getDescription()/setDescription() below keep the current controller,
-     * service and templates working unchanged.
-     */
+    /** Notes, mapped onto the pre-existing description column rather than renamed - ddl-auto cannot rename. */
     @Column(name = "description", columnDefinition = "TEXT")
     private String notes;
     private Date createdAt;
@@ -124,7 +110,7 @@ public class CellphoneParts {
     @Column(name = "part_condition", length = 32, columnDefinition = "VARCHAR(32)")
     private PartCondition partCondition;
 
-    // ---- Common fields added by the redesign. brand and partName are the existing columns above. ----
+    // ---- Common fields. brand and partName are above. ----
     /** Free text, e.g. "Galaxy A12, A125F" */
     @Column(name = "compatible_models", length = 500)
     private String compatibleModels;
@@ -229,22 +215,6 @@ public class CellphoneParts {
         this.partName = partName;
     }
 
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public String getStorageSize() {
-        return storageSize;
-    }
-
-    public void setStorageSize(String storageSize) {
-        this.storageSize = storageSize;
-    }
-
     public int getStocks() {
         return stocks;
     }
@@ -267,15 +237,6 @@ public class CellphoneParts {
 
     public void setNotes(String notes) {
         this.notes = notes;
-    }
-
-    /** Old name for notes; same column. */
-    public String getDescription() {
-        return notes;
-    }
-
-    public void setDescription(String description) {
-        this.notes = description;
     }
 
     public Date getCreatedAt() {

@@ -22,9 +22,9 @@ import com.rnpc.inventory.entity.CellphoneParts.PartType;
  * The page serializes a list of these into ALL_PARTS (th:inline), so every property is a plain
  * String/number/boolean or a list of Spec - no Date, no enum, nothing Jackson has to guess at.
  *
- * A row with a null part type should not exist; if one appears it is shown as Other (typeOf
- * below) rather than throwing, the same way LaptopPartView treats a stray laptop row. Every
- * cellphone row is like this today, since batch 1 added part_type without backfilling it.
+ * A row with a null part type should not exist (the column is NOT NULL once the hand-run SQL in
+ * CLAUDE.md has been applied); if one appears it is shown as Other (typeOf below) rather than
+ * throwing, the same way LaptopPartView treats a stray laptop row.
  */
 public class CellphonePartView {
 

@@ -19,9 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * The cellphone DTO's validation groups, run exactly the way CellphonePartsController runs them:
  * SmartValidator.validate(dto, result, Default.class, group). Plain Hibernate Validator behind
  * Spring's adapter - no Spring context and no database. Mirrors LaptopPartsDtoValidationTest's
- * structure, extended batch by batch as each type gets its own form: Screen and Battery (batch 3),
- * Charging board, Back glass, Housing and Flex cable (batch 4), Camera, Fingerprint, Sensor and
- * Other (batch 5) - the last four, so every PartType now has a form.
+ * structure, covering all ten types: Screen, Battery, Charging board, Back glass, Housing, Flex
+ * cable, Camera, Fingerprint, Sensor and Other.
  */
 class CellphonePartsDtoValidationTest {
 
@@ -418,8 +417,8 @@ class CellphonePartsDtoValidationTest {
     }
 
     @Test
-    void legacyRulesDoNotApplyToAnyOfTheNewTypes() {
-        // No category, storageSize or old partName pattern set - the Legacy-only rules must not fire.
+    void everyTypeValidatesWithNoCategoryOrStorageSize() {
+        // The pre-redesign category and storage size are gone: a valid part carries neither.
         assertEquals(Set.of(), errorFields(validScreen(), PartType.SCREEN.getGroup()));
         assertEquals(Set.of(), errorFields(validBattery(), PartType.BATTERY.getGroup()));
         assertEquals(Set.of(), errorFields(validChargingBoard(), PartType.CHARGING_BOARD.getGroup()));
@@ -433,18 +432,32 @@ class CellphonePartsDtoValidationTest {
     }
 
     @Test
-    void newTypeRulesDoNotLeakIntoTheLegacyGroup() {
-        // A valid pre-redesign DTO stays valid even with every typed field left unset - every
-        // type's rules are scoped to their own group.
-        CellphonePartsDto dto = new CellphonePartsDto();
-        dto.setBrand("Samsung");
-        dto.setPartName("Super AMOLED Display");
-        dto.setCategory("Display");
-        dto.setStorageSize("None Applicable");
-        dto.setStocks(0);
-        dto.setPrice(500);
-        dto.setDescription("A description long enough");
-        assertEquals(Set.of(), errorFields(dto, PartType.Groups.Legacy.class));
+    void notesAreOptionalWithNoMinimumLengthButCapped() {
+        // The pre-redesign rule "at least 10 characters" is gone; only the 2000-character cap stays.
+        CellphonePartsDto dto = validScreen();
+        dto.setDescription("short");
+        assertEquals(Set.of(), errorFields(dto, PartType.SCREEN.getGroup()));
+
+        dto.setDescription("x".repeat(2001));
+        assertEquals(Set.of("description"), errorFields(dto, PartType.SCREEN.getGroup()));
+    }
+
+    @Test
+    void partNameIsFreeTextForEveryType() {
+        // The old allow-list (Super AMOLED Display|Li-Ion Battery|...) no longer applies.
+        CellphonePartsDto dto = validScreen();
+        dto.setPartName("Galaxy A12 OLED screen, service pack");
+        assertEquals(Set.of(), errorFields(dto, PartType.SCREEN.getGroup()));
+
+        dto.setPartName("x".repeat(256));
+        assertEquals(Set.of("partName"), errorFields(dto, PartType.SCREEN.getGroup()));
+    }
+
+    @Test
+    void brandMustBeOneOfTheListedBrands() {
+        CellphonePartsDto dto = validScreen();
+        dto.setBrand("Nokia");
+        assertEquals(Set.of("brand"), errorFields(dto, PartType.SCREEN.getGroup()));
     }
 
     @Test
