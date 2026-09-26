@@ -385,7 +385,8 @@ stored (`users.password` remains in the schema but is unused).
   `UserService.ensureAdminEmail`, so that email gets ADMIN on its first Google sign-in instead of
   defaulting to CUSTOMER. It also seeds the eight PC-component catalogs.
 
-**Authorization is hand-rolled in application code, with one exception in the filter chain.**
+**Authorization is hand-rolled in application code, with two exceptions in the filter chain**
+(the parts routes, then the customer and ticket routes - both below).
 `SecurityConfig` still ends in `anyRequest().permitAll()` and disables CSRF app-wide (no form in
 the app carries a CSRF token). Every controller re-implements its own `isSignedIn`/`isAdmin` pair
 checking for `ROLE_ADMIN`, and `GlobalNavAttributes` (a `@ControllerAdvice`) exposes
@@ -415,6 +416,40 @@ without depending on roughly seventy individual guards.
 These controllers still have **no** `isAdmin` method of their own - the filter chain is the only
 thing protecting them, so don't remove or narrow that rule on the assumption a controller check
 exists behind it.
+
+### The customer and walk-in ticket routes are the second exception
+
+`ClientController` (`/client`) and `TicketController`'s create and slip routes had no admin check
+either, so anyone - signed in or not - could list every client's name, contact number, email and
+address, create or delete clients, create tickets, and open any job-order slip by guessing an id.
+They are denied in the filter chain the same way, via `ADMIN_ONLY_CUSTOMER_PATHS`, ordered right
+after the parts rule and before the catch-all `permitAll`:
+
+```
+/client, /client/**, /ticket/create,
+/ticket/{id:[0-9]+}, /ticket/{id:[0-9]+}/modal                  -> hasRole("ADMIN")
+```
+
+Blocked requests behave exactly as for the parts routes below: anonymous -> `/login`, signed-in
+non-admin -> `/`, and scripted requests (`X-Requested-With: XMLHttpRequest`) get `401` / `403`.
+
+⚠️ **`/ticket/view` is deliberately left open.** It is the customer's own Repair History (same
+template as `/repair`), and `TicketController.showTicketView` scopes it per user itself - an admin
+sees everything, a signed-in customer only their linked clients' repairs, anyone else an empty list.
+That is why the slip routes are matched on a numeric id: a bare `/ticket/{id}` would also match
+`/ticket/view` and lock customers out. No customer-facing page uses the slip or its modal (the
+notification dropdown's repair links go to `/repair/{id}/modal`, not `/ticket/...`).
+
+As with the parts controllers, `ClientController` and `TicketController` still have **no** `isAdmin`
+check of their own for these routes - the filter chain is the only thing protecting them. Add new
+admin-only client or ticket routes to `ADMIN_ONLY_CUSTOMER_PATHS`.
+
+Tested by `AdminOnlyCustomerRoutesSecurityTest`, which runs the real `SecurityConfig` in a minimal
+web context (stub controllers, mocked user services, no Spring Boot app and no database) for a list,
+create, delete and slip route as anonymous, non-admin and admin, plus the scripted carve-out and the
+`/ticket/view` control.
+
+**The rest of this section applies to both rules.**
 
 **Where a blocked request goes.** `exceptionHandling` supplies both halves, and the two cases are
 genuinely different:

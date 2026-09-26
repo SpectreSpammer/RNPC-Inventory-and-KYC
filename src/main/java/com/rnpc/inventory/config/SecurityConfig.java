@@ -26,6 +26,12 @@ import java.util.Locale;
  * because the alternative is remembering to guard roughly seventy handler methods individually and
  * every one added later.
  *
+ * The customer records and the walk-in ticket routes are the second exception, for the same reason:
+ * ClientController and TicketController's create/slip routes had no admin check, so anyone could
+ * list every client's name, phone, email and address, create or delete clients, and open any job
+ * order slip by id. /ticket/view is deliberately NOT locked: it is the customer's own Repair
+ * History, and TicketController scopes it per user itself.
+ *
  * CSRF is disabled because none of the app's existing forms (product CRUD, orders, repairs,
  * tickets, etc.) carry a CSRF token - enabling it here would 403 every POST/PUT/DELETE across the
  * whole app.
@@ -45,6 +51,17 @@ public class SecurityConfig {
             "/psu/**", "/case/**", "/cooler/**", "/laptop/**", "/cellphone/**"
     };
 
+    /**
+     * Client records (ClientController) and the admin-only walk-in ticket routes (TicketController).
+     * The slip routes are matched on a numeric id so that /ticket/view, which customers use, is not
+     * caught by a bare /ticket/{id}.
+     */
+    private static final String[] ADMIN_ONLY_CUSTOMER_PATHS = {
+            "/client", "/client/**",
+            "/ticket/create",
+            "/ticket/{id:[0-9]+}", "/ticket/{id:[0-9]+}/modal"
+    };
+
     private final CustomOAuth2UserService oAuth2UserService;
     private final CustomOidcUserService oidcUserService;
 
@@ -59,11 +76,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                // Order matters - the parts rule has to come before the catch-all permitAll.
+                // Order matters - both admin-only rules have to come before the catch-all permitAll.
                 // hasRole("ADMIN") matches the ROLE_ADMIN authority CustomOidcUserService already
                 // grants; Spring adds the ROLE_ prefix itself, so nothing there needs changing.
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(ADMIN_ONLY_PARTS_PATHS).hasRole("ADMIN")
+                        .requestMatchers(ADMIN_ONLY_CUSTOMER_PATHS).hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
                 // Without this a blocked request renders Spring's 403 error page. Anonymous users
