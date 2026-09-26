@@ -1,5 +1,6 @@
 package com.rnpc.inventory.service;
 
+import com.rnpc.inventory.util.PhoneNumbers;
 import com.rnpc.inventory.entity.User;
 import com.rnpc.inventory.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +70,7 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("Invalid username: " + username));
         user.setFullName(fullName);
         user.setAddress(address);
-        user.setContactNumber(contactNumber);
+        user.setContactNumber(PhoneNumbers.format(contactNumber));
         user.setEmail(email);
         return userRepository.save(user);
     }

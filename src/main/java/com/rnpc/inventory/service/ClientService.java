@@ -5,6 +5,7 @@ import com.rnpc.inventory.entity.Client;
 import com.rnpc.inventory.entity.RepairRecord;
 import com.rnpc.inventory.entity.User;
 import com.rnpc.inventory.repository.ClientRepository;
+import com.rnpc.inventory.util.PhoneNumbers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -40,8 +41,39 @@ public class ClientService {
                 .orElseThrow(() -> new IllegalArgumentException("Invalid client Id: " + id));
     }
 
+    /**
+     * Every client whose number is the same phone as this one (see PhoneNumbers.matchKey), oldest
+     * first. Compared on digits alone, in Java, because the stored form is not guaranteed to be
+     * canonical (a landline keeps what was typed, and rows from before the format rule are raw) -
+     * fine at shop scale; a stored digits column would be the next step if the table gets large.
+     */
+    public List<Client> findAllByContactNumber(String contactNumber) {
+        String key = PhoneNumbers.matchKey(contactNumber);
+        if (key.isEmpty()) {
+            return List.of();
+        }
+        return repo.findAll(Sort.by(Sort.Direction.ASC, "clientId")).stream()
+                .filter(c -> key.equals(PhoneNumbers.matchKey(c.getContactNumber())))
+                .toList();
+    }
+
+    /**
+     * The client a ticket, appointment or checkout should attach to. If old data still holds two
+     * clients with the same number, this returns the oldest instead of throwing, so one bad pair
+     * cannot take those flows down while the duplicates are merged by hand.
+     */
     public Optional<Client> findByContactNumber(String contactNumber) {
-        return repo.findByContactNumber(contactNumber);
+        return findAllByContactNumber(contactNumber).stream().findFirst();
+    }
+
+    /**
+     * A client other than {@code excludeClientId} (null when creating) who already has this number,
+     * for rejecting a new or edited client. Empty means the number is free to use.
+     */
+    public Optional<Client> findOtherWithContactNumber(String contactNumber, Long excludeClientId) {
+        return findAllByContactNumber(contactNumber).stream()
+                .filter(c -> !c.getClientId().equals(excludeClientId))
+                .findFirst();
     }
 
     // Attributes a client record to the logged-in account that created/reused it, so their own
@@ -130,7 +162,7 @@ public class ClientService {
     private Client mapToEntity(ClientDto clientDto) {
         Client client = new Client();
         client.setFullName(clientDto.getFullName());
-        client.setContactNumber(clientDto.getContactNumber());
+        client.setContactNumber(PhoneNumbers.format(clientDto.getContactNumber()));
         client.setEmail(clientDto.getEmail());
         client.setAddress(clientDto.getAddress());
         return client;
@@ -138,7 +170,7 @@ public class ClientService {
 
     private void updateEntity(Client client, ClientDto clientDto) {
         client.setFullName(clientDto.getFullName());
-        client.setContactNumber(clientDto.getContactNumber());
+        client.setContactNumber(PhoneNumbers.format(clientDto.getContactNumber()));
         client.setEmail(clientDto.getEmail());
         client.setAddress(clientDto.getAddress());
     }

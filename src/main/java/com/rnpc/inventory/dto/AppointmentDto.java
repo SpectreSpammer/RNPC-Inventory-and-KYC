@@ -1,5 +1,6 @@
 package com.rnpc.inventory.dto;
 
+import com.rnpc.inventory.util.PhoneNumbers;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.AssertTrue;
 import com.rnpc.inventory.entity.Appointment.ServiceType;
@@ -20,7 +21,7 @@ public class AppointmentDto {
     private String fullName;
 
     @NotEmpty(message = "The contact number is required!")
-    @Pattern(regexp = "^[0-9+\\-() ]{7,15}$", message = "Invalid contact number")
+    @Pattern(regexp = PhoneNumbers.PATTERN, message = "Invalid contact number")
     private String contactNumber;
 
     @NotEmpty(message = "The email is required!")

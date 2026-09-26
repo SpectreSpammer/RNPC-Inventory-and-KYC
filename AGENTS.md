@@ -369,6 +369,95 @@ adds them at startup - so step 3's `SELECT` and step 4 fail with "unknown column
 for the deployment to show **ACTIVE**, then run 2, 3, (3a) and 4. Any pre-redesign row on Railway
 will have a null `part_type` / `part_condition` at that point, which is what 3a is for.
 
+**Client contact numbers** (customers batch 2 - **not yet run on either database**). New and edited
+clients now store a Philippine mobile as `0917 234 5678` (eleven digits, grouped 4-3-4) and are
+matched on digits alone (see Clients under Feature slices). Rows from before that hold whatever was
+typed. No schema change - this only reformats data, and only after the new build is running:
+
+- **Local:** after IntelliJ has been stopped and restarted on the new code.
+- **Railway:** once the deployment shows **ACTIVE**. Running it earlier is harmful, not just
+  pointless: the old build still matches contact numbers as exact strings, so once a stored
+  `09172345678` becomes `0917 234 5678` it would stop matching what customers type and create
+  duplicate clients.
+
+Nothing in it touches `rnpc_clients` until step 3. Steps 1 and 2 only read. Temporary tables vanish
+when the session ends; each is referenced once per query, which MySQL requires. It needs
+`REGEXP_REPLACE` (MariaDB 10.0.5+, MySQL 8+ - both databases here qualify).
+
+```sql
+-- 1. Work out each client's digits-only match key (the same rule as PhoneNumbers.matchKey:
+--    +63 becomes 0, a bare 639... mobile becomes 09..., a 10-digit 9... becomes 09...).
+CREATE TEMPORARY TABLE tmp_client_keys AS
+SELECT client_id,
+       CASE
+         WHEN REPLACE(contact_number, ' ', '') LIKE '+63%'
+              THEN CONCAT('0', IF(SUBSTRING(digits, 3, 1) = '0', SUBSTRING(digits, 4), SUBSTRING(digits, 3)))
+         WHEN digits REGEXP '^639[0-9]{9}$' THEN CONCAT('0', SUBSTRING(digits, 3))
+         WHEN digits REGEXP '^9[0-9]{9}$'   THEN CONCAT('0', digits)
+         ELSE digits
+       END AS key_digits
+FROM (SELECT client_id, contact_number,
+             REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(contact_number, ' ', ''), '-', ''), '(', ''), ')', ''), '+', '') AS digits
+      FROM rnpc_clients
+      WHERE contact_number IS NOT NULL AND contact_number REGEXP '[0-9]') d;
+
+CREATE TEMPORARY TABLE tmp_dup_keys AS
+SELECT key_digits FROM tmp_client_keys GROUP BY key_digits HAVING COUNT(*) > 1;
+
+-- 2. LOOK BEFORE YOU UPDATE: clients whose numbers are the same phone once normalised.
+--    Read-only. Zero rows means there is nothing to merge - go to step 3.
+SELECT k.key_digits, c.client_id, c.full_name, c.contact_number, c.email, c.created_at, c.user_id,
+       (SELECT COUNT(*) FROM rnpc_repair_records r WHERE r.client_id = c.client_id) AS repairs,
+       (SELECT COUNT(*) FROM rnpc_orders o WHERE o.client_id = c.client_id)         AS orders,
+       (SELECT COUNT(*) FROM rnpc_appointments a WHERE a.client_id = c.client_id)   AS appointments
+FROM tmp_client_keys k
+JOIN tmp_dup_keys d  ON d.key_digits = k.key_digits
+JOIN rnpc_clients c  ON c.client_id = k.client_id
+ORDER BY k.key_digits, c.client_id;
+
+-- 3. Reformat every client that is NOT in a clash. An eleven-digit mobile becomes 0917 234 5678;
+--    anything else keeps what was typed with runs of spaces collapsed.
+UPDATE rnpc_clients c
+JOIN tmp_client_keys k     ON k.client_id = c.client_id
+LEFT JOIN tmp_dup_keys d   ON d.key_digits = k.key_digits
+SET c.contact_number = CASE
+      WHEN k.key_digits REGEXP '^09[0-9]{9}$'
+        THEN CONCAT(LEFT(k.key_digits, 4), ' ', SUBSTRING(k.key_digits, 5, 3), ' ', SUBSTRING(k.key_digits, 8, 4))
+      ELSE TRIM(REGEXP_REPLACE(c.contact_number, '[[:space:]]+', ' '))
+    END
+WHERE d.key_digits IS NULL;
+
+DROP TEMPORARY TABLE tmp_client_keys;
+DROP TEMPORARY TABLE tmp_dup_keys;
+```
+
+**If step 2 returns rows, this is what it means.** It changes nothing. Each group of rows is two or
+more clients that the app now treats as one phone. Step 3 deliberately skips them (they stay in
+their old spelling), so a clash never blocks the other clients, but until you merge them:
+
+- new tickets, appointments and checkouts attach to the **lowest `client_id`** in the group (the app
+  used to throw on this; it now picks the oldest), and
+- the client form refuses to save either of them with that number, because it belongs to "another
+  client" - so they cannot be fixed by editing, only merged.
+
+Merge by hand, one group at a time: pick the client to keep, repoint the history, then delete the
+other. **Do not delete the extra client from the Customers page first** - `deleteClient` also
+deletes that client's repair records. After merging, re-run steps 1-3.
+
+```sql
+-- keep = the client to keep, drop = the duplicate (values from step 2).
+UPDATE rnpc_repair_records SET client_id = :keep WHERE client_id = :drop;
+UPDATE rnpc_orders         SET client_id = :keep WHERE client_id = :drop;
+UPDATE rnpc_appointments   SET client_id = :keep WHERE client_id = :drop;
+-- If only the duplicate is linked to a sign-in account (user_id not null), carry it over:
+UPDATE rnpc_clients k JOIN rnpc_clients x ON x.client_id = :drop
+   SET k.user_id = x.user_id WHERE k.client_id = :keep AND k.user_id IS NULL;
+DELETE FROM rnpc_clients WHERE client_id = :drop;
+```
+
+`users.contact_number` (the profile page) is not matched against clients, so it is not part of this;
+it is reformatted whenever the user next saves their profile.
+
 ## Sign-in and authorization
 
 Google-only OAuth2/OIDC. There is no username/password login, no local sign-up, and no passwords
@@ -833,6 +922,33 @@ Tests (context-free, run by name): `CellphonePartsDtoValidationTest`, `Cellphone
 - **Clients** - `ClientController` (`/client`). A `Client` is the billing/contact record; a `User`
   is the sign-in account. They're linked via `ClientService.linkToUser` at checkout, which is how a
   customer's own orders become visible to them.
+  **Contact numbers have one format and one matcher, `util/PhoneNumbers`** - do not write a second
+  copy. A Philippine mobile is stored and shown as `0917 234 5678` (eleven digits, grouped 4-3-4);
+  anything else keeps what was typed, cleaned of stray characters. Two numbers are the same phone
+  when their `matchKey` (digits only, spaces / dashes / brackets ignored, `+63` read as `0`) is
+  equal, so `09172345678`, `0917-234-5678` and `+639172345678` all match. The five DTOs that take a
+  number (`ClientDto`, `TicketDto`, `AppointmentDto`, `CheckoutDto`, `ProfileDto`) share one
+  `PhoneNumbers.PATTERN`. `ClientService` is where it is applied: `saveClient` / `updateClient` store
+  the formatted form, `findByContactNumber` (used by the ticket, appointment and checkout
+  find-or-create) compares digits in Java and returns the **oldest** match rather than throwing if
+  old data still holds duplicates, and `findOtherWithContactNumber` backs the duplicate check.
+  `ClientController` rejects a new or edited client whose number belongs to a different client,
+  naming that client and their id. `rnpc_clients.contact_number` is not unique in the database (the
+  stored form is not guaranteed canonical), so the check is application-level. The by-hand SQL for
+  existing rows is under "Database changes not in migrations".
+  **The field formats itself as it is typed** via one shared script, `static/js/phone-format.js`,
+  attached to any input carrying `data-phone-format` (client create/edit, walk-in ticket,
+  appointment, checkout, profile) - never copy its logic into a template and never hardcode a field
+  id. It mirrors `PhoneNumbers` (display only; the server still formats and validates, so if they
+  disagree the server wins): 4-3-4 grouping for a number starting `09`, `+63` read as `0`, stray
+  characters stripped, at most eleven digits, and anything it cannot recognise (a landline, a number
+  still too short to tell) left as typed. It never blocks a key or clears the field, and it keeps the
+  caret by counting digits before it, so mid-number edits do not jump to the end. Two deliberate
+  details: a Backspace / Delete that only removes the space between groups removes the neighbouring
+  digit instead (otherwise the reformat puts the space back and the key seems dead), and the
+  "10-digit 9... gains its 0" rule is skipped while deleting so the leading 0 can still be edited. It
+  leaves a `readOnly` field alone, because the profile page shows a masked value in one; that page's
+  `maskPhone` hides digits 5-9 by digit position, since the stored number now contains spaces.
 - **Legacy tickets** - `TicketController` (`/ticket`) is a separate, older print-a-ticket feature,
   unrelated to the support tickets above.
 

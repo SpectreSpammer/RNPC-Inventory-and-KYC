@@ -1,5 +1,6 @@
 package com.rnpc.inventory.dto;
 
+import com.rnpc.inventory.util.PhoneNumbers;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.constraints.Email;
@@ -13,7 +14,7 @@ public class ClientDto {
     private String fullName;
 
     @NotEmpty(message = "The contact number is required!")
-    @Pattern(regexp = "^[0-9+\\-() ]{7,15}$", message = "Invalid contact number")
+    @Pattern(regexp = PhoneNumbers.PATTERN, message = "Invalid contact number")
     private String contactNumber;
 
     @NotEmpty(message = "The email is required!")

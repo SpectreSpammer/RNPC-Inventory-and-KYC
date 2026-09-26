@@ -61,6 +61,7 @@ public class ClientController {
     public String createClient(
             @Valid @ModelAttribute ClientDto clientDto, BindingResult result) {
 
+        rejectDuplicateNumber(clientDto, result, null);
         if (result.hasErrors()) {
             return "clients/clientCreate";
         }
@@ -90,6 +91,7 @@ public class ClientController {
                                 @Valid @ModelAttribute ClientDto clientDto,
                                 BindingResult result,
                                 Model model) {
+        rejectDuplicateNumber(clientDto, result, id);
         if (result.hasErrors()) {
             model.addAttribute("clientId", id);
             model.addAttribute("currentImage", service.getClientById(id).getImageFileName());
@@ -98,6 +100,18 @@ public class ClientController {
 
         service.updateClient(id, clientDto);
         return "redirect:/client";
+    }
+
+    // A number already on another client is refused, naming that client so the admin can go to them
+    // instead. Skipped when the field already failed validation, so one field never shows two errors.
+    private void rejectDuplicateNumber(ClientDto clientDto, BindingResult result, Long excludeClientId) {
+        if (result.hasFieldErrors("contactNumber")) {
+            return;
+        }
+        service.findOtherWithContactNumber(clientDto.getContactNumber(), excludeClientId).ifPresent(other ->
+                result.rejectValue("contactNumber", "duplicate",
+                        "This number already belongs to " + other.getFullName() + " (client #" + other.getClientId()
+                                + "). Open that client instead of adding another."));
     }
 
     @DeleteMapping("/removePhoto/{id}")

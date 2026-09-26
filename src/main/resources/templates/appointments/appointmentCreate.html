@@ -203,7 +203,7 @@
                     <div class="text-danger appointment-field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
                 </div><div class="mb-3">
                     <label for="contactNumber" class="form-label">Contact Number</label>
-                    <input type="text" th:field="*{contactNumber}" required class="form-control" id="contactNumber" placeholder="e.g. 0917 234 5678">
+                    <input type="text" th:field="*{contactNumber}" data-phone-format inputmode="tel" required class="form-control" id="contactNumber" placeholder="e.g. 0917 234 5678">
                     <div class="text-danger appointment-field-error" th:if="${#fields.hasErrors('contactNumber')}" th:errors="*{contactNumber}"></div>
                 </div><div class="mb-3">
                     <label for="email" class="form-label">Email</label>
@@ -308,6 +308,7 @@
 <th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
 <th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
 <th:block th:replace="~{fragments/appointment-ui :: script}"></th:block>
+<script th:src="@{/js/phone-format.js}"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {

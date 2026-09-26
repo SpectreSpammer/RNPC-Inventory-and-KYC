@@ -29,7 +29,7 @@
 <div class="profile-field" th:if="${isAdmin}"><label for="employeeId">Employee ID</label><input id="employeeId" th:value="${employeeId}" readonly/></div>
 <div class="profile-field"><label for="fullName">Name</label><input id="fullName" th:field="*{fullName}" required/><small>Shown as your greeting on the home page.</small><p class="profile-error" th:errors="*{fullName}"></p></div>
 <div class="profile-field"><label for="address">Address</label><textarea id="address" th:field="*{address}" rows="3" maxlength="500" required></textarea><p class="profile-error" th:errors="*{address}"></p></div>
-<div class="profile-field"><label for="contactNumber">Contact Number</label><div class="profile-input-group"><input type="text" id="contactNumber" th:field="*{contactNumber}" autocomplete="off" required/><button type="button" id="toggleContactNumber" aria-label="Show Contact Number" aria-pressed="false"><i data-feather="eye"></i></button></div><small>Digits 5-9 are hidden until you click the eye icon.</small><p class="profile-error" th:errors="*{contactNumber}"></p></div>
+<div class="profile-field"><label for="contactNumber">Contact Number</label><div class="profile-input-group"><input type="text" id="contactNumber" th:field="*{contactNumber}" data-phone-format inputmode="tel" autocomplete="off" required/><button type="button" id="toggleContactNumber" aria-label="Show Contact Number" aria-pressed="false"><i data-feather="eye"></i></button></div><small>Digits 5-9 are hidden until you click the eye icon.</small><p class="profile-error" th:errors="*{contactNumber}"></p></div>
 <div class="profile-field"><label for="email">Email Address</label><div class="profile-input-group"><input type="text" id="email" th:field="*{email}" autocomplete="off" required/><button type="button" id="toggleEmail" aria-label="Show Email Address" aria-pressed="false"><i data-feather="eye"></i></button></div><small>The middle of the address is hidden until you click the eye icon.</small><p class="profile-error" th:errors="*{email}"></p></div>
 <div class="profile-field"><label for="photo">Upload a Profile Picture</label><div class="profile-upload"><i data-feather="upload"></i><div><strong>Choose an image</strong><small>JPG, PNG (Max 5 MB)</small></div><input type="file" id="photo" name="photo" accept="image/jpeg,image/png"/></div>
 <div id="photoSelection" class="profile-file" hidden><img id="photoThumbnail" alt="Selected photo preview"/><div><strong id="photoFilename"></strong><small id="photoSize"></small></div><button id="clearPhoto" type="button" aria-label="Remove selected photo">&times;</button></div><p id="photoError" class="profile-error" role="alert" hidden></p></div>
@@ -40,16 +40,18 @@
 <th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
 <th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
 <th:block th:replace="~{fragments/appointment-ui :: script}"></th:block>
+<script th:src="@{/js/phone-format.js}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Masks characters 5-9 (1-indexed) of a phone number, e.g. "09171234567" -> "0917\u2022\u2022\u2022\u2022\u202267".
+        // Masks digits 5-9 of a phone number whatever the spacing, e.g. "0917 123 4567" -> "0917 \u2022\u2022\u2022 \u2022\u202267".
         function maskPhone(value) {
             if (!value) return value;
-            var chars = value.split('');
-            for (var i = 4; i <= 8 && i < chars.length; i++) {
-                if (chars[i] !== ' ') chars[i] = '\u2022';
-            }
-            return chars.join('');
+            var digitIndex = 0;
+            return value.split('').map(function (ch) {
+                if (!/\d/.test(ch)) return ch;
+                digitIndex++;
+                return digitIndex >= 5 && digitIndex <= 9 ? '\u2022' : ch;
+            }).join('');
         }
 
         // Shows the first character and last 4 characters of the local part (before @), masks
