@@ -1,0 +1,21 @@
+/* Customers list (/client) - only what parts.css does not already cover. The page reuses parts.css
+   for the shell (header button, toolbar, table, pager, empty states, action buttons) and adds the
+   avatar, the job-order chips and a couple of cell rules here. */
+
+/* Avatar: a round tile with the client's initials, in the place of the parts list's type code. */
+.clients-avatar{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;flex-shrink:0;background:var(--bg-page);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:800;letter-spacing:.02em;text-transform:uppercase}
+
+/* Job orders: at most two chips (the view caps them) and a "+N more" note. Wrapping keeps the cell
+   inside its own row instead of spilling into the rows above and below. */
+.clients-jobs{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-1);max-width:190px}
+.clients-chip{display:inline-block;background:var(--blue-subtle);color:var(--blue);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap}
+.clients-more{font-size:11px;font-weight:600;color:var(--text-muted);white-space:nowrap;cursor:help}
+
+/* A phone number stays on one line. */
+.clients-nowrap{white-space:nowrap}
+
+/* A long address is cut to one line in the table; the full text is in its title. */
+.clients-address{display:block;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* The email under the name can be long; let it break rather than widen the column. */
+.clients-page .parts-brand{overflow-wrap:anywhere}

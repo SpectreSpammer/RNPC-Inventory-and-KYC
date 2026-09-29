@@ -873,6 +873,63 @@ edited with the Other form, and saved back as `OTHER`. Nothing throws.
 Tests (context-free, run by name): `CellphonePartsDtoValidationTest`, `CellphonePartViewTest`,
 `CellphonePartsServiceTest`.
 
+### The Customers list page (`/client`)
+
+`clients/clientIndex.html` is converted to `fragments/layout-app.html` (sidebar keyed
+`active='customers'`), copying the parts list pages' shell (`products/laptopParts.html`) where the
+pattern fits: page header, toolbar, table, 25-per-page pager, count line, both empty states and the
+delete confirmation, all styled from `parts.css`. Clients have no type, so there are deliberately no
+chips-as-filters, no `?type=` restore and no stock/stat cards - the parts pattern is followed only as
+far as it fits. `clientCreate.html` and `clientEdit.html` are unconverted still - only the list page
+was in scope.
+
+`ClientController.showClientList` builds `ClientView` rows the way `LaptopPartsController` builds
+`LaptopPartView` rows: read every client, then every repair record in **one** query via
+`RepairRecordService.getRepairRecordsGroupedByClient()` (grouped by client id), and pass each
+client's own list into `ClientView.from(client, repairs)` - one query total, not a count and a list
+per client.
+
+**`ClientView`** decides every display string in Java, mirroring `LaptopPartView`:
+
+- **Initials** for the avatar - first letter of the first and of the last word, upper-cased ("Nand
+  Test" -> "NT", "robin" -> "R"), "?" when the name is blank.
+- **Contact number** shown in its canonical form via `PhoneNumbers.format`, plus a `contactDigits`
+  field (`PhoneNumbers.matchKey`) the list page's search compares against, so a phone-shaped query
+  matches on digits alone - `09991234567` finds a client stored as `0999 123 4567`, and a `+63`
+  spelling matches too.
+- **Job order chips**, capped at `ClientView.MAX_CHIPS` (2): only the repairs `RepairRecord
+  .isVisible()` allows into Repair History become chips - the same rule the repair list itself uses -
+  so a chip never names a job order the admin cannot open from it. Beyond the cap, `moreLabel` is
+  `"+N more"` and `allJobOrders` (the tooltip, and part of search) lists every visible job order.
+- **`repairCount` vs `jobOrderCount`** are deliberately different numbers. `jobOrderCount` is the
+  visible count shown as chips; `repairCount` is every repair record including hidden ones, because
+  deleting the client deletes all of them, and the delete-confirmation warning has to say so.
+- **`added` / `addedEpoch`** - a formatted date for display and the raw epoch millis for sorting.
+
+**The list page itself is client-side**, like `/computer` and `/laptop`: `ALL_CLIENTS` is the
+serialized `ClientView` array, and the page's own script filters, sorts and paginates it in the
+browser - no query beyond the one above.
+
+- **Search** covers name, contact number, email and job order number as substring text, plus the
+  digits-only comparison against `contactDigits`; a query containing letters (e.g. `"nand2"`) is
+  never treated as a phone number, so it does not match every number that happens to contain a 2.
+- **Sort**: Newest added (default, by `addedEpoch` descending), Oldest, Name (A-Z, locale-aware,
+  case-insensitive), Most job orders (by `jobOrderCount` descending, ties broken by newest).
+- **Pager**: 25 rows a page, the same condensed first/last/window pattern as the parts pages.
+- **The eye action** goes to `/repair?clientId={id}` - the same admin drill-down
+  `RepairRecordController.showRepairList` already serves - rather than a parts-style view modal,
+  since a client has no specs to show in one.
+- **Job order cell**: at most two chips plus `"+N more"` (its `title` carries the full list) so it
+  can never overflow its row; a long address is truncated to one line the same way, with the full
+  text in its own `title`.
+
+`static/css/clients.css` holds only what `parts.css` doesn't already provide - the round avatar, the
+chips and "+N more" note, the address truncation, and letting the email wrap under the name.
+`parts.css` itself is unchanged.
+
+Tests (context-free, run by name): `ClientViewTest`, plus `ClientServiceTest`, `ClientControllerTest`
+and `PhoneNumbersTest` from customers batch 2.
+
 ### Feature slices
 
 - **PC builder** - `BuildController` (`/build`), `SavedBuildController` (`/build/my-builds`, with
@@ -1071,10 +1128,10 @@ Current nav layout, which is not symmetric between the two menus:
 **The migration to it is well past half done.** Converted: `dashboard.html`, `admin/dashboard.html`,
 all five `appointments/`, both `orders/` index pages, `build/`, `repairs/repairIndex.html`,
 `sales/salesReport.html`, `search/searchResults.html`, `profile/profileEdit.html`, all three
-`support/`, and **63 of the 71** `products/` templates (below). Still unconverted: the other 8
-`products/` pages, `orders/orderCheckout.html` and `orderConfirmation.html`, the three other
-`repairs/` pages, all three `clients/`, both `tickets/`, `login/login.html`, and
-`notifications/notificationIndex.html`.
+`support/`, `clients/clientIndex.html`, and **63 of the 71** `products/` templates (below). Still
+unconverted: the other 8 `products/` pages, `orders/orderCheckout.html` and
+`orderConfirmation.html`, the three other `repairs/` pages, the other two `clients/` pages, both
+`tickets/`, `login/login.html`, and `notifications/notificationIndex.html`.
 When converting a page, follow one that's already done rather than inventing a new structure.
 
 `products/` holds 71 templates: 27 at the top level, 24 in `products/laptop/` and 20 in

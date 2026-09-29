@@ -2,6 +2,7 @@ package com.rnpc.inventory.controller;
 
 import com.rnpc.inventory.entity.Client;
 import com.rnpc.inventory.service.ClientService;
+import com.rnpc.inventory.service.NotificationService;
 import com.rnpc.inventory.service.RepairRecordService;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
@@ -38,7 +39,7 @@ class ClientControllerTest {
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         InternalResourceViewResolver resolver = new InternalResourceViewResolver("/views/", ".html");
-        mvc = MockMvcBuilders.standaloneSetup(new ClientController(service, mock(RepairRecordService.class)))
+        mvc = MockMvcBuilders.standaloneSetup(new ClientController(service, mock(RepairRecordService.class), mock(NotificationService.class)))
                 .setValidator(validator).setViewResolvers(resolver).build();
     }
 

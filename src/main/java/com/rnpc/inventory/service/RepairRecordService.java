@@ -21,6 +21,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,6 +48,17 @@ public class RepairRecordService {
         return repo.findByClient_ClientIdOrderByRepairDateDesc(clientId).stream()
                 .filter(RepairRecord::isVisible)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Every repair record, hidden ones included, grouped by client id and newest first within each
+     * client - ONE query for the whole Customers list, instead of a count and a list per client.
+     * Deliberately unfiltered: the caller decides which are visible (RepairRecord.isVisible) and
+     * still needs the full number for the delete warning.
+     */
+    public Map<Long, List<RepairRecord>> getRepairRecordsGroupedByClient() {
+        return repo.findAll(Sort.by(Sort.Direction.DESC, "repairDate")).stream()
+                .collect(Collectors.groupingBy(r -> r.getClient().getClientId()));
     }
 
     public long getRepairCountByClient(Long clientId) {

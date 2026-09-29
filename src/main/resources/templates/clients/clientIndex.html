@@ -1,133 +1,370 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-          crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Customers - RN PC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/card :: card-styles}"></th:block>
+    <th:block th:replace="~{fragments/page-header :: page-header-styles}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/parts.css}"/>
+    <link rel="stylesheet" th:href="@{/css/clients.css}"/>
 </head>
-<body>
-<div class="container">
-        <h1 class="text-center my-4">Clients</h1>
+<body class="parts-page clients-page">
+
+<!--
+  Customers list, copying the parts list pages' shell (products/laptopParts.html) where the pattern
+  fits: page header, toolbar, table, 25-per-page pager, count line, empty states and the delete
+  confirmation, all styled from parts.css. Clients have no type, so there are deliberately no chips,
+  no ?type= restore and no stat cards.
+
+  Like the parts pages, the list is client-side: ClientController serializes every client into
+  ALL_CLIENTS as ClientView rows, and this page filters, sorts and paginates them in the browser.
+  Every display string (initials, the formatted number, the date, which job orders are chips) is
+  decided in Java (ClientView); the script below only lays values out.
+
+  Search covers name, contact number, email and job order number. A query that looks like a phone
+  number is also compared on digits alone against ClientView.contactDigits, so 09991234567 finds
+  0999 123 4567 and +639991234567 finds it too (phone-format.js supplies the +63 rule).
+-->
+
+<div th:replace="~{fragments/layout-app :: sidebar(active='customers', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+
+    <main class="content">
+        <div class="rn-page-header">
+            <div class="rn-page-header-text">
+                <h1 class="rn-page-header-title">Customers</h1>
+                <p class="rn-page-header-subtitle">Walk-in and online clients, with the job orders logged against them.</p>
+            </div>
+            <div class="rn-page-header-actions">
+                <a class="parts-add" th:href="@{/client/create}">
+                    <i data-feather="plus"></i>Add client
+                </a>
+            </div>
+        </div>
+
+        <section class="card">
+            <div class="parts-toolbar">
+                <div class="parts-search">
+                    <i data-feather="search"></i>
+                    <input type="search" id="clientsSearch" placeholder="Search by name, number, email or job order"
+                           aria-label="Search clients by name, contact number, email or job order number"/>
+                </div>
+                <label class="parts-sort-label" for="clientsSort">Sort</label>
+                <select id="clientsSort">
+                    <option value="newest">Newest added</option>
+                    <option value="oldest">Oldest</option>
+                    <option value="name">Name (A-Z)</option>
+                    <option value="jobs">Most job orders</option>
+                </select>
+            </div>
+
+            <div class="parts-table-scroll">
+                <table class="parts-table">
+                    <thead>
+                    <tr>
+                        <th scope="col">Client</th>
+                        <th scope="col">Contact</th>
+                        <th scope="col">Address</th>
+                        <th scope="col">Job orders</th>
+                        <th scope="col">Added</th>
+                        <th scope="col" class="act">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="clientsTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- No clients at all. -->
+            <div class="parts-empty parts-empty-state" id="clientsEmptyAll" hidden>
+                <span class="parts-empty-icon"><i data-feather="users"></i></span>
+                <p class="parts-empty-title">No clients yet</p>
+                <p class="parts-empty-text">Add walk-in customers here so tickets and orders can be attached to them.</p>
+                <a class="parts-add parts-empty-add" th:href="@{/client/create}">
+                    <i data-feather="plus"></i>Add client
+                </a>
+            </div>
+
+            <!-- Clients exist, but none match the search. -->
+            <div class="parts-empty" id="clientsFilteredEmpty" hidden>
+                <i data-feather="search"></i>
+                <p class="parts-empty-title">No clients match this search.</p>
+                <button type="button" class="parts-clear" id="clientsClear">Clear search</button>
+            </div>
+
+            <div class="parts-foot">
+                <span class="parts-count" id="clientsCount"></span>
+                <nav class="parts-pager" id="clientsPager" aria-label="Customers pages"></nav>
+            </div>
+        </section>
+    </main>
 </div>
 
-<div class="content-wrapper">
-    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
-
-    <main class="main-content">
-    <div th:replace="~{fragments/nav :: back}"></div>
-    <div class="row mb-3">
-        <div class="col-md-3 mb-3">
-            <a class="btn btn-primary w-50" href="/client/create">Create Client</a>
-        </div>
-        <div class="col-md-9">
-            <div class="input-group rounded">
-                <input type="search" class="form-control rounded" id="nameSearch" placeholder="Search by name" aria-label="Search" aria-describedby="search-addon" />
-                <span class="input-group-text border-0" id="search-addon">
-                <i class="fas fa-search"></i>
-            </span>
+<!-- Delete confirmation. The form action is set per client to /client/delete/{id}; _method=delete
+     because the route is @DeleteMapping. -->
+<div class="modal fade" id="clientsDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete client</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Delete <strong id="clientsDeleteName"></strong>?
+                <span id="clientsDeleteNote"></span>
+                This cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="table-action" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" id="clientsDeleteForm">
+                    <input type="hidden" name="_method" value="delete"/>
+                    <button type="submit" class="btn-accent-sm">Yes, delete</button>
+                </form>
             </div>
         </div>
     </div>
-
-    <table class="table" id="clientsTable">
-        <thead>
-        <tr>
-            <th>Id</th>
-            <th>Full Name</th>
-            <th>Contact Number</th>
-            <th>Email</th>
-            <th>Address</th>
-            <th>Ticket Number</th>
-            <th>Created At</th>
-            <th>Image</th>
-            <th>Action</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- Thymeleaf iteration to populate table rows -->
-        <tr th:each="person : ${client}">
-            <td th:text="${person.clientId}"></td>
-            <td th:text="${person.fullName}"></td>
-            <td th:text="${person.contactNumber}"></td>
-            <td th:text="${person.email}"></td>
-            <td th:text="${person.address}"></td>
-            <td th:text="${#strings.isEmpty(ticketNumbers.get(person.clientId))} ? '—' : ${ticketNumbers.get(person.clientId)}"></td>
-            <td th:text="${#dates.format(person.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
-            <td>
-                <img th:if="${person.imageFileName}"
-                     th:src="@{/images/{imageFileName}(imageFileName=${person.imageFileName})}"
-                     class="img-fluid"
-                     width="180px"/>
-            </td>
-            <td style="white-space:nowrap">
-                <a class="btn btn-secondary btn-sm"
-                   th:href="@{/repair(clientId=${person.clientId})}">Repairs
-                </a>
-                <a class="btn btn-secondary btn-sm"
-                   th:href="@{/order(clientId=${person.clientId})}">Orders
-                </a>
-                <a class="btn btn-primary btn-sm"
-                   th:href="@{/client/edit/{id} (id=${person.clientId})}">Edit
-                </a>
-                <!-- Replace the delete link with a form -->
-                <form th:action="@{/client/delete/{id}(id=${person.clientId})}"
-                      method="post"
-                      style="display:inline;">
-                    <input type="hidden" name="_method" value="delete"/>
-                    <button type="submit"
-                            class="btn btn-danger btn-sm delete-client-btn"
-                            th:attr="data-repair-count=${repairCounts.get(person.clientId)}">
-                        Delete
-                    </button>
-                </form>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-    </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
-<script th:replace="~{fragments/nav :: sidebarScript}"></script>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.delete-client-btn').forEach(function(btn) {
-            btn.addEventListener('click', function(event) {
-                const repairCount = parseInt(btn.dataset.repairCount, 10) || 0;
-                const message = repairCount > 0
-                    ? 'This client has ' + repairCount + ' repair record(s). Deleting this client will also permanently delete their repair history. Are you sure you want to delete it?'
-                    : 'Are you sure you want to delete this client?';
-                if (!confirm(message)) {
-                    event.preventDefault();
-                }
-            });
-        });
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+<script th:src="@{/js/phone-format.js}"></script>
 
-        const nameSearch = document.getElementById('nameSearch');
-        const table = document.getElementById('clientsTable');
-        const rows = table.getElementsByTagName('tr');
+<script th:inline="javascript">/*<![CDATA[*/
+var ALL_CLIENTS = /*[[${clients}]]*/ [];
+/*]]>*/</script>
 
-        nameSearch.addEventListener('input', function() {
-            const filter = this.value.toLowerCase();
-            for (let i = 1; i < rows.length; i++) {
-                const nameCell = rows[i].getElementsByTagName('td')[1];
-                if (nameCell) {
-                    const nameText = nameCell.textContent || nameCell.innerText;
-                    if (nameText.toLowerCase().indexOf(filter) > -1) {
-                        rows[i].style.display = '';
-                    } else {
-                        rows[i].style.display = 'none';
-                    }
-                }
+<script th:inline="none">
+(function () {
+    'use strict';
+
+    var PAGE_SIZE = 25;
+
+    var state = { search: '', sort: 'newest', page: 1 };
+    var el = function (id) { return document.getElementById(id); };
+
+    // ---- Search --------------------------------------------------------------------------------
+
+    // A query made only of phone characters is also compared on digits alone, so 09991234567 finds
+    // 0999 123 4567. Anything with letters is text-only: "nand2" must not match every number with a 2.
+    function phoneDigits(query) {
+        if (!/^[0-9+()\-\s.]+$/.test(query)) return '';
+        var digits = query.replace(/\D/g, '');
+        if (!digits) return '';
+        // phone-format.js applies the same +63 rule as PhoneNumbers, so +639991234567 -> 09991234567.
+        // The second argument stops it adding a leading 0, so a partial query like 999 1234 still matches inside the number.
+        var key = window.RnpcPhoneFormat ? window.RnpcPhoneFormat.analyse(query, true).key : digits;
+        return key || digits;
+    }
+
+    function matches(c) {
+        if (!state.search) return true;
+        var text = state.search.toLowerCase();
+        var hay = [c.fullName, c.contactNumber, c.email, c.allJobOrders].join('\n').toLowerCase();
+        if (hay.indexOf(text) !== -1) return true;
+        var digits = phoneDigits(state.search);
+        return digits !== '' && c.contactDigits.indexOf(digits) !== -1;
+    }
+
+    // ---- Sort ----------------------------------------------------------------------------------
+
+    function byNewest(a, b) { return (b.addedEpoch - a.addedEpoch) || (b.id - a.id); }
+    function byOldest(a, b) { return (a.addedEpoch - b.addedEpoch) || (a.id - b.id); }
+    function byName(a, b) {
+        return (a.fullName || '').localeCompare(b.fullName || '', undefined, { sensitivity: 'base' }) || (a.id - b.id);
+    }
+    function byJobs(a, b) { return (b.jobOrderCount - a.jobOrderCount) || byNewest(a, b); }
+
+    function sorted(rows) {
+        var out = rows.slice();
+        out.sort(state.sort === 'oldest' ? byOldest : state.sort === 'name' ? byName : state.sort === 'jobs' ? byJobs : byNewest);
+        return out;
+    }
+
+    // ---- Rendering -----------------------------------------------------------------------------
+
+    function node(tag, cls, text) {
+        var n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text !== undefined && text !== null) n.textContent = text;
+        return n;
+    }
+    function icon(name) {
+        var i = document.createElement('i');
+        i.setAttribute('data-feather', name);
+        return i;
+    }
+    function textCell(value, extraClass) {
+        var td = node('td', value ? extraClass || null : 'parts-unset', value || 'Not set');
+        return td;
+    }
+
+    function renderRow(c) {
+        var tr = document.createElement('tr');
+
+        var nameTd = node('td');
+        var name = node('div', 'parts-name');
+        name.append(node('span', 'clients-avatar', c.initials));
+        var txt = node('div', 'parts-name-text');
+        txt.append(node('span', 'parts-model', c.fullName || 'Not set'));
+        if (c.email) txt.append(node('span', 'parts-brand', c.email));
+        name.append(txt);
+        nameTd.append(name);
+        tr.append(nameTd);
+
+        tr.append(textCell(c.contactNumber, 'clients-nowrap'));
+
+        var addrTd = node('td', c.address ? null : 'parts-unset');
+        var addr = node('span', 'clients-address', c.address || 'Not set');
+        if (c.address) addr.title = c.address;
+        addrTd.append(addr);
+        tr.append(addrTd);
+
+        var jobsTd = node('td');
+        if (c.jobOrderCount === 0) {
+            jobsTd.className = 'parts-unset';
+            jobsTd.textContent = 'No job orders';
+        } else {
+            var jobs = node('div', 'clients-jobs');
+            c.jobOrders.forEach(function (n) { jobs.append(node('span', 'clients-chip', n)); });
+            if (c.moreJobOrders > 0) {
+                var more = node('span', 'clients-more', c.moreLabel);
+                more.title = c.allJobOrders;
+                jobs.append(more);
             }
+            jobsTd.append(jobs);
+        }
+        tr.append(jobsTd);
+
+        tr.append(textCell(c.added));
+
+        var actTd = node('td', 'act');
+        var acts = node('div', 'parts-actions');
+
+        var view = node('a', 'parts-icon-btn');
+        view.href = '/repair?clientId=' + c.id;
+        view.title = 'View job orders';
+        view.setAttribute('aria-label', 'View job orders for ' + c.fullName);
+        view.append(icon('eye'));
+
+        var edit = node('a', 'parts-icon-btn');
+        edit.href = '/client/edit/' + c.id;
+        edit.title = 'Edit';
+        edit.setAttribute('aria-label', 'Edit ' + c.fullName);
+        edit.append(icon('edit-2'));
+
+        var del = node('button', 'parts-icon-btn danger');
+        del.type = 'button';
+        del.title = 'Delete';
+        del.setAttribute('aria-label', 'Delete ' + c.fullName);
+        del.append(icon('trash-2'));
+        del.addEventListener('click', function () { openDelete(c); });
+
+        acts.append(view, edit, del);
+        actTd.append(acts);
+        tr.append(actTd);
+        return tr;
+    }
+
+    function renderPager(totalPages) {
+        var pager = el('clientsPager');
+        pager.replaceChildren();
+        if (totalPages <= 1) return;
+
+        function pageBtn(label, target, opts) {
+            var b = node('button', null);
+            b.type = 'button';
+            if (opts && opts.icon) b.append(icon(opts.icon)); else b.textContent = label;
+            if (opts && opts.current) b.setAttribute('aria-current', 'page');
+            if (opts && opts.disabled) b.disabled = true;
+            if (opts && opts.label) b.setAttribute('aria-label', opts.label);
+            b.addEventListener('click', function () {
+                if (b.disabled) return;
+                state.page = target;
+                render();
+            });
+            pager.append(b);
+        }
+        // Condensed like the parts pages: first, last and a window around the current page.
+        var want = {}, i;
+        want[1] = true;
+        want[totalPages] = true;
+        for (i = state.page - 1; i <= state.page + 1; i++) {
+            if (i >= 1 && i <= totalPages) want[i] = true;
+        }
+        var nums = Object.keys(want).map(Number).sort(function (a, b) { return a - b; });
+
+        pageBtn('', state.page - 1, { icon: 'chevron-left', disabled: state.page === 1, label: 'Previous page' });
+        var prev = 0;
+        nums.forEach(function (n) {
+            if (n - prev > 1) pager.append(node('span', 'parts-gap', '…'));
+            pageBtn(String(n), n, { current: n === state.page });
+            prev = n;
         });
+        pageBtn('', state.page + 1, { icon: 'chevron-right', disabled: state.page === totalPages, label: 'Next page' });
+    }
+
+    function render() {
+        var rows = sorted(ALL_CLIENTS.filter(matches));
+        var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+        if (state.page > totalPages) state.page = totalPages;
+        var start = (state.page - 1) * PAGE_SIZE;
+        var slice = rows.slice(start, start + PAGE_SIZE);
+
+        var body = el('clientsTableBody');
+        body.replaceChildren();
+        slice.forEach(function (c) { body.append(renderRow(c)); });
+
+        el('clientsEmptyAll').hidden = ALL_CLIENTS.length > 0;
+        el('clientsFilteredEmpty').hidden = !(ALL_CLIENTS.length > 0 && rows.length === 0);
+
+        var noun = rows.length === 1 ? ' client' : ' clients';
+        var count = rows.length
+            ? 'Showing ' + slice.length + ' of ' + rows.length + noun
+            : 'No clients to show';
+        if (rows.length && state.search && rows.length !== ALL_CLIENTS.length) {
+            count += ' (filtered from ' + ALL_CLIENTS.length + ')';
+        }
+        el('clientsCount').textContent = count;
+        renderPager(totalPages);
+
+        if (window.feather) window.feather.replace();
+    }
+
+    function openDelete(c) {
+        el('clientsDeleteName').textContent = c.fullName || 'this client';
+        el('clientsDeleteNote').textContent = c.repairCount > 0
+            ? 'This also permanently deletes their ' + c.repairCount + ' repair record' + (c.repairCount === 1 ? '' : 's') + '.'
+            : '';
+        el('clientsDeleteForm').action = '/client/delete/' + c.id;
+        bootstrap.Modal.getOrCreateInstance(el('clientsDeleteModal')).show();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        el('clientsSearch').addEventListener('input', function () {
+            state.search = this.value.trim();
+            state.page = 1;
+            render();
+        });
+        el('clientsSort').addEventListener('change', function () {
+            state.sort = this.value;
+            state.page = 1;
+            render();
+        });
+        el('clientsClear').addEventListener('click', function () {
+            state.search = '';
+            state.page = 1;
+            el('clientsSearch').value = '';
+            render();
+        });
+
+        render();
     });
+})();
 </script>
 </body>
 </html>

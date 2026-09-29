@@ -1,18 +1,20 @@
 package com.rnpc.inventory.controller;
 
 import com.rnpc.inventory.dto.ClientDto;
+import com.rnpc.inventory.dto.ClientView;
 import com.rnpc.inventory.entity.Client;
 import com.rnpc.inventory.entity.RepairRecord;
 import com.rnpc.inventory.service.ClientService;
+import com.rnpc.inventory.service.NotificationService;
 import com.rnpc.inventory.service.RepairRecordService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -23,31 +25,38 @@ public class ClientController {
 
     private final ClientService service;
     private final RepairRecordService repairRecordService;
+    private final NotificationService notificationService;
 
     @Autowired
-    public ClientController(ClientService service, RepairRecordService repairRecordService) {
+    public ClientController(ClientService service, RepairRecordService repairRecordService,
+                            NotificationService notificationService) {
         this.service = service;
         this.repairRecordService = repairRecordService;
+        this.notificationService = notificationService;
+    }
+
+    // Topbar chrome for the shared layout-app shell, same shape as LaptopPartsController's. These
+    // routes are admin-only via the filter chain (SecurityConfig.ADMIN_ONLY_CUSTOMER_PATHS), so the
+    // admin inbox is always the right one and no isAdmin check belongs here.
+    private void addShellAttributes(Authentication authentication, Model model) {
+        model.addAttribute("currentUsername", authentication != null ? authentication.getName() : null);
+        model.addAttribute("currentRole", "Admin");
+        model.addAttribute("unreadNotifications", notificationService.getUnreadCountForAdmin());
+        model.addAttribute("recentNotifications",
+                notificationService.getForAdmin().stream().limit(15).collect(Collectors.toList()));
     }
 
     @GetMapping({"", "/"})
-    public String showClientList(Model model) {
-        var clients = service.getAllClients();
-        Map<Long, Long> repairCounts = new HashMap<>();
-        Map<Long, String> ticketNumbers = new HashMap<>();
-        for (Client client : clients) {
-            repairCounts.put(client.getClientId(), repairRecordService.getRepairCountByClient(client.getClientId()));
-
-            List<String> jobOrderNumbers = repairRecordService.getRepairRecordsByClient(client.getClientId())
-                    .stream()
-                    .map(RepairRecord::getJobOrderNumber)
-                    .collect(Collectors.toList());
-            ticketNumbers.put(client.getClientId(), String.join(", ", jobOrderNumbers));
-        }
-
-        model.addAttribute("client", clients);
-        model.addAttribute("repairCounts", repairCounts);
-        model.addAttribute("ticketNumbers", ticketNumbers);
+    public String showClientList(Authentication authentication, Model model) {
+        // Display-ready rows, serialized into the page as ALL_CLIENTS - same approach as /laptop.
+        // Clients are read first, then every repair record in ONE query and grouped by client,
+        // rather than a count and a list per client.
+        List<Client> clients = service.getAllClients();
+        Map<Long, List<RepairRecord>> repairsByClient = repairRecordService.getRepairRecordsGroupedByClient();
+        model.addAttribute("clients", clients.stream()
+                .map(c -> ClientView.from(c, repairsByClient.get(c.getClientId())))
+                .collect(Collectors.toList()));
+        addShellAttributes(authentication, model);
         return "clients/clientIndex";
     }
 
