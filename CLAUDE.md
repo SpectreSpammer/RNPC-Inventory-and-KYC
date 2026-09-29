@@ -479,7 +479,7 @@ stored (`users.password` remains in the schema but is unused).
 `SecurityConfig` still ends in `anyRequest().permitAll()` and disables CSRF app-wide (no form in
 the app carries a CSRF token). Every controller re-implements its own `isSignedIn`/`isAdmin` pair
 checking for `ROLE_ADMIN`, and `GlobalNavAttributes` (a `@ControllerAdvice`) exposes
-`navAuthenticated`/`navIsAdmin` to every template. **This is the single most important thing to
+`navAuthenticated`/`navIsAdmin`/`hasProfilePhoto` to every template. **This is the single most important thing to
 know before touching any page: adding a new controller does NOT make it protected.** There's no
 `thymeleaf-extras-springsecurity6` dependency, so `sec:authorize` is not available in templates -
 use `${navIsAdmin}`.
@@ -1051,8 +1051,8 @@ provides the `assets`, `scripts`, `sidebar(active, currentUsername, currentRole)
 
 The brand mark is the image at `static/img/rn-pc-logo.png` (it used to be the letters "RN"), and
 the shop name reads "RN PC", not "RNPC". The topbar avatar shows the uploaded profile photo when
-`${hasProfilePhoto}` is true and otherwise the first letter of the username - see the
-`hasProfilePhoto` caveat under Profile photos.
+`${hasProfilePhoto}` is true and otherwise the first letter of the username; `GlobalNavAttributes`
+sets that flag for every page - see Profile photos.
 
 Current nav layout, which is not symmetric between the two menus:
 
@@ -1144,10 +1144,15 @@ There is no route to fetch another account's photo.
 
 `ProfileController` also answers `GET /profile` as an alias for `/profile/edit`.
 
-⚠️ **`hasProfilePhoto` is only set by `ProfileController`** (in its private `profileModel(...)`).
-`layout-app`'s topbar avatar reads that flag, so the photo appears **only on the profile page** -
-every other page falls back to the first letter of the username. Any controller that renders the
-shared shell and wants the avatar has to set it too.
+**`hasProfilePhoto` is a `@ModelAttribute` on `GlobalNavAttributes`**, not something each controller
+sets itself - it used to be set only by `ProfileController`'s own `profileModel(...)`, which meant
+`layout-app`'s topbar avatar showed the uploaded photo only on the profile page and fell back to the
+initial everywhere else. `GlobalNavAttributes` computes it from `Authentication` the same way it
+already did `navAuthenticated`/`navIsAdmin`: look up the `User` by username, then
+`ProfilePhotoService.exists(userId)`; false for anyone signed out or with no stored photo.
+`ProfileController` still sets its own copy in `profileModel(...)` (it already has the `User` loaded
+there), and that value wins - Spring keeps the last write to a `Model` key - but no other controller
+has to.
 
 ## Known dead code
 
@@ -1156,8 +1161,6 @@ shared shell and wants the avatar has to set it too.
   leftovers from the removed payment-gateway flow.
 - `CustomOAuth2UserService` never fires while Google is the only provider.
 - The `mssql-jdbc` dependency in `pom.xml` is unused.
-- `topbar`'s avatar reads `${hasProfilePhoto}`, but only `ProfileController` sets it - on every
-  other page the avatar falls back to the initial letter.
 
 ## Root-level `.txt` files
 
