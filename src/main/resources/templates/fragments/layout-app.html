@@ -494,7 +494,13 @@
 
     .user-menu{ display:flex; align-items:center; gap:var(--space-3); background:none; border:none; padding:6px 8px; border-radius:12px; }
     .user-menu:hover{ background:var(--bg-page); }
-    .user-avatar{ width:44px; height:44px; border-radius:50%; background:var(--accent-subtle); color:var(--accent-hover); display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:17px; flex-shrink:0; }
+    .user-avatar{ width:44px; height:44px; border-radius:50%; background:var(--accent-subtle); color:var(--accent-hover); display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:17px; flex-shrink:0; overflow:hidden; }
+    /* Uploaded photos are stored at whatever resolution and aspect ratio the user submitted (see
+       ProfilePhotoService - up to 16 million pixels, no resize), so the <img> needs its own sizing
+       here rather than relying on the initial-letter fallback's span dimensions above: fill the
+       same circle the initial occupies, cropped (not stretched) to fit. Percentage-based, so it
+       follows a page's own .user-avatar override (e.g. admin/dashboard.html's 32px one) automatically. */
+    .user-avatar img{ display:block; width:100%; height:100%; object-fit:cover; border-radius:50%; }
     .user-text{ display:flex; flex-direction:column; line-height:1.25; text-align:left; }
     .user-name{ font-size:15px; font-weight:700; color:var(--text); }
     .user-role{ font-size:12.5px; color:var(--text-muted); font-weight:600; }
