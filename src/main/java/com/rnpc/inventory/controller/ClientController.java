@@ -63,26 +63,30 @@ public class ClientController {
     }
 
     @GetMapping("/create")
-    public String showCreatePage(Model model) {
+    public String showCreatePage(Authentication authentication, Model model) {
         model.addAttribute("clientDto", new ClientDto());
+        addShellAttributes(authentication, model);
         return "clients/clientCreate";
     }
 
     @PostMapping("/create")
-    public String createClient(
-            @Valid @ModelAttribute ClientDto clientDto, BindingResult result) {
-
+    public String createClient(@Valid @ModelAttribute ClientDto clientDto, BindingResult result,
+                                Authentication authentication, Model model) {
         rejectDuplicateNumber(clientDto, result, null);
-        if (result.hasErrors()) {
-            return "clients/clientCreate";
+        if (!result.hasErrors()) {
+            try {
+                service.saveClient(clientDto);
+                return "redirect:/client";
+            } catch (IllegalArgumentException ex) {
+                result.rejectValue("imageFile", "invalid", ex.getMessage());
+            }
         }
-
-        service.saveClient(clientDto);
-        return "redirect:/client";
+        addShellAttributes(authentication, model);
+        return "clients/clientCreate";
     }
 
     @GetMapping("/edit/{id}")
-    public String showEditClientForm(@PathVariable("id") Long id, Model model) {
+    public String showEditClientForm(@PathVariable("id") Long id, Authentication authentication, Model model) {
         Client client = service.getClientById(id);
 
         ClientDto clientDto = new ClientDto();
@@ -94,6 +98,7 @@ public class ClientController {
         model.addAttribute("clientDto", clientDto);
         model.addAttribute("clientId", id);
         model.addAttribute("currentImage", client.getImageFileName());
+        addShellAttributes(authentication, model);
         return "clients/clientEdit";
     }
 
@@ -101,16 +106,21 @@ public class ClientController {
     public String updateClient(@PathVariable("id") Long id,
                                 @Valid @ModelAttribute ClientDto clientDto,
                                 BindingResult result,
+                                Authentication authentication,
                                 Model model) {
         rejectDuplicateNumber(clientDto, result, id);
-        if (result.hasErrors()) {
-            model.addAttribute("clientId", id);
-            model.addAttribute("currentImage", service.getClientById(id).getImageFileName());
-            return "clients/clientEdit";
+        if (!result.hasErrors()) {
+            try {
+                service.updateClient(id, clientDto);
+                return "redirect:/client";
+            } catch (IllegalArgumentException ex) {
+                result.rejectValue("imageFile", "invalid", ex.getMessage());
+            }
         }
-
-        service.updateClient(id, clientDto);
-        return "redirect:/client";
+        model.addAttribute("clientId", id);
+        model.addAttribute("currentImage", service.getClientById(id).getImageFileName());
+        addShellAttributes(authentication, model);
+        return "clients/clientEdit";
     }
 
     // A number already on another client is refused, naming that client so the admin can go to them

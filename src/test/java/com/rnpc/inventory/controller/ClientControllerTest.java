@@ -123,6 +123,56 @@ class ClientControllerTest {
         verify(service, never()).findOtherWithContactNumber(any(), any());
     }
 
+    // ---- Email and address: optional (batch 4) --------------------------------------------------
+
+    @Test
+    void creatingAClientWithNoEmailOrAddressIsSaved() throws Exception {
+        when(service.findOtherWithContactNumber(any(), eq(null))).thenReturn(Optional.empty());
+
+        mvc.perform(post("/client/create")
+                        .param("fullName", "Someone Else")
+                        .param("contactNumber", "0999 000 0000"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/client"));
+        verify(service).saveClient(any());
+    }
+
+    @Test
+    void aMalformedEmailIsStillRejectedEvenThoughEmailIsOptional() throws Exception {
+        mvc.perform(post("/client/create")
+                        .param("fullName", "Someone Else")
+                        .param("contactNumber", "0999 000 0000")
+                        .param("email", "not-an-email"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeHasFieldErrorCode("clientDto", "email", "Email"));
+        verify(service, never()).saveClient(any());
+    }
+
+    // ---- Photo validation surfaced as a field error, not a 500 ------------------------------------
+
+    @Test
+    void aRejectedPhotoOnCreateReRendersTheFormWithoutRedirecting() throws Exception {
+        when(service.findOtherWithContactNumber(any(), eq(null))).thenReturn(Optional.empty());
+        when(service.saveClient(any())).thenThrow(new IllegalArgumentException("Choose a JPG or PNG no larger than 5 MB."));
+
+        mvc.perform(form(post("/client/create"), "0999 000 0000"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("clients/clientCreate"))
+                .andExpect(model().attributeHasFieldErrorCode("clientDto", "imageFile", "invalid"));
+    }
+
+    @Test
+    void aRejectedPhotoOnUpdateReRendersTheEditFormWithoutRedirecting() throws Exception {
+        when(service.findOtherWithContactNumber("0917 234 5678", 12L)).thenReturn(Optional.empty());
+        when(service.getClientById(12L)).thenReturn(nand());
+        when(service.updateClient(eq(12L), any())).thenThrow(new IllegalArgumentException("Only JPG and PNG images are supported."));
+
+        mvc.perform(form(put("/client/update/12"), "0917 234 5678"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("clients/clientEdit"))
+                .andExpect(model().attributeHasFieldErrorCode("clientDto", "imageFile", "invalid"));
+    }
+
     // ---- Remove photo: must be a 303, not a bare 302 ----------------------------------------------
     //
     // removePhoto is called by fetch (fragments/parts-form :: remove-photo-script), not a browser

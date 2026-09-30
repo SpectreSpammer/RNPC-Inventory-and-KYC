@@ -20,6 +20,10 @@ On Railway, "after deploy" SQL means **once the new deployment shows ACTIVE**, n
 goes out: the old build keeps serving traffic throughout the build, and breaks if its columns are
 dropped early.
 
+`master` has GitHub branch protection (a pull request, passing Code Scanning, and signed commits),
+but this is a solo repo and the owner's pushes deliberately bypass it - GitHub's "Bypassed rule
+violations" notice on push is expected here, not a problem to fix or flag. Don't report it.
+
 ## File encoding: UTF-8, no BOM
 
 **Every text file in this repo must be saved as UTF-8 without a BOM.** Spring Boot reads Thymeleaf
@@ -903,8 +907,36 @@ Tests (context-free, run by name): `CellphonePartsDtoValidationTest`, `Cellphone
 pattern fits: page header, toolbar, table, 25-per-page pager, count line, both empty states and the
 delete confirmation, all styled from `parts.css`. Clients have no type, so there are deliberately no
 chips-as-filters, no `?type=` restore and no stock/stat cards - the parts pattern is followed only as
-far as it fits. `clientCreate.html` and `clientEdit.html` are unconverted still - only the list page
-was in scope.
+far as it fits.
+
+**`clientCreate.html` and `clientEdit.html`** (customers batch 4) are on `fragments/parts-form.html`
+too, the same shape as the laptop and cellphone forms - one "Client details" section, a Photo
+section, the shared `actions` fragment - matching `gpt/admin/Add client@1x.png` with two exceptions,
+both a deliberate trade-off of reusing the shared fragment as-is over special-casing it: the header
+fragment always renders a code badge and the literal text "Back to parts" (so does every other
+parts/laptop/cellphone form), so these get a "CLI" badge and that text rather than "Back to
+customers"; and the upload hint says PNG/JPG rather than the mockup's "PNG, JPG or WebP", since
+WebP was never actually accepted (below). `clientEdit.html` had no shell at all before this -
+no sidebar, no topbar, a bare centered Bootstrap form.
+
+Full name and contact number are required; **email and address are optional** (`ClientDto` carries
+no `@NotEmpty` for either - `@Email` and `@Size` are satisfied by null or blank on their own).
+`Client.email` / `Client.address` were already nullable, so this needed no schema change.
+`ClientService` stores a blank value as null rather than `""`. Two display templates rendered a
+label or a line with nothing next to it when a client had no address or email
+(`orders/orderConfirmation.html`, `appointments/appointmentView.html`); both now hide the row
+instead, the same way `appointmentView.html` already hides its other optional fields.
+
+**Photo validation matches `ProfilePhotoService`'s own rules** - `ClientService.validatePhoto`,
+checked before `handleFileUpload` writes the file: at most 5 MB, and the declared content type is
+never trusted - the bytes must decode via `ImageIO` as PNG or JPEG and be no more than 16 million
+pixels. Unlike `ProfilePhotoService`, the file is stored as uploaded rather than re-encoded; this
+only screens it first. The controller catches the resulting `IllegalArgumentException` and rejects
+it onto `imageFile`, the same pattern `ProfileController` already uses for the same exception.
+
+The duplicate-number rejection from customers batch 2 (`ClientController.rejectDuplicateNumber`) is
+unchanged on both forms, `data-phone-format` from batch 2b stays on the contact number field, and a
+successful save on either form redirects to `/client`, same as before.
 
 `ClientController.showClientList` builds `ClientView` rows the way `LaptopPartsController` builds
 `LaptopPartView` rows: read every client, then every repair record in **one** query via
@@ -1151,10 +1183,10 @@ Current nav layout, which is not symmetric between the two menus:
 **The migration to it is well past half done.** Converted: `dashboard.html`, `admin/dashboard.html`,
 all five `appointments/`, both `orders/` index pages, `build/`, `repairs/repairIndex.html`,
 `sales/salesReport.html`, `search/searchResults.html`, `profile/profileEdit.html`, all three
-`support/`, `clients/clientIndex.html`, and **63 of the 71** `products/` templates (below). Still
+`support/`, all three `clients/`, and **63 of the 71** `products/` templates (below). Still
 unconverted: the other 8 `products/` pages, `orders/orderCheckout.html` and
-`orderConfirmation.html`, the three other `repairs/` pages, the other two `clients/` pages, both
-`tickets/`, `login/login.html`, and `notifications/notificationIndex.html`.
+`orderConfirmation.html`, the three other `repairs/` pages, both `tickets/`, `login/login.html`,
+and `notifications/notificationIndex.html`.
 When converting a page, follow one that's already done rather than inventing a new structure.
 
 `products/` holds 71 templates: 27 at the top level, 24 in `products/laptop/` and 20 in

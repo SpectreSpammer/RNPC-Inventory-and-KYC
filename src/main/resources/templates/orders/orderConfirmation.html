@@ -30,7 +30,7 @@
                             <h5 class="mb-0" th:text="${order.orderNumber}"></h5>
                             <div class="text-muted small" th:text="${order.client.fullName}"></div>
                             <div class="text-muted small" th:text="${order.client.contactNumber}"></div>
-                            <div class="text-muted small" th:text="${order.client.address}"></div>
+                            <div class="text-muted small" th:if="${order.client.address != null and !#strings.isEmpty(order.client.address)}" th:text="${order.client.address}"></div>
                         </div>
                         <span class="badge"
                               th:classappend="${order.status.name() == 'PAID'} ? 'bg-success' : (${order.status.name() == 'CANCELLED'} ? 'bg-danger' : (${order.status.name() == 'CANCELLATION_REQUESTED'} ? 'bg-info text-dark' : 'bg-warning text-dark'))"

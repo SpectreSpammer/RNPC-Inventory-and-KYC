@@ -1,74 +1,102 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-<title>PC and Cellphone Repair Shop</title>
-<link
-		href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-		rel="stylesheet"
-		integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-		crossorigin="anonymous">
-<link
-		rel="stylesheet"
-		th:href="@{/css/demo.css}"/>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Add client - RN PC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/parts-form :: assets}"></th:block>
 </head>
-<body>
-<div class="container">
-	<h1 class="text-center my-4">Create Client</h1>
+<body class="pf-page clients-page">
+
+<!--
+  Customers batch 4: clientCreate moves onto fragments/parts-form.html and parts-form.css, the same
+  shape as the laptop and cellphone create forms - one "<Type> details" section, a Photo section,
+  then the shared actions fragment. Matches gpt/admin/Add client@1x.png, with two differences worth
+  noting:
+
+  - The shared header fragment always renders a code badge and the literal text "Back to parts"
+    (every other parts/laptop/cellphone form does too); the mockup shows neither. Reusing the
+    fragment as-is - rather than special-casing it for one form - was chosen over editing shared
+    parts infrastructure, so this form gets a "CLI" badge and says "Back to parts" like the rest.
+  - The mockup's upload hint reads "PNG, JPG or WebP"; the actual check (ClientService
+    .validatePhoto, mirroring ProfilePhotoService) only accepts PNG and JPEG - WebP was never
+    supported - so the hint here says what is really accepted instead of repeating the mockup.
+
+  Email and address are optional (ClientDto): neither carries @NotEmpty. Contact number keeps
+  data-phone-format from customers batch 2b, and the server-side duplicate-number rejection from
+  batch 2 (ClientController.rejectDuplicateNumber) is unchanged - see clients/clientEdit.html for
+  the "keeps its own number" case.
+-->
+
+<div th:replace="~{fragments/layout-app :: sidebar(active='customers', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+
+    <main class="content">
+        <div class="pf-wrap">
+            <div th:replace="~{fragments/parts-form :: header(code='CLI', title='Add client', subtitle='Walk-in customers logged here can be attached to tickets and orders.', backUrl=@{/client})}"></div>
+
+            <form action="#" th:action="@{/client/create}" th:object="${clientDto}" method="post" enctype="multipart/form-data">
+                <th:block th:if="${#fields.hasAnyErrors()}">
+                    <div th:replace="~{fragments/parts-form :: errors(messages=${#fields.allErrors()})}"></div>
+                </th:block>
+
+                <div class="pf-card">
+
+                    <section class="pf-section">
+                        <h2>Client details</h2>
+                        <div class="pf-grid">
+                            <div class="pf-field">
+                                <label for="fullName">Full name</label>
+                                <input type="text" th:field="*{fullName}" id="fullName" placeholder="Enter the client's full name"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="contactNumber">Contact number</label>
+                                <input type="text" th:field="*{contactNumber}" data-phone-format inputmode="tel" id="contactNumber" placeholder="e.g. 0917 234 5678"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('contactNumber')}" th:errors="*{contactNumber}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="email">Email <span class="pf-optional">(optional)</span></label>
+                                <input type="email" th:field="*{email}" id="email" placeholder="Enter email address"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+                            </div>
+                            <div class="pf-field pf-full">
+                                <label for="address">Address <span class="pf-optional">(optional)</span></label>
+                                <textarea th:field="*{address}" id="address" rows="3" placeholder="House number, street, barangay, city"></textarea>
+                                <span class="pf-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="pf-section">
+                        <h2>Photo or ID <span class="pf-optional">(optional)</span></h2>
+                        <div class="pf-upload">
+                            <span class="pf-upload-icon"><i data-feather="image"></i></span>
+                            <div class="pf-upload-text">
+                                <strong>Choose a photo or ID for this client</strong>
+                                <small class="pf-hint">PNG or JPG, up to 5 MB. Used to confirm identity on pickup.</small>
+                                <input type="file" th:field="*{imageFile}" id="imageFile" accept="image/png,image/jpeg"/>
+                            </div>
+                        </div>
+                        <span class="pf-error" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></span>
+                    </section>
+
+                    <p class="pf-hint pf-form-note">The contact number is how walk-in tickets are matched to an existing client.</p>
+
+                    <div th:replace="~{fragments/parts-form :: actions(cancelUrl=@{/client}, saveLabel='Save client')}"></div>
+                </div>
+            </form>
+        </div>
+    </main>
 </div>
 
-<div class="content-wrapper">
-	<nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
-
-	<main class="main-content">
-	<div th:replace="~{fragments/nav :: back}"></div>
-	<form action="#" th:action="@{/client/create}" th:object="${clientDto}" method="post" enctype="multipart/form-data">
-
-	    <div class="mb-3">
-	        <label for="fullName" class="form-label">Full Name</label>
-	        <input type="text" th:field="*{fullName}" class="form-control" id="fullName" placeholder="Enter full name">
-	        <div class="text-danger" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
-	    </div>
-
-	    <div class="mb-3">
-	        <label for="contactNumber" class="form-label">Contact Number</label>
-	        <input type="text" th:field="*{contactNumber}" data-phone-format inputmode="tel" class="form-control" id="contactNumber" placeholder="Enter contact number">
-	        <div class="text-danger" th:if="${#fields.hasErrors('contactNumber')}" th:errors="*{contactNumber}"></div>
-	    </div>
-
-	    <div class="mb-3">
-	        <label for="email" class="form-label">Email</label>
-	        <input type="email" th:field="*{email}" class="form-control" id="email" placeholder="Enter email address">
-	        <div class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
-	    </div>
-
-	    <div class="mb-3">
-	        <label for="address" class="form-label">Address</label>
-	        <textarea th:field="*{address}" class="form-control" id="address" rows="3"></textarea>
-	        <div class="text-danger" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
-	    </div>
-
-	    <div class="mb-3">
-	        <label for="imageFile" class="form-label">Photo / ID <span class="text-muted">(optional)</span></label>
-	        <input type="file" th:field="*{imageFile}" class="form-control" id="imageFile">
-	        <div class="text-danger" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></div>
-	    </div>
-
-	     <div class="row">
-			     <div class="offset-sm-4 col-sm-4 d-grid">
-			     	<button type="submit" class="btn btn-primary">Submit</button>
-			     </div>
-			     <div class="col-sm-4 d-grid">
-	    			<a class= "btn btn-outline-primary" href="/client" role="button">Cancel</a>
-	   			 </div>
-	    </div>
-
-	</form>
-	</main>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
-<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
 <script th:src="@{/js/phone-format.js}"></script>
 </body>
 </html>

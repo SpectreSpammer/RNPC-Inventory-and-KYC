@@ -12,12 +12,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -123,10 +128,52 @@ public class ClientService {
         repo.delete(client);
     }
 
+    /**
+     * Same rules as ProfilePhotoService.save, since a client's photo is the same kind of identity
+     * check: at most 5 MB, and a declared content type is never trusted - the actual bytes must
+     * decode as PNG or JPEG (ImageIO's own format sniffing, not the browser-supplied contentType)
+     * and be no more than 16 million pixels. Unlike ProfilePhotoService, the file is stored as
+     * uploaded rather than re-encoded - this only screens it before handleFileUpload writes it.
+     */
+    private static final long MAX_PHOTO_BYTES = 5L * 1024 * 1024;
+    private static final long MAX_PHOTO_PIXELS = 16_000_000L;
+
+    private void validatePhoto(MultipartFile file) {
+        if (file.getSize() > MAX_PHOTO_BYTES) {
+            throw new IllegalArgumentException("Choose a JPG or PNG no larger than 5 MB.");
+        }
+        try (InputStream input = file.getInputStream(); ImageInputStream stream = ImageIO.createImageInputStream(input)) {
+            if (stream == null) {
+                throw new IllegalArgumentException("Choose a valid JPG or PNG image.");
+            }
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(stream);
+            if (!readers.hasNext()) {
+                throw new IllegalArgumentException("Choose a valid JPG or PNG image.");
+            }
+            ImageReader reader = readers.next();
+            try {
+                String format = reader.getFormatName();
+                if (!format.equalsIgnoreCase("png") && !format.equalsIgnoreCase("jpeg")) {
+                    throw new IllegalArgumentException("Only JPG and PNG images are supported.");
+                }
+                reader.setInput(stream);
+                int width = reader.getWidth(0), height = reader.getHeight(0);
+                if (width <= 0 || height <= 0 || (long) width * height > MAX_PHOTO_PIXELS) {
+                    throw new IllegalArgumentException("Choose an image with no more than 16 million pixels.");
+                }
+            } finally {
+                reader.dispose();
+            }
+        } catch (IOException ex) {
+            throw new IllegalArgumentException("The photo could not be read. Please choose a valid image and try again.");
+        }
+    }
+
     private String handleFileUpload(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             return null;
         }
+        validatePhoto(file);
 
         try {
             String uploadDir = "public/images/";
@@ -163,15 +210,24 @@ public class ClientService {
         Client client = new Client();
         client.setFullName(clientDto.getFullName());
         client.setContactNumber(PhoneNumbers.format(clientDto.getContactNumber()));
-        client.setEmail(clientDto.getEmail());
-        client.setAddress(clientDto.getAddress());
+        client.setEmail(blankToNull(clientDto.getEmail()));
+        client.setAddress(blankToNull(clientDto.getAddress()));
         return client;
     }
 
     private void updateEntity(Client client, ClientDto clientDto) {
         client.setFullName(clientDto.getFullName());
         client.setContactNumber(PhoneNumbers.format(clientDto.getContactNumber()));
-        client.setEmail(clientDto.getEmail());
-        client.setAddress(clientDto.getAddress());
+        client.setEmail(blankToNull(clientDto.getEmail()));
+        client.setAddress(blankToNull(clientDto.getAddress()));
+    }
+
+    /** Email and address are optional (batch 4); a blank field is stored as null, not "". */
+    private static String blankToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

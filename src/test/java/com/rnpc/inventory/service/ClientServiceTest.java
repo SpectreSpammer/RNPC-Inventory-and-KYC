@@ -5,11 +5,18 @@ import com.rnpc.inventory.entity.Client;
 import com.rnpc.inventory.repository.ClientRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Sort;
+import org.springframework.mock.web.MockMultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -124,5 +131,179 @@ class ClientServiceTest {
         when(repo.findById(5L)).thenReturn(Optional.of(existing));
 
         assertEquals("0908 123 9876", service.updateClient(5L, dto("0908-123-9876")).getContactNumber());
+    }
+
+    // ---- Email and address: optional (batch 4) --------------------------------------------------
+
+    @Test
+    void blankEmailAndAddressAreStoredAsNullNotEmptyStrings() {
+        stored();
+        ClientDto dto = dto("0917 234 5678");
+        dto.setEmail("  ");
+        dto.setAddress("");
+
+        Client saved = service.saveClient(dto);
+        assertNull(saved.getEmail());
+        assertNull(saved.getAddress());
+    }
+
+    @Test
+    void emailAndAddressAreTrimmedWhenGiven() {
+        stored();
+        ClientDto dto = dto("0917 234 5678");
+        dto.setEmail("  nand@example.com  ");
+        dto.setAddress("  123 Test St  ");
+
+        Client saved = service.saveClient(dto);
+        assertEquals("nand@example.com", saved.getEmail());
+        assertEquals("123 Test St", saved.getAddress());
+    }
+
+    @Test
+    void updateCanClearAPreviouslySetEmailAndAddress() {
+        Client existing = client(5, "Nand", "0917 234 5678");
+        existing.setEmail("nand@example.com");
+        existing.setAddress("123 Test St");
+        stored(existing);
+        when(repo.findById(5L)).thenReturn(Optional.of(existing));
+
+        ClientDto dto = dto("0917 234 5678");
+        dto.setEmail("");
+        dto.setAddress("");
+        Client saved = service.updateClient(5L, dto);
+        assertNull(saved.getEmail());
+        assertNull(saved.getAddress());
+    }
+
+    // ---- Photo validation: same limits as ProfilePhotoService -----------------------------------
+
+    private static byte[] pngBytes(int width, int height, int type) {
+        try {
+            BufferedImage image = new BufferedImage(width, height, type);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", out);
+            return out.toByteArray();
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private static byte[] jpegBytes(int width, int height) {
+        try {
+            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ImageIO.write(image, "jpg", out);
+            return out.toByteArray();
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private static byte[] bmpBytes(int width, int height) {
+        try {
+            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ImageIO.write(image, "bmp", out);
+            return out.toByteArray();
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private static ClientDto dtoWithPhoto(MockMultipartFile photo) {
+        ClientDto dto = dto("0917 234 5678");
+        dto.setImageFile(photo);
+        return dto;
+    }
+
+    // A valid photo reaches ClientService.handleFileUpload, which writes to public/images/ relative
+    // to the working directory (unmocked here, same as production) - these two tests are the only
+    // ones that clear validatePhoto, so they are the only ones that create a real file, and they
+    // delete it again immediately, pass or fail, rather than leaving it in the working tree.
+    private static void deleteFromPublicImages(String fileName) {
+        if (fileName != null) {
+            new java.io.File("public/images/" + fileName).delete();
+        }
+    }
+
+    @Test
+    void aValidPngIsAccepted() {
+        stored();
+        MockMultipartFile photo = new MockMultipartFile("imageFile", "id.png", "image/png", pngBytes(10, 10, BufferedImage.TYPE_INT_ARGB));
+        Client saved = service.saveClient(dtoWithPhoto(photo));
+        try {
+            assertEquals("New Client", saved.getFullName());
+        } finally {
+            deleteFromPublicImages(saved.getImageFileName());
+        }
+    }
+
+    @Test
+    void aValidJpegIsAccepted() {
+        stored();
+        MockMultipartFile photo = new MockMultipartFile("imageFile", "id.jpg", "image/jpeg", jpegBytes(10, 10));
+        Client saved = service.saveClient(dtoWithPhoto(photo));
+        try {
+            assertEquals("New Client", saved.getFullName());
+        } finally {
+            deleteFromPublicImages(saved.getImageFileName());
+        }
+    }
+
+    @Test
+    void noPhotoIsFine() {
+        stored();
+        MockMultipartFile empty = new MockMultipartFile("imageFile", "", "application/octet-stream", new byte[0]);
+        assertEquals("New Client", service.saveClient(dtoWithPhoto(empty)).getFullName());
+    }
+
+    @Test
+    void aFileOverFiveMegabytesIsRejectedRegardlessOfContent() {
+        stored();
+        MockMultipartFile tooBig = new MockMultipartFile("imageFile", "id.png", "image/png", new byte[5 * 1024 * 1024 + 1]);
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.saveClient(dtoWithPhoto(tooBig)));
+        assertTrue(ex.getMessage().contains("5 MB"), ex.getMessage());
+    }
+
+    @Test
+    void bytesThatAreNotAnyRecognisedImageAreRejected() {
+        stored();
+        MockMultipartFile junk = new MockMultipartFile("imageFile", "id.png", "image/png", "not an image".getBytes());
+        assertThrows(IllegalArgumentException.class, () -> service.saveClient(dtoWithPhoto(junk)));
+    }
+
+    @Test
+    void aRealImageInAnUnsupportedFormatIsRejectedEvenWithAPngContentType() {
+        stored();
+        // The declared content type claims PNG; the actual bytes are a valid BMP. Detection goes by
+        // the bytes (ImageIO's own format sniffing), not the browser-supplied contentType, so this
+        // is rejected as an unsupported format rather than accepted or misread.
+        MockMultipartFile bmpDisguisedAsPng = new MockMultipartFile("imageFile", "id.png", "image/png", bmpBytes(10, 10));
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.saveClient(dtoWithPhoto(bmpDisguisedAsPng)));
+        assertTrue(ex.getMessage().contains("JPG and PNG"), ex.getMessage());
+    }
+
+    @Test
+    void anImageOverSixteenMillionPixelsIsRejected() {
+        stored();
+        // 4100 x 4100 = 16,810,000 pixels, just over the 16,000,000 cap. TYPE_BYTE_GRAY keeps this
+        // a ~16 MB in-memory buffer rather than the ~67 MB a 32-bit image of the same size would need.
+        MockMultipartFile huge = new MockMultipartFile("imageFile", "id.png", "image/png",
+                pngBytes(4100, 4100, BufferedImage.TYPE_BYTE_GRAY));
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.saveClient(dtoWithPhoto(huge)));
+        assertTrue(ex.getMessage().contains("16 million pixels"), ex.getMessage());
+    }
+
+    @Test
+    void photoValidationRunsOnUpdateToo() {
+        Client existing = client(5, "Nand", "0917 234 5678");
+        stored(existing);
+        when(repo.findById(5L)).thenReturn(Optional.of(existing));
+
+        MockMultipartFile junk = new MockMultipartFile("imageFile", "id.png", "image/png", "not an image".getBytes());
+        assertThrows(IllegalArgumentException.class, () -> service.updateClient(5L, dtoWithPhoto(junk)));
     }
 }

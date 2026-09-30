@@ -19,3 +19,7 @@
 
 /* The email under the name can be long; let it break rather than widen the column. */
 .clients-page .parts-brand{overflow-wrap:anywhere}
+
+/* Add/Edit client (customers batch 4): a page-level note below the Photo section, inside the same
+   .pf-card. Scoped to .clients-page so it never leaks into the shared parts-form pages. */
+.clients-page .pf-form-note{padding:0 var(--space-5) var(--space-3)}

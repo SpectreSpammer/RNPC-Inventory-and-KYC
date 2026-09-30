@@ -92,7 +92,7 @@
                             <dl>
                                 <div><dt>Name</dt><dd th:text="${appointment.client.fullName}"></dd></div>
                                 <div><dt>Contact Number</dt><dd th:text="${appointment.client.contactNumber}"></dd></div>
-                                <div><dt>Email Address</dt><dd th:text="${appointment.client.email}"></dd></div>
+                                <div th:if="${appointment.client.email != null and !#strings.isEmpty(appointment.client.email)}"><dt>Email Address</dt><dd th:text="${appointment.client.email}"></dd></div>
                             </dl>
                         </section>
                         <section class="appointment-detail-section">

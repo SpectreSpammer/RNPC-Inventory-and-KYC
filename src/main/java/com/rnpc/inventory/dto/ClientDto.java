@@ -8,6 +8,13 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+/*
+ * Full name and contact number are required; email and address are optional (batch 4) - both
+ * columns on Client are already nullable, so this needed no schema change. @Email and @Size are
+ * satisfied by a null or blank value on their own (neither implies presence the way @NotEmpty
+ * does), so removing @NotEmpty is the whole change: a given email is still checked for a valid
+ * format, and a given address is still capped at 500 characters.
+ */
 public class ClientDto {
 
     @NotEmpty(message = "The full name is required!")
@@ -17,11 +24,9 @@ public class ClientDto {
     @Pattern(regexp = PhoneNumbers.PATTERN, message = "Invalid contact number")
     private String contactNumber;
 
-    @NotEmpty(message = "The email is required!")
     @Email(message = "Invalid email address")
     private String email;
 
-    @NotEmpty(message = "The address is required!")
     @Size(max = 500, message = "The address cannot exceed 500 characters")
     private String address;
 
