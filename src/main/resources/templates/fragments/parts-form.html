@@ -82,19 +82,29 @@
 </div>
 
 <!--
-  Remove-photo handler, unchanged from the pre-conversion templates: it sends
-  X-Requested-With so an expired session returns 401/403 instead of a redirect that fetch would
-  follow into a 200 plus login-page HTML (see SecurityConfig.wantsMachineResponse), and it checks
-  res.ok before reloading.
+  Remove-photo handler. It sends X-Requested-With so an expired session returns 401/403 instead of
+  a redirect that fetch would follow into a 200 plus login-page HTML (see
+  SecurityConfig.wantsMachineResponse), and it checks res.ok before touching the DOM.
+
+  The confirm makes clear removal is immediate and final - it does not wait for Save and is not
+  undone by cancelling the form, so the wording must not imply otherwise. On success this removes
+  the current-photo block (the .pf-current the button lives in - see the current-photo fragment
+  above) directly, rather than reloading the page, so the photo disappears without a reload or a
+  save; every removePhoto controller returns 303 See Other precisely so that res.ok reflects the
+  delete rather than the follow-up GET's method mismatch (see util.Redirects).
 -->
 <script th:fragment="remove-photo-script">
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.remove-photo-btn').forEach(function (btn) {
             btn.addEventListener('click', function () {
-                if (!confirm('Remove the current photo?')) return;
+                if (!confirm('Remove the current photo now? This cannot be undone.')) return;
                 fetch(btn.dataset.removeUrl, { method: 'DELETE', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                     .then(function (res) {
-                        if (res.ok) { window.location.reload(); return; }
+                        if (res.ok) {
+                            var current = btn.closest('.pf-current');
+                            if (current) { current.remove(); }
+                            return;
+                        }
                         alert(res.status === 401 || res.status === 403
                             ? 'Your session has expired. Please sign in again to remove this photo.'
                             : 'The photo could not be removed. Please try again.');

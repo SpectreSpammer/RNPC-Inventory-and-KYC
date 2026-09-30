@@ -6,8 +6,10 @@ import com.rnpc.inventory.entity.RepairRecord;
 import com.rnpc.inventory.service.ClientService;
 import com.rnpc.inventory.service.NotificationService;
 import com.rnpc.inventory.service.RepairRecordService;
+import com.rnpc.inventory.util.Redirects;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -190,13 +192,17 @@ public class RepairRecordController {
         return "redirect:/repair?clientId=" + repairRecordDto.getClientId();
     }
 
+    // Called by fetch (see fragments/parts-form :: remove-photo-script), not a form, so both
+    // branches need a 303 - a bare "redirect:" (302) would have fetch's DELETE re-sent as DELETE
+    // on follow, 405ing against a GET-only route (/repair/edit/{id}, or /repair itself). See
+    // Redirects.
     @DeleteMapping("/removePhoto/{id}")
-    public String removePhoto(@PathVariable("id") Long id, Authentication authentication) {
+    public ResponseEntity<Void> removePhoto(@PathVariable("id") Long id, Authentication authentication) {
         if (!isAdmin(authentication)) {
-            return "redirect:/repair";
+            return Redirects.seeOther("/repair");
         }
         service.removePhoto(id);
-        return "redirect:/repair/edit/" + id;
+        return Redirects.seeOther("/repair/edit/" + id);
     }
 
     @DeleteMapping("/delete/{id}")

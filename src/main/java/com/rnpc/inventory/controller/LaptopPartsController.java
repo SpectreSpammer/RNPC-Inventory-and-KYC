@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,6 +27,7 @@ import com.rnpc.inventory.dto.LaptopPartsDto;
 import com.rnpc.inventory.service.AdminDashboardService;
 import com.rnpc.inventory.service.LaptopPartsService;
 import com.rnpc.inventory.service.NotificationService;
+import com.rnpc.inventory.util.Redirects;
 
 import jakarta.validation.groups.Default;
 
@@ -221,9 +223,12 @@ public class LaptopPartsController {
 		return "redirect:/laptop?type=" + type.getSlug();
 	}
 
+	// Called by fetch (see fragments/parts-form :: remove-photo-script), not a form, so this needs
+	// a 303 - a bare "redirect:" (302) would have fetch's DELETE re-sent as DELETE on follow,
+	// 405ing against the GET-only edit route. See Redirects.
 	@DeleteMapping("/removePhoto/{id}")
-	public String removePhoto(@PathVariable("id") int id) {
+	public ResponseEntity<Void> removePhoto(@PathVariable("id") int id) {
 		laptopPartsService.removePhoto(id);
-		return "redirect:/laptop/edit/" + id;
+		return Redirects.seeOther("/laptop/edit/" + id);
 	}
 }

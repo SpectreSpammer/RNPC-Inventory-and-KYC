@@ -18,8 +18,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -119,5 +121,22 @@ class ClientControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attributeHasFieldErrorCode("clientDto", "contactNumber", "Pattern"));
         verify(service, never()).findOtherWithContactNumber(any(), any());
+    }
+
+    // ---- Remove photo: must be a 303, not a bare 302 ----------------------------------------------
+    //
+    // removePhoto is called by fetch (fragments/parts-form :: remove-photo-script), not a browser
+    // form submission, so the actual wire-level HTTP method is a real DELETE. Browsers preserve the
+    // original method when following a 301/302 for anything other than POST, so a bare
+    // "redirect:/client/edit/12" (a 302) would have the browser re-send the follow-up as DELETE
+    // against a GET-only route, 405ing even though the removal itself succeeded. A 303 See Other is
+    // always followed as GET, regardless of the original method - see util.Redirects.
+
+    @Test
+    void removePhotoRedirectsWithSeeOther() throws Exception {
+        mvc.perform(delete("/client/removePhoto/12"))
+                .andExpect(status().isSeeOther())
+                .andExpect(header().string("Location", "/client/edit/12"));
+        verify(service).removePhoto(12L);
     }
 }

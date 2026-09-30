@@ -4,8 +4,10 @@ import com.rnpc.inventory.dto.GpuPartsDto;
 import com.rnpc.inventory.entity.GpuParts;
 import com.rnpc.inventory.service.GpuPartsService;
 import com.rnpc.inventory.service.NotificationService;
+import com.rnpc.inventory.util.Redirects;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -117,10 +119,13 @@ public class GpuPartsController {
         model.addAttribute("memoryTypeOptions", service.getDistinctMemoryTypes());
     }
 
+    // Called by fetch (see fragments/parts-form :: remove-photo-script), not a form, so this needs
+    // a 303 - a bare "redirect:" (302) would have fetch's DELETE re-sent as DELETE on follow,
+    // 405ing against the GET-only edit route. See Redirects.
     @DeleteMapping("/removePhoto/{id}")
-    public String removePhoto(@PathVariable("id") int id) {
+    public ResponseEntity<Void> removePhoto(@PathVariable("id") int id) {
         service.removePhoto(id);
-        return "redirect:/gpu/edit/" + id;
+        return Redirects.seeOther("/gpu/edit/" + id);
     }
 
     @DeleteMapping("/delete/{id}")

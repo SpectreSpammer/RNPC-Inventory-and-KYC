@@ -7,8 +7,10 @@ import com.rnpc.inventory.entity.RepairRecord;
 import com.rnpc.inventory.service.ClientService;
 import com.rnpc.inventory.service.NotificationService;
 import com.rnpc.inventory.service.RepairRecordService;
+import com.rnpc.inventory.util.Redirects;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -123,10 +125,13 @@ public class ClientController {
                                 + "). Open that client instead of adding another."));
     }
 
+    // A bare "redirect:" is a 302, which fetch's DELETE would re-send as DELETE on follow, 405ing
+    // against the GET-only edit route - see Redirects. This is called by fetch, not a form, so it
+    // needs the 303.
     @DeleteMapping("/removePhoto/{id}")
-    public String removePhoto(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> removePhoto(@PathVariable("id") Long id) {
         service.removePhoto(id);
-        return "redirect:/client/edit/" + id;
+        return Redirects.seeOther("/client/edit/" + id);
     }
 
     @DeleteMapping("/delete/{id}")

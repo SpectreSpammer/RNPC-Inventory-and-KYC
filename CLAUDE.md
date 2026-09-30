@@ -574,6 +574,29 @@ The `removePhoto` handler in all ten `*EditParts.html` templates does exactly th
 into a 200 plus login-page HTML, and the handler called `window.location.reload()` as though the
 delete had succeeded.
 
+⚠️ **Every `removePhoto` controller method must return a 303 See Other, never a bare `"redirect:"`
+string, via `util.Redirects.seeOther(...)`.** A plain `"redirect:/xxx/edit/{id}"` view name renders
+as a 302 - `RedirectView` calls `HttpServletResponse.sendRedirect()`, which hard-codes 302 regardless
+of the original request method. Browsers preserve the original HTTP method when they follow a
+301/302, *except* for POST, which they convert to GET. `removePhoto` is called by `fetch` with a
+real `DELETE` (see the script above), not a form submission, so a 302 there gets re-sent by the
+browser as `DELETE /xxx/edit/{id}` - a route that only has a `GET` mapping - which 405s even though
+the photo was already removed. `fetch`'s `res.ok` reflects that 405, not the successful delete, so
+`remove-photo-script` shows "The photo could not be removed" on a call that actually succeeded. A
+303 does not have this problem: browsers always follow it as `GET`, for every original method. This
+was found via `ClientController.removePhoto` (the alert fired every time despite the photo being
+removed) and traced with a throwaway probe server + the browser pane's real `fetch()`, confirming
+the exact method-preserved-on-302 / converted-on-303 behaviour before the fix, since it depends on
+browser behaviour rather than the HTTP spec text alone. It affects all twelve `removePhoto` handlers
+identically (the ten parts controllers, `ClientController`, and `RepairRecordController` - the last
+one is currently masked because `repairEdit.html` still runs its own pre-conversion script that
+never checks `res.ok`, but the same 405 happens underneath). `CpuPartsControllerTest` and
+`ClientControllerTest.removePhotoRedirectsWithSeeOther` guard this; every future `removePhoto` needs
+the same `Redirects.seeOther(...)` return, not a copy-pasted `"redirect:"` string. Nothing else
+needs this - `create`/`update`/the form-submitted `delete` all arrive as POST (a real POST, or PUT
+via the hidden `_method` field, which is still a wire-level POST), and POST already converts to GET
+on a 302.
+
 **These handlers only see Spring Security's own exceptions.** `SupportController` throws
 `ResponseStatusException(UNAUTHORIZED / FORBIDDEN)` from inside the controller. That is a Spring
 **MVC** exception, resolved by `DispatcherServlet`, and it never reaches `ExceptionTranslationFilter`
