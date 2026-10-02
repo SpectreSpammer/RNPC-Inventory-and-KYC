@@ -90,6 +90,32 @@ public class ClientService {
         }
     }
 
+    /**
+     * Fills blanks on an existing client with freshly typed details, without ever overwriting a
+     * value already on file. Used when a walk-in ticket's contact number matches an existing client
+     * (batch 5): the typed name/email/address might just confirm what's already there, or might
+     * fill a gap for a client who was created with less information the first time - but a walk-in
+     * typo must never silently replace a value the client already gave.
+     */
+    public void fillMissingDetails(Client client, String fullName, String email, String address) {
+        boolean changed = false;
+        if (blankToNull(client.getFullName()) == null && blankToNull(fullName) != null) {
+            client.setFullName(fullName.trim());
+            changed = true;
+        }
+        if (client.getEmail() == null && blankToNull(email) != null) {
+            client.setEmail(blankToNull(email));
+            changed = true;
+        }
+        if (client.getAddress() == null && blankToNull(address) != null) {
+            client.setAddress(blankToNull(address));
+            changed = true;
+        }
+        if (changed) {
+            repo.save(client);
+        }
+    }
+
     public Client saveClient(ClientDto clientDto) {
         String storageFileName = handleFileUpload(clientDto.getImageFile());
         Client client = mapToEntity(clientDto);

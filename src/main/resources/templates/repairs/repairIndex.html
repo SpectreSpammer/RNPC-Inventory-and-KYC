@@ -149,7 +149,7 @@
                     <td th:if="${isAdmin and client == null}">
                         <a th:href="@{/repair(clientId=${repair.client.clientId})}" class="card-link" th:text="${repair.client.fullName}"></a>
                     </td>
-                    <td th:text="${repair.deviceType} + ' (' + ${repair.brand} + ' ' + ${repair.modelName} + ')'"></td>
+                    <td th:text="${#strings.isEmpty(repair.brand) ? repair.deviceType + ' (' + repair.modelName + ')' : repair.deviceType + ' (' + repair.brand + ' ' + repair.modelName + ')'}"></td>
                     <td th:text="${repair.issueDescription}"></td>
                     <td><span th:replace="~{fragments/status-badge :: badge(status=${repair.status})}"></span></td>
                     <td th:text="${#dates.format(repair.repairDate, 'MMM dd, yyyy')}"></td>

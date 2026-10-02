@@ -23,6 +23,15 @@
 
 /* Two-column field grid */
 .pf-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4) var(--space-5)}
+
+/* Two-column SECTION split (ticketCreate.html: Client | Job order side by side) - a layout variant
+   of pf-section/pf-grid above, not a replacement. Each column is its own plain field stack (no
+   pf-grid inside it, unlike the two-up field grid above), so pf-field needs its own spacing here
+   instead of relying on a grid gap. Parts forms don't use this and are unaffected. */
+.pf-split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 var(--space-6)}
+.pf-split-col h2{font-size:15px;font-weight:700;margin:0 0 var(--space-4)}
+.pf-split-col .pf-field+.pf-field{margin-top:var(--space-4)}
+
 .pf-field{min-width:0}
 .pf-field.pf-full{grid-column:1/-1}
 .pf-field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px}
@@ -76,6 +85,8 @@
 
 @media(max-width:760px){
     .pf-grid{grid-template-columns:1fr}
+    .pf-split{grid-template-columns:1fr;gap:0}
+    .pf-split-col+.pf-split-col{margin-top:var(--space-5)}
     .pf-section{padding:var(--space-4)}
     .pf-actions{padding:var(--space-4);flex-direction:column-reverse;align-items:stretch}
     .pf-cancel{text-align:center}

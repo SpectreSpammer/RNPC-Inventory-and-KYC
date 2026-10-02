@@ -7,6 +7,14 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+/*
+ * Full name, contact number, device type, model name and issue description are required; email,
+ * address and brand are optional (batch 5) - matching batch 4's treatment of ClientDto. @Email and
+ * @Size are satisfied by a null or blank value on their own (neither implies presence the way
+ * @NotEmpty does), so removing @NotEmpty is the whole change for email and address: a given email
+ * is still checked for a valid format, and a given address is still capped at 500 characters. brand
+ * carries no format constraint at all, so removing its @NotEmpty leaves nothing else to relax.
+ */
 public class TicketDto {
 
     @NotEmpty(message = "The full name is required!")
@@ -16,11 +24,9 @@ public class TicketDto {
     @Pattern(regexp = PhoneNumbers.PATTERN, message = "Invalid contact number")
     private String contactNumber;
 
-    @NotEmpty(message = "The email is required!")
     @Email(message = "Invalid email address")
     private String email;
 
-    @NotEmpty(message = "The address is required!")
     @Size(max = 500, message = "The address cannot exceed 500 characters")
     private String address;
 
@@ -28,7 +34,6 @@ public class TicketDto {
     @Pattern(regexp = "Cellphone|Laptop|Desktop", message = "Invalid device type selected")
     private String deviceType;
 
-    @NotEmpty(message = "The brand is required!")
     private String brand;
 
     @NotEmpty(message = "The model name is required!")

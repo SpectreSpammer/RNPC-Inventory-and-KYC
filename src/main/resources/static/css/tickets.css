@@ -1,0 +1,4 @@
+/* Create ticket (/ticket/create, batch 5): a page-level note below the two-column split section,
+   inside the same .pf-card - same pattern as clients.css's .clients-page .pf-form-note, scoped so
+   it never leaks into the shared parts-form pages. */
+.tickets-page .pf-form-note{padding:0 var(--space-5) var(--space-3)}

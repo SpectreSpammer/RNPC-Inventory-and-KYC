@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -104,6 +106,49 @@ class ClientServiceTest {
         assertTrue(service.findOtherWithContactNumber("09172345678", 1L).isEmpty());
         // A free number never clashes.
         assertTrue(service.findOtherWithContactNumber("0999 000 0000", null).isEmpty());
+    }
+
+    // ---- Fill missing details on a ticket match, never overwrite (batch 5) -------------------------
+
+    @Test
+    void fillMissingDetailsFillsOnlyTheBlankFields() {
+        Client existing = client(4, null, "0917 234 5678");
+        existing.setEmail("already-on-file@example.com");
+        existing.setAddress(null);
+
+        service.fillMissingDetails(existing, "Typed Full Name", "typed@example.com", "Typed Address");
+
+        assertEquals("Typed Full Name", existing.getFullName());
+        assertEquals("already-on-file@example.com", existing.getEmail());
+        assertEquals("Typed Address", existing.getAddress());
+        verify(repo).save(existing);
+    }
+
+    @Test
+    void fillMissingDetailsNeverOverwritesAnExistingValue() {
+        Client existing = client(5, "Nand Test", "0917 234 5678");
+        existing.setEmail("already-on-file@example.com");
+        existing.setAddress("Already on file");
+
+        service.fillMissingDetails(existing, "A Different Typed Name", "different@example.com", "A different address");
+
+        assertEquals("Nand Test", existing.getFullName());
+        assertEquals("already-on-file@example.com", existing.getEmail());
+        assertEquals("Already on file", existing.getAddress());
+        verify(repo, never()).save(any());
+    }
+
+    @Test
+    void fillMissingDetailsIgnoresABlankTypedValue() {
+        Client existing = client(6, "Nand Test", "0917 234 5678");
+        existing.setEmail(null);
+        existing.setAddress(null);
+
+        service.fillMissingDetails(existing, "Nand Test", "   ", "");
+
+        assertNull(existing.getEmail());
+        assertNull(existing.getAddress());
+        verify(repo, never()).save(any());
     }
 
     private static ClientDto dto(String number) {

@@ -1,129 +1,128 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-          crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Create ticket - RN PC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/parts-form :: assets}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/tickets.css}"/>
 </head>
-<body>
-<div class="container">
-        <h1 class="text-center my-4">Create Ticket</h1>
-</div>
+<body class="pf-page tickets-page">
 
-<div class="content-wrapper">
-    <nav class="sidebar" th:replace="~{fragments/nav :: sidebar}"></nav>
+<!--
+  Two columns (Client | Job order) on one pf-split section, matching
+  gpt/admin/"Create walk-in ticket@1x.png" - the mockup's only form on this shell that puts two
+  whole sections side by side rather than stacking them, so pf-split/pf-split-col are a new layout
+  variant in parts-form.css. Each column is a plain field stack (no pf-grid inside it), unlike the
+  two-up field grid parts forms already use - see parts-form.css's comment on pf-split.
 
-    <main class="main-content">
-    <div th:replace="~{fragments/nav :: back}"></div>
+  Back to tickets (@{/ticket/view}) rather than /repair, though both render the same admin listing -
+  /ticket/view is the one under this feature's own path, matching the sidebar's "View Tickets".
 
-    <form action="#" th:action="@{/ticket/create}" th:object="${ticketDto}" method="post">
+  The header fragment always renders a code badge and the literal text "Back to parts" - same
+  trade-off batch 4 accepted for the client forms rather than special-casing the shared fragment -
+  so this gets a "TKT" badge and that text rather than "Back to tickets".
+-->
 
-        <div class="row">
-            <div class="col-md-6">
-                <h5 class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.05em;">Client</h5>
-                <hr class="mt-1"/>
+<div th:replace="~{fragments/layout-app :: sidebar(active='new-ticket', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
 
-                <div class="mb-3">
-                    <label for="fullName" class="form-label">Full Name</label>
-                    <input type="text" th:field="*{fullName}" class="form-control" id="fullName" placeholder="Enter client's full name">
-                    <div class="text-danger" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+
+    <main class="content">
+        <div class="pf-wrap">
+            <div th:replace="~{fragments/parts-form :: header(code='TKT', title='Create ticket', subtitle='Log a walk-in repair and hand the customer a job order slip.', backUrl=@{/ticket/view})}"></div>
+
+            <form th:action="@{/ticket/create}" th:object="${ticketDto}" method="post">
+                <th:block th:if="${#fields.hasAnyErrors()}">
+                    <div th:replace="~{fragments/parts-form :: errors(messages=${#fields.allErrors()})}"></div>
+                </th:block>
+
+                <div class="pf-card">
+
+                    <section class="pf-section pf-split">
+                        <div class="pf-split-col">
+                            <h2>Client</h2>
+                            <div class="pf-field">
+                                <label for="fullName">Full name</label>
+                                <input type="text" th:field="*{fullName}" id="fullName" placeholder="Enter the client's full name"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="contactNumber">Contact number</label>
+                                <input type="text" th:field="*{contactNumber}" data-phone-format inputmode="tel" id="contactNumber" placeholder="e.g. 0917 234 5678"/>
+                                <span class="pf-hint">If this number already belongs to a client, the ticket is linked to them instead of creating a new one.</span>
+                                <span class="pf-error" th:if="${#fields.hasErrors('contactNumber')}" th:errors="*{contactNumber}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="email">Email <span class="pf-optional">(optional)</span></label>
+                                <input type="email" th:field="*{email}" id="email" placeholder="Enter email address"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="address">Address <span class="pf-optional">(optional)</span></label>
+                                <textarea th:field="*{address}" id="address" rows="3" placeholder="House number, street, barangay, city"></textarea>
+                                <span class="pf-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></span>
+                            </div>
+                        </div>
+
+                        <div class="pf-split-col">
+                            <h2>Job order</h2>
+                            <div class="pf-field">
+                                <label for="deviceType">Device type</label>
+                                <select th:field="*{deviceType}" id="deviceType">
+                                    <option value="">Select device type</option>
+                                    <option value="Cellphone">Cellphone</option>
+                                    <option value="Laptop">Laptop</option>
+                                    <option value="Desktop">Desktop</option>
+                                </select>
+                                <span class="pf-error" th:if="${#fields.hasErrors('deviceType')}" th:errors="*{deviceType}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="brand">Brand <span class="pf-optional">(optional)</span></label>
+                                <input type="text" th:field="*{brand}" id="brand" placeholder="e.g. Acer"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="modelName">Model name</label>
+                                <input type="text" th:field="*{modelName}" id="modelName" placeholder="e.g. Aspire 5"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('modelName')}" th:errors="*{modelName}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="serialNumber">Serial number <span class="pf-optional">(optional)</span></label>
+                                <input type="text" th:field="*{serialNumber}" id="serialNumber" placeholder="Enter serial number"/>
+                                <span class="pf-error" th:if="${#fields.hasErrors('serialNumber')}" th:errors="*{serialNumber}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="issueDescription">Reported issue</label>
+                                <textarea th:field="*{issueDescription}" id="issueDescription" rows="3" placeholder="What the customer says is wrong"></textarea>
+                                <span class="pf-error" th:if="${#fields.hasErrors('issueDescription')}" th:errors="*{issueDescription}"></span>
+                            </div>
+                            <div class="pf-field">
+                                <label for="estimatedCost">Estimated cost <span class="pf-optional">(optional)</span></label>
+                                <div class="pf-prefix">
+                                    <span>Php</span>
+                                    <input type="number" th:field="*{estimatedCost}" id="estimatedCost" step="0.01" min="0"/>
+                                </div>
+                                <span class="pf-error" th:if="${#fields.hasErrors('estimatedCost')}" th:errors="*{estimatedCost}"></span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <p class="pf-hint pf-form-note">The job order number is assigned automatically after saving. Status starts as Pending and is updated from Repairs.</p>
+
+                    <div th:replace="~{fragments/parts-form :: actions(cancelUrl=@{/ticket/view}, saveLabel='Create ticket')}"></div>
                 </div>
-
-                <div class="mb-3">
-                    <label for="contactNumber" class="form-label">Contact Number</label>
-                    <input type="text" th:field="*{contactNumber}" data-phone-format inputmode="tel" class="form-control" id="contactNumber" placeholder="e.g. 0917 234 5678">
-                    <div class="text-danger" th:if="${#fields.hasErrors('contactNumber')}" th:errors="*{contactNumber}"></div>
-                    <div class="form-text">If this number already belongs to a client, the ticket is linked to that client instead of creating a new one.</div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" th:field="*{email}" class="form-control" id="email" placeholder="Enter email address">
-                    <div class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="address" class="form-label">Address</label>
-                    <textarea th:field="*{address}" class="form-control" id="address" rows="2"></textarea>
-                    <div class="text-danger" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <h5 class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.05em;">Job Order</h5>
-                <hr class="mt-1"/>
-
-                <div class="mb-3">
-                    <label for="deviceType" class="form-label">Device Type</label>
-                    <select th:field="*{deviceType}" class="form-select" id="deviceType">
-                        <option value="">Select device type</option>
-                        <option value="Cellphone">Cellphone</option>
-                        <option value="Laptop">Laptop</option>
-                        <option value="Desktop">Desktop</option>
-                    </select>
-                    <div class="text-danger" th:if="${#fields.hasErrors('deviceType')}" th:errors="*{deviceType}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="brand" class="form-label">Brand</label>
-                    <input type="text" th:field="*{brand}" class="form-control" id="brand" placeholder="Enter brand">
-                    <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="modelName" class="form-label">Model Name</label>
-                    <input type="text" th:field="*{modelName}" class="form-control" id="modelName" placeholder="Enter model name">
-                    <div class="text-danger" th:if="${#fields.hasErrors('modelName')}" th:errors="*{modelName}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="serialNumber" class="form-label">Serial Number <span class="text-muted">(optional)</span></label>
-                    <input type="text" th:field="*{serialNumber}" class="form-control" id="serialNumber" placeholder="Enter serial number">
-                    <div class="text-danger" th:if="${#fields.hasErrors('serialNumber')}" th:errors="*{serialNumber}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="issueDescription" class="form-label">Reported Issue</label>
-                    <textarea th:field="*{issueDescription}" class="form-control" id="issueDescription" rows="3"></textarea>
-                    <div class="text-danger" th:if="${#fields.hasErrors('issueDescription')}" th:errors="*{issueDescription}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="estimatedCost" class="form-label">Estimated Cost <span class="text-muted">(optional)</span></label>
-                    <div class="input-group">
-                        <span class="input-group-text">Php</span>
-                        <input type="number" th:field="*{estimatedCost}" class="form-control" id="estimatedCost" step="0.01" min="0">
-                    </div>
-                    <div class="text-danger" th:if="${#fields.hasErrors('estimatedCost')}" th:errors="*{estimatedCost}"></div>
-                </div>
-            </div>
+            </form>
         </div>
-
-        <div class="row">
-            <div class="col-12">
-                <div class="form-text mb-3">The job order number is assigned automatically after saving. Status starts as <strong>Pending</strong> and is updated later from Repair History.</div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="offset-sm-4 col-sm-4 d-grid">
-                <button type="submit" class="btn btn-primary">Create Ticket</button>
-            </div>
-            <div class="col-sm-4 d-grid">
-                <a class="btn btn-outline-primary" href="/repair" role="button">Cancel</a>
-            </div>
-        </div>
-
-    </form>
     </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
-<script th:replace="~{fragments/nav :: sidebarScript}"></script>
+
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
 <script th:src="@{/js/phone-format.js}"></script>
 </body>
 </html>

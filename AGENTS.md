@@ -985,6 +985,56 @@ chips and "+N more" note, the address truncation, and letting the email wrap und
 Tests (context-free, run by name): `ClientViewTest`, plus `ClientServiceTest`, `ClientControllerTest`
 and `PhoneNumbersTest` from customers batch 2.
 
+### Walk-in tickets (`/ticket/create`)
+
+`tickets/ticketCreate.html` (customers batch 5) is converted to `fragments/layout-app.html` (sidebar
+keyed `active='new-ticket'`) and `fragments/parts-form.html`, matching
+`gpt/admin/"Create walk-in ticket@1x.png"`. The mockup puts two whole sections - Client and Job
+order - side by side rather than stacking them, which none of the existing parts-form pages do, so
+`parts-form.css` gained a layout variant: `.pf-split` (a two-column grid of `.pf-split-col`s, each a
+plain field stack, not the two-up `.pf-grid` the parts forms use inside one section) and
+`.pf-split-col h2`. Parts/laptop/cellphone/client forms don't use it and are unaffected.
+`static/css/tickets.css` holds the one page-specific rule this page needs beyond that (the footer
+note's padding) - the same `.tickets-page .pf-form-note` pattern `clients.css` already established
+for `.clients-page`. The header fragment's hardcoded "Back to parts" text and parts-code badge are
+reused as-is, the same trade-off batch 4 accepted for the client forms - this page gets a "TKT"
+badge instead. Both the header's back link and the footer's Cancel go to `/ticket/view`, not
+`/repair` as the pre-conversion template did - functionally the same admin listing, but the one
+under this feature's own path, matching the sidebar's "View Tickets" and the mockup's "Back to
+tickets".
+
+**Email, address and brand are optional** (`TicketDto` carries no `@NotEmpty` for any of the three -
+`@Email` and `@Size` are satisfied by null or blank on their own, and brand has no format constraint
+at all to begin with). Full name, contact number, device type, model name and issue description stay
+required. Since a ticket-created repair's `brand` can now be blank where it never could be before
+(admin-created repairs still require it via `RepairRecordDto`), `tickets/ticketPrint.html` and
+`repairs/repairIndex.html` - the two places that concatenate `deviceType + brand + modelName` into
+one display string - now check `#strings.isEmpty(repair.brand)` first, so a blank brand doesn't
+leave a dangling " - " or an empty parenthesis.
+
+**A ticket's contact number is matched the same way everywhere else does** (`ClientService
+.findByContactNumber`, via `PhoneNumbers.matchKey` - already correct before this batch, carried over
+unchanged into the converted template). What happens on a match was a deliberate decision, not a
+default: before batch 5 a match silently kept 100% of the existing client's stored data and
+discarded whatever the admin had just typed, with no way to tell. Now (`ClientService
+.fillMissingDetails`) a match keeps every value the client already has and fills in only the fields
+that are blank - the admin's typed name/email/address is used strictly as a gap-filler, never as an
+overwrite, so a walk-in typo can never silently replace a client's real details. A free number still
+creates a new client exactly as before, via the same `ClientService.saveClient` path.
+
+⚠️ **`ticketPrint.html` is deliberately not converted** - it still renders on the old
+`fragments/nav` shell. Unlike every other page in this migration, its primary output is a printed
+slip, not a screen: the existing `@media print` block already hides everything except the
+`.slip` fragment, including the sidebar (`.content-wrapper .sidebar{display:none!important}` plus
+every other element's own `.no-print` class), so the unconverted shell is not a defect in the one
+place this page's content actually matters. It is a visual inconsistency on screen only, in the
+moment before an admin prints or clicks through - and converting it would mean re-deriving the same
+print isolation against `layout-app`'s different markup (`.main`, not `.content-wrapper .sidebar`),
+on a page nothing else in this codebase is styled to be printed from.
+
+Tests (context-free, run by name): `TicketControllerTest`, plus `ClientServiceTest`'s
+`fillMissingDetails*` tests and `PhoneNumbersTest` from customers batch 2.
+
 ### Feature slices
 
 - **PC builder** - `BuildController` (`/build`), `SavedBuildController` (`/build/my-builds`, with
@@ -1062,7 +1112,7 @@ and `PhoneNumbersTest` from customers batch 2.
   leaves a `readOnly` field alone, because the profile page shows a masked value in one; that page's
   `maskPhone` hides digits 5-9 by digit position, since the stored number now contains spaces.
 - **Legacy tickets** - `TicketController` (`/ticket`) is a separate, older print-a-ticket feature,
-  unrelated to the support tickets above.
+  unrelated to the support tickets above. Its create form is covered under Walk-in tickets.
 
 ### Support tickets
 
@@ -1183,10 +1233,10 @@ Current nav layout, which is not symmetric between the two menus:
 **The migration to it is well past half done.** Converted: `dashboard.html`, `admin/dashboard.html`,
 all five `appointments/`, both `orders/` index pages, `build/`, `repairs/repairIndex.html`,
 `sales/salesReport.html`, `search/searchResults.html`, `profile/profileEdit.html`, all three
-`support/`, all three `clients/`, and **63 of the 71** `products/` templates (below). Still
-unconverted: the other 8 `products/` pages, `orders/orderCheckout.html` and
-`orderConfirmation.html`, the three other `repairs/` pages, both `tickets/`, `login/login.html`,
-and `notifications/notificationIndex.html`.
+`support/`, all three `clients/`, `tickets/ticketCreate.html`, and **63 of the 71** `products/`
+templates (below). Still unconverted: the other 8 `products/` pages, `orders/orderCheckout.html` and
+`orderConfirmation.html`, the three other `repairs/` pages, `tickets/ticketPrint.html` (deliberately -
+see Walk-in tickets), `login/login.html`, and `notifications/notificationIndex.html`.
 When converting a page, follow one that's already done rather than inventing a new structure.
 
 `products/` holds 71 templates: 27 at the top level, 24 in `products/laptop/` and 20 in

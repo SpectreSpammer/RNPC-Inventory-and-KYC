@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("ticket")
@@ -40,27 +42,48 @@ public class TicketController {
         this.notificationService = notificationService;
     }
 
+    // Topbar chrome for the shared layout-app shell, same shape as ClientController's. /ticket/create
+    // is admin-only via the filter chain (SecurityConfig.ADMIN_ONLY_CUSTOMER_PATHS), so the admin
+    // inbox is always the right one and no isAdmin check belongs here.
+    private void addShellAttributes(Authentication authentication, Model model) {
+        model.addAttribute("currentUsername", authentication != null ? authentication.getName() : null);
+        model.addAttribute("currentRole", "Admin");
+        model.addAttribute("unreadNotifications", notificationService.getUnreadCountForAdmin());
+        model.addAttribute("recentNotifications",
+                notificationService.getForAdmin().stream().limit(15).collect(Collectors.toList()));
+    }
+
     @GetMapping("/create")
-    public String showCreatePage(Model model) {
+    public String showCreatePage(Authentication authentication, Model model) {
         model.addAttribute("ticketDto", new TicketDto());
+        addShellAttributes(authentication, model);
         return "tickets/ticketCreate";
     }
 
     @PostMapping("/create")
-    public String createTicket(@Valid @ModelAttribute TicketDto ticketDto, BindingResult result) {
+    public String createTicket(@Valid @ModelAttribute TicketDto ticketDto, BindingResult result,
+                                Authentication authentication, Model model) {
         if (result.hasErrors()) {
+            addShellAttributes(authentication, model);
             return "tickets/ticketCreate";
         }
 
-        Client client = clientService.findByContactNumber(ticketDto.getContactNumber())
-                .orElseGet(() -> {
-                    ClientDto clientDto = new ClientDto();
-                    clientDto.setFullName(ticketDto.getFullName());
-                    clientDto.setContactNumber(ticketDto.getContactNumber());
-                    clientDto.setEmail(ticketDto.getEmail());
-                    clientDto.setAddress(ticketDto.getAddress());
-                    return clientService.saveClient(clientDto);
-                });
+        // A matched client keeps whatever it already has - only a blank name/email/address is
+        // filled in from what was typed, so a walk-in typo can never overwrite a client's real
+        // details (see ClientService.fillMissingDetails).
+        Optional<Client> existingClient = clientService.findByContactNumber(ticketDto.getContactNumber());
+        Client client;
+        if (existingClient.isPresent()) {
+            client = existingClient.get();
+            clientService.fillMissingDetails(client, ticketDto.getFullName(), ticketDto.getEmail(), ticketDto.getAddress());
+        } else {
+            ClientDto clientDto = new ClientDto();
+            clientDto.setFullName(ticketDto.getFullName());
+            clientDto.setContactNumber(ticketDto.getContactNumber());
+            clientDto.setEmail(ticketDto.getEmail());
+            clientDto.setAddress(ticketDto.getAddress());
+            client = clientService.saveClient(clientDto);
+        }
 
         RepairRecord repairRecord = repairRecordService.createFromTicket(client, ticketDto);
         notificationService.notifyAdmin(
