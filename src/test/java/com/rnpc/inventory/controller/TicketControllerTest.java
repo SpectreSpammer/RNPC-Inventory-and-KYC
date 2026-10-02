@@ -5,6 +5,7 @@ import com.rnpc.inventory.entity.RepairRecord;
 import com.rnpc.inventory.service.ClientService;
 import com.rnpc.inventory.service.NotificationService;
 import com.rnpc.inventory.service.RepairRecordService;
+import com.rnpc.inventory.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -37,13 +38,17 @@ class TicketControllerTest {
     private final ClientService clientService = mock(ClientService.class);
     private final RepairRecordService repairRecordService = mock(RepairRecordService.class);
     private final NotificationService notificationService = mock(NotificationService.class);
+    private final UserService userService = mock(UserService.class);
     private final MockMvc mvc;
 
     TicketControllerTest() {
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         InternalResourceViewResolver resolver = new InternalResourceViewResolver("/views/", ".html");
-        mvc = MockMvcBuilders.standaloneSetup(new TicketController(clientService, repairRecordService, notificationService))
+        // No Authentication is resolved in a standalone MockMvc setup (null by default), so
+        // TicketController's receivedByEmployeeId lookup short-circuits before touching
+        // userService here - these tests don't need to stub it.
+        mvc = MockMvcBuilders.standaloneSetup(new TicketController(clientService, repairRecordService, notificationService, userService))
                 .setValidator(validator).setViewResolvers(resolver).build();
     }
 
@@ -81,7 +86,7 @@ class TicketControllerTest {
         when(clientService.findByContactNumber(any())).thenReturn(Optional.empty());
         Client newClient = client(5L, "Walk-in Customer");
         when(clientService.saveClient(any())).thenReturn(newClient);
-        when(repairRecordService.createFromTicket(eq(newClient), any())).thenReturn(repair(1L, "SUP-00001"));
+        when(repairRecordService.createFromTicket(eq(newClient), any(), any())).thenReturn(repair(1L, "SUP-00001"));
 
         mvc.perform(validForm())
                 .andExpect(status().is3xxRedirection())
@@ -115,13 +120,13 @@ class TicketControllerTest {
         // rather than creating a duplicate.
         Client existing = client(9L, "Nand Test");
         when(clientService.findByContactNumber("09172345678")).thenReturn(Optional.of(existing));
-        when(repairRecordService.createFromTicket(eq(existing), any())).thenReturn(repair(2L, "SUP-00002"));
+        when(repairRecordService.createFromTicket(eq(existing), any(), any())).thenReturn(repair(2L, "SUP-00002"));
 
         mvc.perform(validForm("Typed Differently", "09172345678"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/ticket/2"));
         verify(clientService, never()).saveClient(any());
-        verify(repairRecordService).createFromTicket(eq(existing), any());
+        verify(repairRecordService).createFromTicket(eq(existing), any(), any());
     }
 
     // ---- A matched client keeps its own data; only blanks are filled in (batch 5) ------------------
@@ -133,7 +138,7 @@ class TicketControllerTest {
         // confirms the controller hands the typed values to it rather than to saveClient.
         Client existing = client(9L, "Nand Test");
         when(clientService.findByContactNumber("0999 000 0000")).thenReturn(Optional.of(existing));
-        when(repairRecordService.createFromTicket(eq(existing), any())).thenReturn(repair(3L, "SUP-00003"));
+        when(repairRecordService.createFromTicket(eq(existing), any(), any())).thenReturn(repair(3L, "SUP-00003"));
 
         mvc.perform(validForm().param("email", "typed@example.com").param("address", "Typed Address"))
                 .andExpect(status().is3xxRedirection())

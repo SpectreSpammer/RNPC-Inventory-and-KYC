@@ -86,7 +86,7 @@ public class RepairRecordService {
         return String.format("JO-%05d", repairId);
     }
 
-    public RepairRecord createFromTicket(Client client, TicketDto ticketDto) {
+    public RepairRecord createFromTicket(Client client, TicketDto ticketDto, String receivedByEmployeeId) {
         RepairRecord repairRecord = new RepairRecord();
         repairRecord.setClient(client);
         repairRecord.setDeviceType(ticketDto.getDeviceType());
@@ -98,6 +98,7 @@ public class RepairRecordService {
         repairRecord.setRepairDate(new Date());
         repairRecord.setStatus(RepairRecord.RepairStatus.PENDING);
         repairRecord.setCreatedAt(new Date());
+        repairRecord.setReceivedByEmployeeId(receivedByEmployeeId);
         repairRecord.setJobOrderNumber("PENDING");
         repairRecord = repo.save(repairRecord);
 

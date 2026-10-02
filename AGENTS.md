@@ -111,6 +111,16 @@ ALTER TABLE rnpc_appointments
     ADD COLUMN device_category VARCHAR(32) NULL;
 ```
 
+**One column added to the existing `rnpc_repair_records`** (customers batch 6;
+`RepairRecord.receivedByEmployeeId`, `@Enumerated` not involved - plain `String`, so Hibernate's
+default `VARCHAR(255)`, nullable - set only for a repair created from a walk-in ticket, see Walk-in
+tickets):
+
+```sql
+ALTER TABLE rnpc_repair_records
+    ADD COLUMN received_by_employee_id VARCHAR(255) NULL;
+```
+
 **Three new tables for support tickets.** `data` is `LONGBLOB` - set explicitly via
 `columnDefinition`, and also what Hibernate would infer for a `@Lob byte[]` on MySQL:
 
@@ -1022,18 +1032,44 @@ that are blank - the admin's typed name/email/address is used strictly as a gap-
 overwrite, so a walk-in typo can never silently replace a client's real details. A free number still
 creates a new client exactly as before, via the same `ClientService.saveClient` path.
 
-⚠️ **`ticketPrint.html` is deliberately not converted** - it still renders on the old
-`fragments/nav` shell. Unlike every other page in this migration, its primary output is a printed
-slip, not a screen: the existing `@media print` block already hides everything except the
-`.slip` fragment, including the sidebar (`.content-wrapper .sidebar{display:none!important}` plus
-every other element's own `.no-print` class), so the unconverted shell is not a defect in the one
-place this page's content actually matters. It is a visual inconsistency on screen only, in the
-moment before an admin prints or clicks through - and converting it would mean re-deriving the same
-print isolation against `layout-app`'s different markup (`.main`, not `.content-wrapper .sidebar`),
-on a page nothing else in this codebase is styled to be printed from.
+**`tickets/ticketPrint.html` (customers batch 6) is now converted** to `fragments/layout-app.html`,
+matching `gpt/admin/"Ticket created - screen@1x.png"` (the page) and
+`gpt/admin/"Client copy - what the paper shows@1x.png"` (the print output) - a prior version of
+this file argued for leaving it unconverted, on the reasoning that its primary output is a printed
+slip rather than a screen; that stood until these two mockups were approved and handed over with
+an explicit instruction to convert it, which supersedes it. `/ticket/{id}` is reached only as the
+redirect target right after `POST /ticket/create` - nothing else in the app links to it - so the
+whole page is unconditionally the "ticket created" confirmation; there's no second mode to branch
+on.
 
-Tests (context-free, run by name): `TicketControllerTest`, plus `ClientServiceTest`'s
-`fillMissingDetails*` tests and `PhoneNumbersTest` from customers batch 2.
+The `.slip` fragment (`ticketSlip`, also served bare by `GET /ticket/{id}/modal` for a future
+print-from-elsewhere caller - see Legacy tickets) is what prints: `Serial` now always shows a row,
+with a muted "Not recorded" rather than being hidden when blank, and `Estimated cost` shows
+"To be assessed" when `repair.cost <= 0` instead of "Php 0.00" (reuses `fragments/money :: amount`
+otherwise) - both matching the paper mockup. Everything outside `.slip` - the back link, the
+"Ticket created" header and its buttons, the green confirmation banner, and the entire right
+column (Ticket details, What next) - is `.no-print`, plus the "Client copy" card's own
+title/subtitle/Print-button row. `tickets.css`'s `@media print` block hides those, and `.sidebar` /
+`.topbar` directly (layout-app's own classes - a class added at the calling
+`th:replace="~{fragments/layout-app :: sidebar(...)}"` never reaches the fragment's actual root
+tag, since `th:replace` discards the calling element entirely) - plus resets `.main`'s
+`height:100vh`/`overflow-y:auto` for print, which would otherwise risk clipping content to one
+viewport height.
+
+`RepairRecord.receivedByEmployeeId` is a new nullable column (see Database changes not in
+migrations), set only by `TicketController.createTicket` to the acting admin's employee label
+(`User.getEmployeeLabel()`, e.g. "Test Admin-12345") - the same `xxxByEmployeeId`/`getEmployeeLabel`
+pattern `Order.verifiedByEmployeeId` and `Appointment.verifiedByEmployeeId` already use. It's null
+for every other way a `RepairRecord` is created (direct admin entry, or sourced from an
+appointment), since neither is "received" at a counter the way a walk-in ticket is - the "Ticket
+details" card only shows the row when it's present.
+
+The page-header's title/subtitle/buttons row does **not** call `page-header::header` - see its
+`actions` gotcha under Thymeleaf gotchas already hit here.
+
+Tests (context-free, run by name): `TicketControllerTest`, `RepairRecordServiceTest`'s
+`createFromTicket*` tests, plus `ClientServiceTest`'s `fillMissingDetails*` tests and
+`PhoneNumbersTest` from customers batch 2.
 
 ### Feature slices
 
@@ -1112,7 +1148,8 @@ Tests (context-free, run by name): `TicketControllerTest`, plus `ClientServiceTe
   leaves a `readOnly` field alone, because the profile page shows a masked value in one; that page's
   `maskPhone` hides digits 5-9 by digit position, since the stored number now contains spaces.
 - **Legacy tickets** - `TicketController` (`/ticket`) is a separate, older print-a-ticket feature,
-  unrelated to the support tickets above. Its create form is covered under Walk-in tickets.
+  unrelated to the support tickets above. Its create and print pages are covered under Walk-in
+  tickets.
 
 ### Support tickets
 
@@ -1233,10 +1270,10 @@ Current nav layout, which is not symmetric between the two menus:
 **The migration to it is well past half done.** Converted: `dashboard.html`, `admin/dashboard.html`,
 all five `appointments/`, both `orders/` index pages, `build/`, `repairs/repairIndex.html`,
 `sales/salesReport.html`, `search/searchResults.html`, `profile/profileEdit.html`, all three
-`support/`, all three `clients/`, `tickets/ticketCreate.html`, and **63 of the 71** `products/`
-templates (below). Still unconverted: the other 8 `products/` pages, `orders/orderCheckout.html` and
-`orderConfirmation.html`, the three other `repairs/` pages, `tickets/ticketPrint.html` (deliberately -
-see Walk-in tickets), `login/login.html`, and `notifications/notificationIndex.html`.
+`support/`, all three `clients/`, both `tickets/`, and **63 of the 71** `products/` templates
+(below). Still unconverted: the other 8 `products/` pages, `orders/orderCheckout.html` and
+`orderConfirmation.html`, the three other `repairs/` pages, `login/login.html`, and
+`notifications/notificationIndex.html`.
 When converting a page, follow one that's already done rather than inventing a new structure.
 
 `products/` holds 71 templates: 27 at the top level, 24 in `products/laptop/` and 20 in
@@ -1271,6 +1308,15 @@ Approve/Deny Cancellation). Keep both in sync when changing shared behaviour.
 - `card.html` / `table-card.html` / `empty-state.html` take content via cross-file `~{::#id}`
   fragment expressions, which is why several converted pages reproduce their classes directly
   instead of calling them.
+- ⚠️ **`page-header::header`'s `actions` param only works with a `~{::#id}` source element in a
+  *different* template.** A same-template self-reference (`actions=~{::#ticketActions}` plus a
+  sibling `<div id="ticketActions" hidden>` in the same file) renders the source element **twice** -
+  once where it's textually written, once at the actions slot - and both copies carry the source's
+  own `hidden` attribute into their output (`th:replace` substitutes the *whole* calling tag with
+  the target's own tag and attributes, not just its content), so both end up invisible. Confirmed in
+  `build/buildPc.html` and again in `tickets/ticketPrint.html`: write the `rn-page-header`/
+  `rn-page-header-text`/`rn-page-header-actions` markup directly instead of calling the fragment,
+  reusing its CSS classes (and the `page-header-styles` fragment) without the broken param.
 
 ## Uploads and static resources
 

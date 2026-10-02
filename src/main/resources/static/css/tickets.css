@@ -2,3 +2,89 @@
    inside the same .pf-card - same pattern as clients.css's .clients-page .pf-form-note, scoped so
    it never leaks into the shared parts-form pages. */
 .tickets-page .pf-form-note{padding:0 var(--space-5) var(--space-3)}
+
+/* Ticket created (/ticket/{id}, customers batch 6) - matches gpt/admin/"Ticket created -
+   screen@1x.png". .pf-back (parts-form.css) is reused as-is for the back link; everything else
+   here is new. */
+
+.ticket-wrap{max-width:1200px}
+
+/* .pf-save/.pf-cancel (parts-form.css) are reused as-is for the header's Print/New ticket buttons -
+   scoped so the icon gap doesn't change the Save button every other parts-form page already has. */
+.tickets-page .pf-save{display:inline-flex;align-items:center;gap:6px}
+.tickets-page .pf-save svg{width:14px;height:14px}
+
+.ticket-banner{display:flex;align-items:flex-start;gap:var(--space-3);background:var(--green-subtle);border:1px solid var(--green);border-radius:var(--radius-sm);padding:var(--space-4);margin-bottom:var(--space-5)}
+.ticket-banner svg{width:18px;height:18px;color:var(--green);flex-shrink:0;margin-top:2px}
+.ticket-banner p{margin:0;font-size:13.5px;color:var(--text)}
+.ticket-banner strong{color:var(--green)}
+
+.ticket-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:var(--space-5);align-items:start}
+
+.ticket-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
+
+/* The "Client copy" card's own chrome - title, subtitle and Print button - not the slip itself. */
+.ticket-slip-head{display:flex;align-items:flex-start;justify-content:space-between;padding:var(--space-5) var(--space-5) 0}
+.ticket-slip-head strong{display:block;font-size:15px;font-weight:700}
+.ticket-slip-head p{margin:2px 0 0;font-size:12.5px;color:var(--text-muted)}
+.ticket-print-btn{display:inline-flex;align-items:center;gap:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font:inherit;font-size:13px;font-weight:600;padding:8px 14px;cursor:pointer}
+.ticket-print-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ticket-print-btn svg{width:14px;height:14px}
+
+/* The slip itself - this is what prints (see @media print below), matching
+   gpt/admin/"Client copy - what the paper shows@1x.png". Reused as-is by the /{id}/modal route
+   (TicketController.showTicketModal), which renders only this fragment, so its own styling has to
+   stand on its own outside the .ticket-card/.ticket-slip-head chrome above. */
+.slip{max-width:420px;margin:var(--space-5) auto;border:1px solid var(--border);border-radius:var(--radius-sm);padding:var(--space-5);font-size:13px}
+.slip-head{text-align:center;border-bottom:1px dashed var(--border);padding-bottom:var(--space-3);margin-bottom:var(--space-3)}
+.slip-head .fw-bold{font-weight:700}
+.slip-row{display:flex;justify-content:space-between;padding:3px 0}
+.slip-row .k{color:var(--text-muted)}
+.slip-row .v{font-weight:600;text-align:right}
+.slip-section{margin-bottom:var(--space-3)}
+.slip-section .label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);font-weight:700;margin-bottom:4px}
+.slip-issue-box{background:var(--bg-page);border-radius:var(--radius-sm);padding:var(--space-3)}
+.slip-divider{border-top:1px dashed var(--border);margin:var(--space-3) 0}
+.slip-note{font-size:12px;color:var(--text-muted)}
+.slip-sign{display:flex;gap:var(--space-5);margin-top:var(--space-5)}
+.slip-sign>div{flex:1;text-align:center}
+.slip-sign .line{border-top:1px solid var(--border);height:28px;margin-bottom:4px}
+.slip-sign span{font-size:11px;color:var(--text-muted)}
+
+/* Right column: Ticket details + What next, neither printed. */
+.ticket-side-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:var(--space-5);margin-bottom:var(--space-5)}
+.ticket-side-card:last-child{margin-bottom:0}
+.ticket-side-card h2{font-size:15px;font-weight:700;margin:0}
+.ticket-side-sub{font-size:12px;color:var(--text-muted);margin:2px 0 var(--space-4)}
+.ticket-detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.ticket-detail-row:last-child{border-bottom:0}
+.ticket-detail-row .k{color:var(--text-muted)}
+.ticket-detail-row .v{font-weight:600}
+a.v{color:var(--accent);text-decoration:none}
+a.v:hover{text-decoration:underline}
+
+.ticket-next-row{display:flex;align-items:flex-start;gap:var(--space-3);text-decoration:none;color:inherit;padding:var(--space-3);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:var(--space-3)}
+.ticket-next-row:last-child{margin-bottom:0}
+.ticket-next-row:hover{border-color:var(--accent)}
+.ticket-next-row svg{width:16px;height:16px;color:var(--accent);flex-shrink:0;margin-top:2px}
+.ticket-next-text{display:flex;flex-direction:column;gap:2px}
+.ticket-next-text strong{font-size:13.5px}
+.ticket-next-text span{font-size:12px;color:var(--text-muted)}
+
+@media(max-width:900px){
+    .ticket-grid{grid-template-columns:1fr}
+}
+
+/* Print: only the .slip renders. layout-app's sidebar/topbar are matched by their own rendered
+   classes, not by a class added at the calling th:replace (th:replace discards that element
+   entirely, so a class placed there never reaches the fragment's actual root tag). .main has a
+   100vh/overflow-y:auto scroll region (app-styles in layout-app.html) which print must not
+   inherit, or multi-page content could be clipped to one viewport height. */
+@media print{
+    .no-print{display:none!important}
+    .sidebar,.topbar{display:none!important}
+    .main{height:auto!important;overflow:visible!important}
+    .ticket-grid{display:block}
+    .ticket-card{border:none!important;box-shadow:none!important;border-radius:0!important}
+    .slip{border:none;margin:0 auto}
+}

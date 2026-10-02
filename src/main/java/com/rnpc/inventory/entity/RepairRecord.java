@@ -57,6 +57,13 @@ public class RepairRecord {
     private Date createdAt;
     private String imageFileName;
 
+    // Set only for a record created from a walk-in ticket (see TicketController.createTicket) -
+    // the acting admin's employee label (User.getEmployeeLabel()), mirroring
+    // Order.verifiedByEmployeeId / Appointment.verifiedByEmployeeId. Null for a repair entered
+    // directly via /repair/create or sourced from an appointment, since neither is "received" at
+    // a counter the way a walk-in ticket is.
+    private String receivedByEmployeeId;
+
     public enum RepairStatus {
         PENDING, IN_PROGRESS, COMPLETED, RELEASED, CANCELLED
     }
@@ -203,6 +210,14 @@ public class RepairRecord {
 
     public void setImageFileName(String imageFileName) {
         this.imageFileName = imageFileName;
+    }
+
+    public String getReceivedByEmployeeId() {
+        return receivedByEmployeeId;
+    }
+
+    public void setReceivedByEmployeeId(String receivedByEmployeeId) {
+        this.receivedByEmployeeId = receivedByEmployeeId;
     }
 
     public Appointment getAppointment() {

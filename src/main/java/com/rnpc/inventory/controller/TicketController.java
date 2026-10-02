@@ -5,9 +5,11 @@ import com.rnpc.inventory.dto.TicketDto;
 import com.rnpc.inventory.entity.Client;
 import com.rnpc.inventory.entity.Notification;
 import com.rnpc.inventory.entity.RepairRecord;
+import com.rnpc.inventory.entity.User;
 import com.rnpc.inventory.service.ClientService;
 import com.rnpc.inventory.service.NotificationService;
 import com.rnpc.inventory.service.RepairRecordService;
+import com.rnpc.inventory.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -33,13 +35,15 @@ public class TicketController {
     private final ClientService clientService;
     private final RepairRecordService repairRecordService;
     private final NotificationService notificationService;
+    private final UserService userService;
 
     @Autowired
     public TicketController(ClientService clientService, RepairRecordService repairRecordService,
-                             NotificationService notificationService) {
+                             NotificationService notificationService, UserService userService) {
         this.clientService = clientService;
         this.repairRecordService = repairRecordService;
         this.notificationService = notificationService;
+        this.userService = userService;
     }
 
     // Topbar chrome for the shared layout-app shell, same shape as ClientController's. /ticket/create
@@ -85,7 +89,13 @@ public class TicketController {
             client = clientService.saveClient(clientDto);
         }
 
-        RepairRecord repairRecord = repairRecordService.createFromTicket(client, ticketDto);
+        // The acting admin's employee label (see RepairRecord.receivedByEmployeeId), the same
+        // pattern OrderController.markPaid uses for verifiedByEmployeeId. authentication is
+        // never null in practice (the filter chain requires an admin on this route), but every
+        // other handler here still checks before dereferencing it - see addShellAttributes.
+        String receivedByEmployeeId = authentication == null ? null
+                : userService.findByUsername(authentication.getName()).map(User::getEmployeeLabel).orElse(null);
+        RepairRecord repairRecord = repairRecordService.createFromTicket(client, ticketDto, receivedByEmployeeId);
         notificationService.notifyAdmin(
                 "New ticket " + repairRecord.getJobOrderNumber() + " created for " + client.getFullName()
                         + " (" + ticketDto.getDeviceType() + ")",
@@ -94,11 +104,24 @@ public class TicketController {
     }
 
     @GetMapping("/{id}")
-    public String showTicket(@PathVariable("id") Long id, Model model) {
+    public String showTicket(@PathVariable("id") Long id, Authentication authentication, Model model) {
         RepairRecord repairRecord = repairRecordService.getRepairRecordById(id);
         model.addAttribute("repair", repairRecord);
         model.addAttribute("client", repairRecord.getClient());
+        // Precomputed rather than built in the template - avoids a ternary split across multiple
+        // ${...} blocks (a past SpEL parse-error source here) and keeps the middle dot a real
+        // UTF-8 character rather than an HTML entity, which th:text would render literally.
+        model.addAttribute("ticketSubtitle", ticketSubtitle(repairRecord));
+        addShellAttributes(authentication, model);
         return "tickets/ticketPrint";
+    }
+
+    private static String ticketSubtitle(RepairRecord repairRecord) {
+        String device = repairRecord.getBrand() == null || repairRecord.getBrand().isBlank()
+                ? repairRecord.getModelName()
+                : repairRecord.getBrand() + " " + repairRecord.getModelName();
+        return "Job order " + repairRecord.getJobOrderNumber() + " for " + repairRecord.getClient().getFullName()
+                + " · " + repairRecord.getDeviceType() + ", " + device;
     }
 
     // The repair list's "Print" button fetches just the slip markup via JS and drops it into a
