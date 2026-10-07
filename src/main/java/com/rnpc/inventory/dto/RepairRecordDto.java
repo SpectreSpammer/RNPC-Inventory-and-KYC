@@ -3,6 +3,7 @@ package com.rnpc.inventory.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -10,7 +11,37 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 
+/*
+ * Brand is optional (a walk-in ticket can leave it blank, and an appointment-sourced repair has
+ * none until an admin fills it in), and so is fix until the repair is finished: fix is required only
+ * when the status is COMPLETED or RELEASED. That makes it conditional on another field, so it sits
+ * in the FixRequired group and RepairRecordController validates Default plus that group only for
+ * those two statuses (SmartValidator, the same way the laptop and cellphone controllers pick a
+ * per-type group). A fresh ticket has neither, and must still open and save as PENDING or IN_PROGRESS.
+ *
+ * Cost follows the same split: once the repair is finished it must be greater than zero (missing,
+ * zero and negative all give the one message below), while in every other status 0 is allowed and
+ * only a negative value is refused. The two cost rules are in different groups - FixRequired and
+ * NotFinished - so a negative cost on a finished repair shows the required-cost message once rather
+ * than that plus "cannot be negative". Repairs batch 1b makes cost nullable; the rule must carry
+ * over unchanged (null, zero and negative all rejected when finished). @Positive treats null as
+ * valid, so the finished-repair rule also carries @NotNull with the same message - a no-op while
+ * cost is a primitive, and what rejects a null the moment it becomes a Double.
+ */
 public class RepairRecordDto {
+
+    /** Validation group: the work is done, so the fix has to say what was done and cost > 0. */
+    public interface FixRequired {
+    }
+
+    /** Validation group: any other status, where cost may be 0 but never negative. */
+    public interface NotFinished {
+    }
+
+    /** True for the statuses that make the fix mandatory. Null and unknown values are not. */
+    public static boolean requiresFix(String status) {
+        return "COMPLETED".equals(status) || "RELEASED".equals(status);
+    }
 
     @NotNull(message = "The client is required!")
     private Long clientId;
@@ -19,7 +50,6 @@ public class RepairRecordDto {
     @Pattern(regexp = "Cellphone|Laptop|Desktop", message = "Invalid device type selected")
     private String deviceType;
 
-    @NotEmpty(message = "The brand is required!")
     private String brand;
 
     @NotEmpty(message = "The model name is required!")
@@ -33,7 +63,11 @@ public class RepairRecordDto {
 
     private String technician;
 
-    @Min(value = 0, message = "The cost cannot be negative")
+    @NotNull(groups = FixRequired.class,
+            message = "A cost greater than zero is required once the repair is Completed or Released.")
+    @Positive(groups = FixRequired.class,
+            message = "A cost greater than zero is required once the repair is Completed or Released.")
+    @Min(value = 0, groups = NotFinished.class, message = "The cost cannot be negative")
     private double cost;
 
     @NotNull(message = "The date of repair is required!")
@@ -50,7 +84,7 @@ public class RepairRecordDto {
     @Size(max = 2000, message = "The remarks cannot exceed 2000 characters")
     private String remarks;
 
-    @NotEmpty(message = "The fix is required!")
+    @NotEmpty(groups = FixRequired.class, message = "The fix is required once the repair is Completed or Released.")
     @Size(max = 2000, message = "The fix cannot exceed 2000 characters")
     private String fix;
 

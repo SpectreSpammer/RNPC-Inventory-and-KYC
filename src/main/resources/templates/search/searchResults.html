@@ -112,7 +112,7 @@
                                th:attr="data-entity-type='REPAIR', data-entity-id=${repair.repairId}"
                                th:text="${repair.jobOrderNumber}"></a>
                         </td>
-                        <td th:text="${repair.deviceType} + ' (' + ${repair.brand} + ' ' + ${repair.modelName} + ')'"></td>
+                        <td th:text="${repair.deviceLabel}"></td>
                         <td th:text="${repair.issueDescription}"></td>
                         <td><span th:replace="~{fragments/status-badge :: badge(status=${repair.status})}"></span></td>
                     </tr>

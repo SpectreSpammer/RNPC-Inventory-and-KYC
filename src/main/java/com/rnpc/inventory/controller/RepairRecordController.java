@@ -7,7 +7,9 @@ import com.rnpc.inventory.service.ClientService;
 import com.rnpc.inventory.service.NotificationService;
 import com.rnpc.inventory.service.RepairRecordService;
 import com.rnpc.inventory.util.Redirects;
-import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.groups.Default;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -15,8 +17,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.SmartValidator;
 import org.springframework.web.bind.annotation.*;
 
+import java.beans.PropertyEditorSupport;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,13 +31,46 @@ public class RepairRecordController {
     private final RepairRecordService service;
     private final ClientService clientService;
     private final NotificationService notificationService;
+    private final SmartValidator validator;
 
     @Autowired
     public RepairRecordController(RepairRecordService service, ClientService clientService,
-                                   NotificationService notificationService) {
+                                   NotificationService notificationService, SmartValidator validator) {
         this.service = service;
         this.clientService = clientService;
         this.notificationService = notificationService;
+        this.validator = validator;
+    }
+
+    // A cleared cost field posts "", which cannot be bound to the primitive double: Spring records a
+    // generic typeMismatch ("Failed to convert property value ... empty String") and Bean Validation
+    // never looks at the field. When the posted status is COMPLETED or RELEASED the person should see
+    // the required-cost message instead, so a blank cost is bound as 0.0 for those two statuses and
+    // the cost rule in RepairRecordDto rejects it like any other zero. Every other status keeps
+    // Spring's default handling - the status is read from the request here because the binder has
+    // not bound the DTO yet. Repairs batch 1b makes cost a nullable Double: this editor can then go,
+    // since a blank binds to null and the @NotNull on the finished-repair rule rejects it.
+    @InitBinder("repairRecordDto")
+    public void initBinder(WebDataBinder binder, HttpServletRequest request) {
+        if (RepairRecordDto.requiresFix(request.getParameter("status"))) {
+            binder.registerCustomEditor(double.class, "cost", new PropertyEditorSupport() {
+                @Override
+                public void setAsText(String text) {
+                    setValue(text == null || text.isBlank() ? 0.0d : Double.valueOf(text.trim()));
+                }
+            });
+        }
+    }
+
+    // Default plus, only when the status makes the fix mandatory, the FixRequired group - see
+    // RepairRecordDto. Run through the injected SmartValidator rather than @Valid because the group
+    // depends on a posted field. Boot marks its defaultValidator bean primary, so this is unambiguous.
+    private void validate(RepairRecordDto repairRecordDto, BindingResult result) {
+        if (RepairRecordDto.requiresFix(repairRecordDto.getStatus())) {
+            validator.validate(repairRecordDto, result, Default.class, RepairRecordDto.FixRequired.class);
+        } else {
+            validator.validate(repairRecordDto, result, Default.class, RepairRecordDto.NotFinished.class);
+        }
     }
 
     @GetMapping({"", "/"})
@@ -125,11 +162,12 @@ public class RepairRecordController {
     }
 
     @PostMapping("/create")
-    public String createRepairRecord(@Valid @ModelAttribute RepairRecordDto repairRecordDto,
+    public String createRepairRecord(@ModelAttribute RepairRecordDto repairRecordDto,
                                       BindingResult result, Authentication authentication, Model model) {
         if (!isAdmin(authentication)) {
             return "redirect:/repair";
         }
+        validate(repairRecordDto, result);
         if (result.hasErrors()) {
             model.addAttribute("clients", clientService.getAllClients());
             return "repairs/repairCreate";
@@ -172,13 +210,14 @@ public class RepairRecordController {
 
     @PutMapping("/update/{id}")
     public String updateRepairRecord(@PathVariable("id") Long id,
-                                      @Valid @ModelAttribute RepairRecordDto repairRecordDto,
+                                      @ModelAttribute RepairRecordDto repairRecordDto,
                                       BindingResult result,
                                       Authentication authentication,
                                       Model model) {
         if (!isAdmin(authentication)) {
             return "redirect:/repair";
         }
+        validate(repairRecordDto, result);
         if (result.hasErrors()) {
             RepairRecord existing = service.getRepairRecordById(id);
             model.addAttribute("repairId", id);

@@ -58,6 +58,61 @@ class RepairRecordServiceTest {
     }
 
     @Test
+    void createFromTicketStoresABlankBrandAndSerialAsNull() {
+        stored();
+        Client client = new Client();
+        client.setClientId(1L);
+        TicketDto dto = ticket();
+        dto.setBrand("");
+        dto.setSerialNumber("   ");
+
+        RepairRecord repair = service.createFromTicket(client, dto, null);
+
+        assertNull(repair.getBrand());
+        assertNull(repair.getSerialNumber());
+    }
+
+    @Test
+    void createFromTicketKeepsARealBrandAndSerialTrimmed() {
+        stored();
+        Client client = new Client();
+        client.setClientId(1L);
+        TicketDto dto = ticket();
+        dto.setBrand(" AMD ");
+        dto.setSerialNumber("SN-1");
+
+        RepairRecord repair = service.createFromTicket(client, dto, null);
+
+        assertEquals("AMD", repair.getBrand());
+        assertEquals("SN-1", repair.getSerialNumber());
+    }
+
+    @Test
+    void updateStoresABlankBrandAndSerialAsNull() {
+        stored();
+        Client client = new Client();
+        client.setClientId(1L);
+        RepairRecord existing = new RepairRecord();
+        existing.setRepairId(11L);
+        existing.setBrand("Acer");
+        existing.setSerialNumber("SN-1");
+        when(repo.findById(11L)).thenReturn(java.util.Optional.of(existing));
+        when(clientRepo.findById(1L)).thenReturn(java.util.Optional.of(client));
+        com.rnpc.inventory.dto.RepairRecordDto dto = new com.rnpc.inventory.dto.RepairRecordDto();
+        dto.setClientId(1L);
+        dto.setDeviceType("Laptop");
+        dto.setModelName("Aspire 5");
+        dto.setBrand("");
+        dto.setSerialNumber("");
+        dto.setStatus("PENDING");
+
+        RepairRecord updated = service.updateRepairRecord(11L, dto);
+
+        assertNull(updated.getBrand());
+        assertNull(updated.getSerialNumber());
+    }
+
+    @Test
     void createFromTicketAllowsANullReceivedBy() {
         // authentication is never actually null on this route in production (the filter chain
         // requires an admin), but TicketController still guards it - see its own comment.

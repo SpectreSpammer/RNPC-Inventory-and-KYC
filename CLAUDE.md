@@ -488,8 +488,8 @@ stored (`users.password` remains in the schema but is unused).
   `UserService.ensureAdminEmail`, so that email gets ADMIN on its first Google sign-in instead of
   defaulting to CUSTOMER. It also seeds the eight PC-component catalogs.
 
-**Authorization is hand-rolled in application code, with two exceptions in the filter chain**
-(the parts routes, then the customer and ticket routes - both below).
+**Authorization is hand-rolled in application code, with three exceptions in the filter chain**
+(the parts routes, the customer and ticket routes, then the repair write routes - all below).
 `SecurityConfig` still ends in `anyRequest().permitAll()` and disables CSRF app-wide (no form in
 the app carries a CSRF token). Every controller re-implements its own `isSignedIn`/`isAdmin` pair
 checking for `ROLE_ADMIN`, and `GlobalNavAttributes` (a `@ControllerAdvice`) exposes
@@ -552,7 +552,27 @@ web context (stub controllers, mocked user services, no Spring Boot app and no d
 create, delete and slip route as anonymous, non-admin and admin, plus the scripted carve-out and the
 `/ticket/view` control.
 
-**The rest of this section applies to both rules.**
+### The repair write routes are the third exception
+
+`RepairRecordController`'s write routes had only a controller-level `isAdmin` check (a non-admin was
+silently redirected). They are now also denied in the filter chain, via `ADMIN_ONLY_REPAIR_PATHS`,
+ordered after the customer rule and before the catch-all `permitAll`:
+
+```
+/repair/create, /repair/edit/**, /repair/update/**,
+/repair/removePhoto/**, /repair/delete/**                       -> hasRole("ADMIN")
+```
+
+⚠️ **This is a list of specific paths, not `/repair/**`**, because customers use the rest of that
+tree: `GET /repair` is their own Repair History and `GET /repair/{id}/modal` is the detail they open
+from it (`RepairRecordController` scopes both per user - a non-owner of the modal is redirected).
+Both stay `permitAll` in the chain, as does `/ticket/view`. `/ticket/{id}/modal`, the other
+repair-adjacent route, was already covered by the numeric slip rule in `ADMIN_ONLY_CUSTOMER_PATHS`.
+The controller keeps its `isAdmin` checks as a second layer. A new admin-only repair route must be
+added to `ADMIN_ONLY_REPAIR_PATHS`. Tested by `AdminOnlyRepairRoutesSecurityTest`, built the same way
+as `AdminOnlyCustomerRoutesSecurityTest`.
+
+**The rest of this section applies to all three rules.**
 
 **Where a blocked request goes.** `exceptionHandling` supplies both halves, and the two cases are
 genuinely different:
@@ -1092,7 +1112,47 @@ Tests (context-free, run by name): `TicketControllerTest`, `RepairRecordServiceT
 - **Repairs** - `RepairRecordController` (`/repair`). `RepairRecord.deviceType` is an allow-list of
   `Cellphone|Laptop|Desktop`; `cost` is the revenue. A repair created from an appointment is hidden
   from Repair History until that appointment is CONFIRMED - see `RepairRecord.isVisible()`, which
-  `RepairRecordService.getAllRepairRecords` filters on.
+  `RepairRecordService.getAllRepairRecords` filters on. Write routes are admin-only in the filter
+  chain (see the third exception under Sign-in and authorization).
+  **Brand is optional and the fix is required only for COMPLETED or RELEASED** (repairs batch 1a): a
+  fresh walk-in ticket has no fix and maybe no brand, and an appointment-sourced repair has no brand
+  or model at all, so neither can be mandatory while the repair is PENDING or IN_PROGRESS.
+  `RepairRecordDto.fix` is `@NotEmpty` in the `RepairRecordDto.FixRequired` group, and
+  `RepairRecordController.validate` runs `Default` plus that group only when
+  `RepairRecordDto.requiresFix(status)` - through the injected `SmartValidator` instead of `@Valid`,
+  the same approach the laptop and cellphone controllers use for their per-type groups. Brand and
+  serial number are stored as null when blank (`RepairRecordService.blankToNull`), never `""`.
+  **Cost must be greater than zero once the repair is COMPLETED or RELEASED** (missing, zero and
+  negative all give "A cost greater than zero is required once the repair is Completed or
+  Released." on the `cost` field, so the form keeps every other entry). In every other status -
+  PENDING, IN_PROGRESS, CANCELLED - 0.0 is still fine and only a negative value is refused ("The
+  cost cannot be negative"). The two cost rules live in different groups, `FixRequired` (the
+  finished-repair group: fix and cost) and `NotFinished`, so a negative cost on a finished repair
+  shows the required-cost message once and not also "cannot be negative";
+  `RepairRecordController.validate` picks `Default` + one of them from `requiresFix(status)`.
+  ⚠️ **A cleared cost field is a binding error, not a validation one.** `cost` is a primitive
+  `double`, so a posted `""` fails to convert (`typeMismatch`, "Failed to convert property value of
+  type 'java.lang.String' to required type 'double' ... empty String") and Bean Validation never
+  looks at the field. `RepairRecordController.initBinder` therefore binds a blank cost as 0.0 **only
+  when the posted status is COMPLETED or RELEASED**, so the person sees the required-cost message;
+  for every other status a cleared cost still produces Spring's generic message, unchanged.
+  ⚠️ **Repairs batch 1b (cost becomes a nullable `Double`) must preserve this rule:** null, zero and
+  negative all rejected when finished. The finished-repair rule already carries `@NotNull` with the
+  same message (a no-op on a primitive) because `@Positive` treats null as valid; the `initBinder`
+  editor can then be deleted, since a blank binds to null and `@NotNull` rejects it. The tests in
+  `RepairRecordControllerTest` (zero, negative, missing and cleared cost for both statuses, on edit
+  and create) are the contract to keep green. Only `RepairRecordService.applyDto` ever sets
+  COMPLETED or RELEASED - via the validated create and update routes - while the ticket and
+  appointment flows set PENDING, so nothing else bypasses the rule today; `applyDto` itself does not
+  re-check, so a future second caller would.
+  **Device type, brand and model are joined for display in exactly one place**, on `RepairRecord`:
+  `getBrandModel()`, `getDeviceLabel()` (`Laptop (Acer Aspire 5)`) and `deviceSummary(separator)`.
+  Each skips null or blank parts, so nothing prints the word "null" or leaves a dangling separator.
+  Use them (`repairIndex.html`, `repairDetail.html`, the slip, `TicketController.ticketSubtitle`, the
+  customer dashboard's warranty row, `searchResults.html`, `SearchService`) rather than joining the
+  fields in a template. Tests: `RepairRecordTest`, `RepairRecordControllerTest` (a fresh ticket opens
+  and saves from `/repair/edit/{id}` as PENDING or IN_PROGRESS; COMPLETED or RELEASED without a fix
+  is refused), `RepairRecordServiceTest`. Repair photos are **not** yet validated like client photos.
 - **Support tickets** - `SupportController`, `SupportTicketService`, and three entities. This slice
   does *not* follow the per-category quintet pattern; it's one controller over three tables. See
   its own section below.

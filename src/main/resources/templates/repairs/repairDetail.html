@@ -20,7 +20,7 @@
             <tbody>
             <tr>
                 <th>Device</th>
-                <td th:text="${repair.deviceType + ' ' + (repair.brand ?: '') + ' ' + (repair.modelName ?: '')}"></td>
+                <td th:text="${repair.deviceSummary(' ')}"></td>
             </tr>
             <tr th:if="${repair.serialNumber != null and !#strings.isEmpty(repair.serialNumber)}">
                 <th>Serial Number</th>

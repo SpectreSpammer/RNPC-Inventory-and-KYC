@@ -122,9 +122,7 @@ public class SearchService {
 
     // RepairRecord.java:80 getJobOrderNumber, :88/:96 getBrand/getModelName.
     private SearchSuggestion toSuggestion(RepairRecord repair) {
-        String sub = (repair.getBrand() != null ? repair.getBrand() : "")
-                + " " + (repair.getModelName() != null ? repair.getModelName() : "");
-        return new SearchSuggestion("REPAIR", repair.getRepairId(), repair.getJobOrderNumber(), sub.trim(), "/repair");
+        return new SearchSuggestion("REPAIR", repair.getRepairId(), repair.getJobOrderNumber(), repair.getBrandModel(), "/repair");
     }
 
     // Appointment.java:99 getDeviceType, :107 getItemDescription.

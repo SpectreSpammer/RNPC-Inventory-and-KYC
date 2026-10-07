@@ -90,9 +90,9 @@ public class RepairRecordService {
         RepairRecord repairRecord = new RepairRecord();
         repairRecord.setClient(client);
         repairRecord.setDeviceType(ticketDto.getDeviceType());
-        repairRecord.setBrand(ticketDto.getBrand());
+        repairRecord.setBrand(blankToNull(ticketDto.getBrand()));
         repairRecord.setModelName(ticketDto.getModelName());
-        repairRecord.setSerialNumber(ticketDto.getSerialNumber());
+        repairRecord.setSerialNumber(blankToNull(ticketDto.getSerialNumber()));
         repairRecord.setIssueDescription(ticketDto.getIssueDescription());
         repairRecord.setCost(ticketDto.getEstimatedCost());
         repairRecord.setRepairDate(new Date());
@@ -172,9 +172,9 @@ public class RepairRecordService {
     private void applyDto(RepairRecord repairRecord, RepairRecordDto repairRecordDto) {
         repairRecord.setClient(getClient(repairRecordDto.getClientId()));
         repairRecord.setDeviceType(repairRecordDto.getDeviceType());
-        repairRecord.setBrand(repairRecordDto.getBrand());
+        repairRecord.setBrand(blankToNull(repairRecordDto.getBrand()));
         repairRecord.setModelName(repairRecordDto.getModelName());
-        repairRecord.setSerialNumber(repairRecordDto.getSerialNumber());
+        repairRecord.setSerialNumber(blankToNull(repairRecordDto.getSerialNumber()));
         repairRecord.setIssueDescription(repairRecordDto.getIssueDescription());
         repairRecord.setTechnician(repairRecordDto.getTechnician());
         repairRecord.setCost(repairRecordDto.getCost());
@@ -184,6 +184,16 @@ public class RepairRecordService {
         repairRecord.setRemarks(repairRecordDto.getRemarks());
         repairRecord.setFix(repairRecordDto.getFix());
         repairRecord.setRecommendation(repairRecordDto.getRecommendation());
+    }
+
+    // Optional text is stored as null, never "" - same rule ClientService applies to email and
+    // address - so display code only ever has to ask "is it null" (see RepairRecord.getBrandModel).
+    private static String blankToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private String handleFileUpload(MultipartFile file) {

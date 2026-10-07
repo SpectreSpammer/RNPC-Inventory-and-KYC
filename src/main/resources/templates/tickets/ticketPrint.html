@@ -102,7 +102,7 @@
 
                         <div class="slip-section">
                             <div class="label">Device</div>
-                            <div class="slip-row"><span class="k">Item</span><span class="v" th:text="${#strings.isEmpty(repair.brand) ? repair.deviceType + ' - ' + repair.modelName : repair.deviceType + ' - ' + repair.brand + ' ' + repair.modelName}"></span></div>
+                            <div class="slip-row"><span class="k">Item</span><span class="v" th:text="${repair.deviceSummary(' - ')}"></span></div>
                             <div class="slip-row">
                                 <span class="k">Serial</span>
                                 <span th:if="${#strings.isEmpty(repair.serialNumber)}" class="v text-muted">Not recorded</span>

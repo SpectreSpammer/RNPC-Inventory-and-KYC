@@ -393,7 +393,7 @@
                                           remainingPercent=${warrantyMetrics[repair.repairId].remainingPercent},
                                           daysLeft=${warrantyMetrics[repair.repairId].daysLeft}">
                                 <span class="warranty-info">
-                                    <p class="warranty-job" th:text="${repair.jobOrderNumber} + ' &middot; ' + ${repair.brand} + ' ' + ${repair.modelName}"></p>
+                                    <p class="warranty-job"><span th:text="${repair.jobOrderNumber}"></span><th:block th:if="${!#strings.isEmpty(repair.brandModel)}"> &middot; <span th:text="${repair.brandModel}"></span></th:block></p>
                                     <p class="warranty-fix" th:text="${repair.fix}"></p>
                                 </span>
                                 <svg class="warranty-bar-track" viewBox="0 0 100 7" preserveAspectRatio="none" role="progressbar"

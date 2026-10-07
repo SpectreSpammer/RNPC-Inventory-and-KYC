@@ -228,6 +228,48 @@ public class RepairRecord {
         this.appointment = appointment;
     }
 
+    /*
+     * The one place device type, brand and model name are joined for display. Brand and model are
+     * null on an appointment-sourced repair (an admin fills them in later) and brand can be blank
+     * on a walk-in ticket, so every part is skipped when null or blank - nothing here ever prints
+     * the word "null", and no separator is left dangling. Not persisted columns (see isVisible).
+     */
+
+    /** "Acer Aspire 5", or "" when neither is known. */
+    @Transient
+    public String getBrandModel() {
+        return join(" ", brand, modelName);
+    }
+
+    /** "Laptop (Acer Aspire 5)", "Laptop" when brand and model are unknown, "" when nothing is. */
+    @Transient
+    public String getDeviceLabel() {
+        String brandModel = getBrandModel();
+        if (brandModel.isEmpty()) {
+            return join(" ", deviceType);
+        }
+        return deviceType == null || deviceType.isBlank() ? brandModel : deviceType.trim() + " (" + brandModel + ")";
+    }
+
+    /** Device type then brand and model, whichever are known, joined by the given separator. */
+    public String deviceSummary(String separator) {
+        return join(separator, deviceType, getBrandModel());
+    }
+
+    private static String join(String separator, String... parts) {
+        StringBuilder out = new StringBuilder();
+        for (String part : parts) {
+            if (part == null || part.isBlank()) {
+                continue;
+            }
+            if (out.length() > 0) {
+                out.append(separator);
+            }
+            out.append(part.trim());
+        }
+        return out.toString();
+    }
+
     // An appointment-sourced record stays hidden from Repair History - for the admin too, not
     // just the customer - until an admin actually confirms the appointment it came from; a
     // walk-in record entered directly by an admin (appointment == null) is visible right away.

@@ -117,11 +117,9 @@ public class TicketController {
     }
 
     private static String ticketSubtitle(RepairRecord repairRecord) {
-        String device = repairRecord.getBrand() == null || repairRecord.getBrand().isBlank()
-                ? repairRecord.getModelName()
-                : repairRecord.getBrand() + " " + repairRecord.getModelName();
+        String device = repairRecord.deviceSummary(", ");
         return "Job order " + repairRecord.getJobOrderNumber() + " for " + repairRecord.getClient().getFullName()
-                + " · " + repairRecord.getDeviceType() + ", " + device;
+                + (device.isEmpty() ? "" : " · " + device);
     }
 
     // The repair list's "Print" button fetches just the slip markup via JS and drops it into a
