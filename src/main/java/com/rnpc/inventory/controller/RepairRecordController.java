@@ -132,6 +132,17 @@ public class RepairRecordController {
         return "repairs/repairIndex";
     }
 
+    // Topbar chrome for the layout-app shell on the add / edit forms (repairs batch A2). Every route
+    // that renders them is admin-only (the filter chain and the isAdmin checks below), so the admin
+    // inbox is always the right one - the same shape TicketController.addShellAttributes uses.
+    private void addShellAttributes(Authentication authentication, Model model) {
+        model.addAttribute("currentUsername", authentication != null ? authentication.getName() : null);
+        model.addAttribute("currentRole", "Admin");
+        model.addAttribute("unreadNotifications", notificationService.getUnreadCountForAdmin());
+        model.addAttribute("recentNotifications",
+                notificationService.getForAdmin().stream().limit(15).collect(Collectors.toList()));
+    }
+
     private boolean isAdmin(Authentication authentication) {
         return authentication != null && authentication.isAuthenticated()
                 && authentication.getAuthorities().stream()
@@ -179,6 +190,7 @@ public class RepairRecordController {
         }
         model.addAttribute("repairRecordDto", repairRecordDto);
         model.addAttribute("clients", clientService.getAllClients());
+        addShellAttributes(authentication, model);
         return "repairs/repairCreate";
     }
 
@@ -191,6 +203,7 @@ public class RepairRecordController {
         validate(repairRecordDto, result);
         if (result.hasErrors()) {
             model.addAttribute("clients", clientService.getAllClients());
+            addShellAttributes(authentication, model);
             return "repairs/repairCreate";
         }
 
@@ -226,6 +239,9 @@ public class RepairRecordController {
         model.addAttribute("jobOrderNumber", repairRecord.getJobOrderNumber());
         model.addAttribute("currentImage", repairRecord.getImageFileName());
         model.addAttribute("clients", clientService.getAllClients());
+        // The saved record, for the header pill and the Record card - never the posted values.
+        model.addAttribute("repair", repairRecord);
+        addShellAttributes(authentication, model);
         return "repairs/repairEdit";
     }
 
@@ -245,6 +261,8 @@ public class RepairRecordController {
             model.addAttribute("jobOrderNumber", existing.getJobOrderNumber());
             model.addAttribute("currentImage", existing.getImageFileName());
             model.addAttribute("clients", clientService.getAllClients());
+            model.addAttribute("repair", existing);
+            addShellAttributes(authentication, model);
             return "repairs/repairEdit";
         }
 

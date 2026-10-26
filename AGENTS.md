@@ -623,8 +623,8 @@ removed) and traced with a throwaway probe server + the browser pane's real `fet
 the exact method-preserved-on-302 / converted-on-303 behaviour before the fix, since it depends on
 browser behaviour rather than the HTTP spec text alone. It affects all twelve `removePhoto` handlers
 identically (the ten parts controllers, `ClientController`, and `RepairRecordController` - the last
-one is currently masked because `repairEdit.html` still runs its own pre-conversion script that
-never checks `res.ok`, but the same 405 happens underneath). `CpuPartsControllerTest` and
+one used to be masked by `repairEdit.html`'s own pre-conversion script, which never checked
+`res.ok`; that script is gone and the form now uses the shared one). `CpuPartsControllerTest` and
 `ClientControllerTest.removePhotoRedirectsWithSeeOther` guard this; every future `removePhoto` needs
 the same `Redirects.seeOther(...)` return, not a copy-pasted `"redirect:"` string. Nothing else
 needs this - `create`/`update`/the form-submitted `delete` all arrive as POST (a real POST, or PUT
@@ -1140,8 +1140,8 @@ and the word "null" outside scripts and styles.
 ### Admin repair pages (`/repair` and `/ticket/view`)
 
 The admin side of the same slice (repairs batch A1), built from `gpt/admin/"Admin - Repair list@1x.png"`,
-`"Admin - Ticket list ( ticket view)@1x.png"` and `"Admin - Repair details@1x.png"`. The edit and create
-forms are not part of it yet.
+`"Admin - Ticket list ( ticket view)@1x.png"` and `"Admin - Repair details@1x.png"`. The edit and add
+forms follow it - see Admin edit and add repair forms.
 
 - **`repairs/repairIndex.html`** is now the admin list and nothing else. It is one template in two
   modes, set by the `ticketMode` model attribute: `RepairRecordController.showRepairList` serves it
@@ -1192,6 +1192,52 @@ Tests (context-free, run by name): `AdminRepairViewTest`, `AdminRepairPagesContr
 template and mode each audience gets, and the `/ticket/view` redirect) and `AdminRepairTemplatesTest`
 (renders the fragment and the list in both modes: remarks, client and contact present, no "null",
 the six counts, the Tickets wording and the active sidebar item).
+
+### Admin edit and add repair forms (`/repair/edit/{id}`, `/repair/create`)
+
+Repairs batch A2, built from `gpt/admin/"Admin - Edit repair@1x.png"`. `repairs/repairEdit.html` and
+`repairs/repairCreate.html` are now on `fragments/layout-app.html` (Repairs active) and
+`fragments/parts-form.html`'s stylesheet, with one card per section - "Client and device", "Issue
+and findings", "Status and cost", "Photo for technician reference" - and `static/css/repair-form.css`
+for what parts-form does not provide (the wider page, the Record card, date inputs, the photo box,
+the left-aligned Save / Cancel row). Both used to be bare Bootstrap pages.
+
+- **What is reused from parts-form:** its stylesheet (`pf-card`, `pf-field`, `pf-grid`, `pf-error`,
+  `pf-prefix`), the `current-photo` fragment and the shared **`remove-photo-script`** (a 303-aware
+  `DELETE` that sends `X-Requested-With` and checks `res.ok`). **The old inline remove-photo script
+  in `repairEdit.html` is gone** - it sent no header and never checked `res.ok`. What is not reused:
+  parts-form's `header` (it hardcodes "Back to parts" and a parts-code badge) and `errors` (it says
+  "This part could not be saved."), so the header is written out with the same `pf-*` classes and
+  errors show under each field, as they always did.
+- **Edit** shows a status pill (same `status-badge` colours as the list), a read-only Job order
+  number (not a posted field), and a **Record** card: Received (`createdAt`), Received by
+  (`RepairRecord.receivedByEmployeeId`, the same stored label the ticket page prints - the row is
+  left out entirely when it is null or blank, and so is Received when `createdAt` is null), **View
+  client copy** (`/ticket/{id}`) and **Delete repair**, a separate form beside the main one (forms
+  cannot nest) that keeps the list's `confirm('Are you sure?')` and `DELETE` flow exactly. The
+  controller adds the saved record as `repair` (on the error re-render too, so the header and Record
+  card always describe the saved repair, not the posted values) and the shell attributes.
+- **Add** is the same fields without the job order, Record card or Remove button, and still
+  preselects `?clientId=`.
+- **Nothing about validation, the DTO, cost or status handling changed.** The model attribute is
+  still `repairRecordDto`, every message is the same, and the Fix and Cost group rules for Completed
+  or Released apply exactly as before. Cost is still a primitive `double` prefilled with 0, so its
+  help text reads "Leave at 0 until assessed" - **when cost becomes nullable (batch 1b) that and the
+  Cancelled hint's "Leave it at 0" become "Leave it blank"**. The client select is a plain select
+  (the project has no searchable-select pattern). The photo note "PNG or JPEG, up to 5 MB" is not
+  printed because repair photos still have no validator (`ClientService.validatePhoto` is private to
+  clients).
+- ⚠️ **The Cancelled cost hint** under Cost (id `cancelledCostHint`, driven by the Status select id
+  `status`, model attribute `repairRecordDto`) shows only while the saved or posted status is
+  CANCELLED and is toggled by a small script as the select changes. `RepairFormCancelledHintTest`
+  guards it; keep those ids.
+
+Tests (context-free, run by name): `RepairFormsRenderTest` (renders both forms through a real
+`ThymeleafViewResolver` behind the real controller in a standalone MockMvc - `th:field` needs
+Spring's request context, so a bare template engine is not enough - and checks the optional markers,
+the Record card, no empty Received by row, the shared remove-photo script and no "null") and
+`RepairFormCancelledHintTest`. The browser halves - the hint toggle and the remove-photo button -
+have no test and are checked by hand.
 
 ### Feature slices
 
@@ -1433,11 +1479,12 @@ Current nav layout, which is not symmetric between the two menus:
 
 **The migration to it is well past half done.** Converted: `dashboard.html`, `admin/dashboard.html`,
 all five `appointments/`, both `orders/` index pages, `build/`, `repairs/repairIndex.html`,
-`repairs/customerRepairIndex.html`, `sales/salesReport.html`, `search/searchResults.html`,
+`repairs/customerRepairIndex.html`, `repairs/repairEdit.html`, `repairs/repairCreate.html`,
+`sales/salesReport.html`, `search/searchResults.html`,
 `profile/profileEdit.html`, all three
 `support/`, all three `clients/`, both `tickets/`, and **63 of the 71** `products/` templates
 (below). Still unconverted: the other 8 `products/` pages, `orders/orderCheckout.html` and
-`orderConfirmation.html`, the three other `repairs/` pages, `login/login.html`, and
+`orderConfirmation.html`, `login/login.html`, and
 `notifications/notificationIndex.html`.
 When converting a page, follow one that's already done rather than inventing a new structure.
 

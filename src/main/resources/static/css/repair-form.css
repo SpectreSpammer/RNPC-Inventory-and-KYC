@@ -1,0 +1,77 @@
+/*
+ * Admin edit / add repair forms (repairs batch A2): repairs/repairEdit.html and repairCreate.html.
+ *
+ * Only what parts-form.css (loaded first, via fragments/parts-form :: assets) does not already
+ * provide: the wider two-column page (form + Record card), one card per section, the status pill
+ * beside the title, the read-only job order field, date inputs, the photo box, the left-aligned
+ * Save / Cancel row and the Record card's buttons. Tokens come from theme.css.
+ */
+
+.rf-wrap { max-width: 1120px; }
+.rf-wrap-single { max-width: 780px; }
+
+/* Title row: the title block on the left, the status pill on the right (edit only). */
+.rf-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); }
+
+/* Form column + Record card. The add form has no aside, so its single column fills the width. */
+.rf-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--space-5); align-items: start; }
+.rf-wrap-single .rf-layout { grid-template-columns: minmax(0, 1fr); }
+
+/* One card per section (parts-form puts every section in a single card). */
+.rf-card { margin-bottom: var(--space-4); }
+.rf-card .pf-section { border-bottom: 0; }
+.rf-stack { display: grid; gap: var(--space-4); }
+.rf-stack > .pf-grid { margin: 0; }
+
+/* parts-form styles text / number / select / textarea; the date inputs here need the same look. */
+.rf-page .pf-field input[type=date] {
+    width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-card);
+    color: var(--text); font: inherit; font-size: 13.5px; padding: 9px 12px;
+}
+.rf-page .pf-field input[type=date]:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
+.rf-page .pf-field textarea { resize: vertical; }
+
+/* Job order number: shown, never posted. */
+.rf-page .pf-field input.rf-readonly { background: var(--bg-page); color: var(--text-muted); cursor: default; }
+
+/* Photo */
+.rf-nophoto {
+    display: grid; place-items: center; width: 150px; height: 100px; margin-bottom: var(--space-3);
+    border: 1px dashed var(--border); border-radius: var(--radius-sm); background: var(--bg-page);
+    color: var(--text-muted); font-size: 12.5px;
+}
+.rf-file input[type=file] { font-size: 12.5px; max-width: 100%; }
+.rf-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.rf-card .pf-current { margin-top: 0; margin-bottom: var(--space-3); }
+
+/* Save / Cancel, left-aligned under the cards (parts-form's .pf-actions is a right-aligned bar). */
+.rf-actions { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0 var(--space-5); }
+
+/* Record card */
+.rf-record { padding: var(--space-5); }
+.rf-record h2 { font-size: 15px; font-weight: 700; margin: 0 0 var(--space-3); }
+.rf-record dl { margin: 0 0 var(--space-4); }
+.rf-record-row { display: flex; justify-content: space-between; gap: var(--space-3); padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.rf-record-row:last-child { border-bottom: 0; }
+.rf-record-row dt { color: var(--text-muted); font-weight: 400; }
+.rf-record-row dd { margin: 0; color: var(--text); font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+
+.rf-secondary, .rf-delete {
+    display: block; width: 100%; text-align: center; box-sizing: border-box;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-card);
+    font: inherit; font-size: 13.5px; font-weight: 600; padding: 10px var(--space-4); cursor: pointer; text-decoration: none;
+}
+.rf-secondary { color: var(--text); }
+.rf-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.rf-delete-form { margin: var(--space-3) 0 0; }
+.rf-delete { color: var(--red); }
+.rf-delete:hover { border-color: var(--red); }
+
+@media (max-width: 960px) {
+    .rf-layout { grid-template-columns: minmax(0, 1fr); }
+    .rf-title-row { flex-direction: column; }
+}
+@media (max-width: 760px) {
+    .rf-actions { flex-direction: column-reverse; align-items: stretch; }
+    .rf-actions .pf-cancel { text-align: center; }
+}

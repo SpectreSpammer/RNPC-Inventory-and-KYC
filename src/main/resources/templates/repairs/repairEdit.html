@@ -1,165 +1,232 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>PC and Cellphone Repair Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <link rel="stylesheet" th:href="@{/css/demo.css}"/>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Edit repair - RN PC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/parts-form :: assets}"></th:block>
+    <th:block th:replace="~{fragments/status-badge :: badge-styles}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/repair-form.css}"/>
 </head>
-<body>
-<div class="container">
-        <h1 class="text-center my-4">Edit Repair Record</h1>
-    <form th:action="@{/repair/update/{id}(id=${repairId})}" th:object="${repairRecordDto}" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="_method" value="put"/>
+<body class="pf-page rf-page">
 
-        <div class="mb-3">
-            <label for="clientId" class="form-label">Client</label>
-            <select th:field="*{clientId}" class="form-select" id="clientId">
-                <option value="">Select a client</option>
-                <option th:each="c : ${clients}" th:value="${c.clientId}" th:text="${c.fullName}"></option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('clientId')}" th:errors="*{clientId}"></div>
-        </div>
+<!--
+  The ADMIN edit-repair form (repairs batch A2), matching gpt/admin/"Admin - Edit repair@1x.png".
+  First time on layout-app: it used to be a bare Bootstrap page with its own copy of the
+  remove-photo script (which never sent X-Requested-With and never checked res.ok).
 
-        <div class="mb-3">
-            <label class="form-label">Job Order Number</label>
-            <input type="text" class="form-control" th:value="${jobOrderNumber}" disabled>
-        </div>
+  Reused from parts-form: its stylesheet (pf-card / pf-field / pf-grid / pf-error / pf-prefix ...),
+  the current-photo fragment, and the shared remove-photo-script. NOT reused: parts-form's header
+  fragment (it hardcodes the text "Back to parts" and a parts-code badge) and its errors fragment
+  (it says "This part could not be saved.") - so the header is written out here with the same
+  pf-* classes, and errors show under each field as they always did.
 
-        <div class="mb-3">
-            <label for="deviceType" class="form-label">Device Type</label>
-            <select th:field="*{deviceType}" class="form-select" id="deviceType">
-                <option value="">Select device type</option>
-                <option value="Cellphone">Cellphone</option>
-                <option value="Laptop">Laptop</option>
-                <option value="Desktop">Desktop</option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('deviceType')}" th:errors="*{deviceType}"></div>
-        </div>
+  Fields, th:field names, validation and the model attribute (repairRecordDto) are unchanged; only
+  the markup is new. The Cancelled cost hint (id cancelledCostHint, driven by the select id status)
+  is guarded by RepairFormCancelledHintTest - keep those ids.
 
-        <div class="mb-3">
-            <label for="brand" class="form-label">Brand</label>
-            <input type="text" th:field="*{brand}" class="form-control" id="brand" placeholder="Enter brand">
-            <div class="text-danger" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
-        </div>
+  The Delete form is a separate form beside this one (forms cannot nest) and keeps the list's
+  confirm and DELETE flow exactly.
+-->
 
-        <div class="mb-3">
-            <label for="modelName" class="form-label">Model Name</label>
-            <input type="text" th:field="*{modelName}" class="form-control" id="modelName" placeholder="Enter model name">
-            <div class="text-danger" th:if="${#fields.hasErrors('modelName')}" th:errors="*{modelName}"></div>
-        </div>
+<div th:replace="~{fragments/layout-app :: sidebar(active='repairs', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
 
-        <div class="mb-3">
-            <label for="serialNumber" class="form-label">Serial Number <span class="text-muted">(optional)</span></label>
-            <input type="text" th:field="*{serialNumber}" class="form-control" id="serialNumber" placeholder="Enter serial number">
-            <div class="text-danger" th:if="${#fields.hasErrors('serialNumber')}" th:errors="*{serialNumber}"></div>
-        </div>
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
 
-        <div class="mb-3">
-            <label for="issueDescription" class="form-label">Issue Description</label>
-            <textarea th:field="*{issueDescription}" class="form-control" id="issueDescription" rows="3"></textarea>
-            <div class="text-danger" th:if="${#fields.hasErrors('issueDescription')}" th:errors="*{issueDescription}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="technician" class="form-label">Technician <span class="text-muted">(optional)</span></label>
-            <input type="text" th:field="*{technician}" class="form-control" id="technician" placeholder="Enter assigned technician">
-            <div class="text-danger" th:if="${#fields.hasErrors('technician')}" th:errors="*{technician}"></div>
-        </div>
-
-        <div class="mb-3">
-            <label for="cost" class="form-label">Cost</label>
-            <div class="input-group">
-                <span class="input-group-text">Php</span>
-                <input type="number" th:field="*{cost}" class="form-control" id="cost" placeholder="Enter repair cost" step="0.01" min="0">
+    <main class="content" th:with="clientName=${repair.client != null and !#strings.isEmpty(repair.client.fullName) ? repair.client.fullName : 'the client'}">
+        <div class="rf-wrap">
+            <div class="pf-header">
+                <a class="pf-back" th:href="@{/repair}"><i data-feather="chevron-left"></i>Back to repairs</a>
+                <div class="rf-title-row">
+                    <div>
+                        <h1 class="pf-title">Edit repair</h1>
+                        <p class="pf-subtitle"
+                           th:text="'Job order ' + ${#strings.defaultString(jobOrderNumber, '')} + ' for ' + ${clientName} + '. Add findings, parts and cost as the work moves along.'"></p>
+                    </div>
+                    <span th:replace="~{fragments/status-badge :: badge(status=${repair.status})}"></span>
+                </div>
             </div>
-            <div class="text-danger" th:if="${#fields.hasErrors('cost')}" th:errors="*{cost}"></div>
-        <!-- Shown only while Status is Cancelled (server-side on load, then toggled by the script below).
-             Purely a hint: Cost stays optional for Cancelled, nothing is validated differently. -->
-        <div class="form-text" id="cancelledCostHint" th:hidden="${repairRecordDto.status != 'CANCELLED'}">If the client declined after the check-up, enter the diagnostic fee you charged. Leave it at 0 if there was no check-up.</div>
-        </div>
 
-        <div class="mb-3">
-            <label for="repairDate" class="form-label">Date of Repair</label>
-            <input type="date" th:field="*{repairDate}" class="form-control" id="repairDate">
-            <div class="text-danger" th:if="${#fields.hasErrors('repairDate')}" th:errors="*{repairDate}"></div>
-        </div>
+            <div class="rf-layout">
+                <form th:action="@{/repair/update/{id}(id=${repairId})}" th:object="${repairRecordDto}" method="post" enctype="multipart/form-data" class="rf-form">
+                    <input type="hidden" name="_method" value="put"/>
 
-        <div class="mb-3">
-            <label for="warrantyEndDate" class="form-label">Warranty Ends <span class="text-muted">(optional)</span></label>
-            <input type="date" th:field="*{warrantyEndDate}" class="form-control" id="warrantyEndDate">
-            <div class="text-danger" th:if="${#fields.hasErrors('warrantyEndDate')}" th:errors="*{warrantyEndDate}"></div>
-        </div>
+                    <section class="pf-card rf-card">
+                        <div class="pf-section">
+                            <h2>Client and device</h2>
+                            <div class="pf-grid">
+                                <div class="pf-field">
+                                    <label for="clientId">Client</label>
+                                    <select th:field="*{clientId}" id="clientId">
+                                        <option value="">Select a client</option>
+                                        <option th:each="c : ${clients}" th:value="${c.clientId}" th:text="${c.fullName}"></option>
+                                    </select>
+                                    <small class="pf-hint">Changing the client moves this repair to their record.</small>
+                                    <span class="pf-error" th:if="${#fields.hasErrors('clientId')}" th:errors="*{clientId}"></span>
+                                </div>
+                                <div class="pf-field">
+                                    <label for="jobOrderNumber">Job order number</label>
+                                    <input type="text" id="jobOrderNumber" class="rf-readonly" th:value="${jobOrderNumber}" readonly="readonly" tabindex="-1"/>
+                                </div>
+                                <div class="pf-field">
+                                    <label for="deviceType">Device type</label>
+                                    <select th:field="*{deviceType}" id="deviceType">
+                                        <option value="">Select device type</option>
+                                        <option value="Cellphone">Cellphone</option>
+                                        <option value="Laptop">Laptop</option>
+                                        <option value="Desktop">Desktop</option>
+                                    </select>
+                                    <span class="pf-error" th:if="${#fields.hasErrors('deviceType')}" th:errors="*{deviceType}"></span>
+                                </div>
+                                <div class="pf-field">
+                                    <label for="modelName">Model name</label>
+                                    <input type="text" th:field="*{modelName}" id="modelName" placeholder="Enter model name"/>
+                                    <span class="pf-error" th:if="${#fields.hasErrors('modelName')}" th:errors="*{modelName}"></span>
+                                </div>
+                                <div class="pf-field">
+                                    <label for="brand">Brand <span class="pf-optional">(optional)</span></label>
+                                    <input type="text" th:field="*{brand}" id="brand" placeholder="Enter brand"/>
+                                    <span class="pf-error" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></span>
+                                </div>
+                                <div class="pf-field">
+                                    <label for="serialNumber">Serial number <span class="pf-optional">(optional)</span></label>
+                                    <input type="text" th:field="*{serialNumber}" id="serialNumber" placeholder="Enter serial number"/>
+                                    <span class="pf-error" th:if="${#fields.hasErrors('serialNumber')}" th:errors="*{serialNumber}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
-        <div class="mb-3">
-            <label for="status" class="form-label">Status</label>
-            <select th:field="*{status}" class="form-select" id="status">
-                <option value="">Select status</option>
-                <option value="PENDING">Pending</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="COMPLETED">Completed</option>
-                <option value="RELEASED">Released</option>
-                <option value="CANCELLED">Cancelled</option>
-            </select>
-            <div class="text-danger" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></div>
-        </div>
+                    <section class="pf-card rf-card">
+                        <div class="pf-section">
+                            <h2>Issue and findings</h2>
+                            <div class="rf-stack">
+                                <div class="pf-field">
+                                    <label for="issueDescription">Issue description</label>
+                                    <textarea th:field="*{issueDescription}" id="issueDescription" rows="3"></textarea>
+                                    <span class="pf-error" th:if="${#fields.hasErrors('issueDescription')}" th:errors="*{issueDescription}"></span>
+                                </div>
+                                <div class="pf-field">
+                                    <label for="technician">Technician <span class="pf-optional">(optional)</span></label>
+                                    <input type="text" th:field="*{technician}" id="technician" placeholder="Enter assigned technician"/>
+                                    <span class="pf-error" th:if="${#fields.hasErrors('technician')}" th:errors="*{technician}"></span>
+                                </div>
+                                <div class="pf-field">
+                                    <label for="fix">Fix <span class="pf-optional">(required once Completed or Released)</span></label>
+                                    <textarea th:field="*{fix}" id="fix" rows="3" placeholder="What was done to the device"></textarea>
+                                    <span class="pf-error" th:if="${#fields.hasErrors('fix')}" th:errors="*{fix}"></span>
+                                </div>
+                                <div class="pf-grid">
+                                    <div class="pf-field">
+                                        <label for="recommendation">Recommendation <span class="pf-optional">(optional)</span></label>
+                                        <textarea th:field="*{recommendation}" id="recommendation" rows="3"></textarea>
+                                        <span class="pf-error" th:if="${#fields.hasErrors('recommendation')}" th:errors="*{recommendation}"></span>
+                                    </div>
+                                    <div class="pf-field">
+                                        <label for="remarks">Remarks <span class="pf-optional">(optional, shop only)</span></label>
+                                        <textarea th:field="*{remarks}" id="remarks" rows="3"></textarea>
+                                        <span class="pf-error" th:if="${#fields.hasErrors('remarks')}" th:errors="*{remarks}"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
-        <div class="mb-3">
-            <label for="remarks" class="form-label">Remarks <span class="text-muted">(optional)</span></label>
-            <textarea th:field="*{remarks}" class="form-control" id="remarks" rows="2"></textarea>
-            <div class="text-danger" th:if="${#fields.hasErrors('remarks')}" th:errors="*{remarks}"></div>
-        </div>
+                    <section class="pf-card rf-card">
+                        <div class="pf-section">
+                            <h2>Status and cost</h2>
+                            <div class="pf-grid">
+                                <div class="pf-field">
+                                    <label for="status">Status</label>
+                                    <select th:field="*{status}" id="status">
+                                        <option value="">Select status</option>
+                                        <option value="PENDING">Pending</option>
+                                        <option value="IN_PROGRESS">In Progress</option>
+                                        <option value="COMPLETED">Completed</option>
+                                        <option value="RELEASED">Released</option>
+                                        <option value="CANCELLED">Cancelled</option>
+                                    </select>
+                                    <span class="pf-error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></span>
+                                </div>
+                                <div class="pf-field">
+                                    <label for="cost">Cost</label>
+                                    <div class="pf-prefix">
+                                        <span>Php</span>
+                                        <input type="number" th:field="*{cost}" id="cost" step="0.01" min="0" placeholder="To be assessed"/>
+                                    </div>
+                                    <small class="pf-hint">Leave at 0 until assessed. Needs an amount above zero once Completed or Released.</small>
+                                    <!-- Shown only while Status is Cancelled (server-side on load, then toggled by the script below).
+                                         Purely a hint: Cost stays optional for Cancelled, nothing is validated differently. -->
+                                    <div class="pf-hint" id="cancelledCostHint" th:hidden="${repairRecordDto.status != 'CANCELLED'}">If the client declined after the check-up, enter the diagnostic fee you charged. Leave it at 0 if there was no check-up.</div>
+                                    <span class="pf-error" th:if="${#fields.hasErrors('cost')}" th:errors="*{cost}"></span>
+                                </div>
+                                <div class="pf-field">
+                                    <label for="repairDate">Date of repair</label>
+                                    <input type="date" th:field="*{repairDate}" id="repairDate"/>
+                                    <span class="pf-error" th:if="${#fields.hasErrors('repairDate')}" th:errors="*{repairDate}"></span>
+                                </div>
+                                <div class="pf-field">
+                                    <label for="warrantyEndDate">Warranty ends <span class="pf-optional">(optional)</span></label>
+                                    <input type="date" th:field="*{warrantyEndDate}" id="warrantyEndDate"/>
+                                    <span class="pf-error" th:if="${#fields.hasErrors('warrantyEndDate')}" th:errors="*{warrantyEndDate}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
-        <div class="mb-3">
-            <label for="fix" class="form-label">Fix</label>
-            <textarea th:field="*{fix}" class="form-control" id="fix" rows="2"></textarea>
-            <div class="text-danger" th:if="${#fields.hasErrors('fix')}" th:errors="*{fix}"></div>
-        </div>
+                    <section class="pf-card rf-card">
+                        <div class="pf-section">
+                            <h2>Photo for technician reference <span class="pf-optional">(optional, the client can see it)</span></h2>
+                            <th:block th:if="${currentImage}">
+                                <div th:replace="~{fragments/parts-form :: current-photo(currentImage=${currentImage}, removeUrl=@{/repair/removePhoto/{id}(id=${repairId})})}"></div>
+                            </th:block>
+                            <div class="rf-nophoto" th:unless="${currentImage}">No photo yet</div>
+                            <div class="pf-field rf-file">
+                                <label for="imageFile" class="rf-sr-only">Photo file</label>
+                                <input type="file" th:field="*{imageFile}" id="imageFile"/>
+                            </div>
+                            <span class="pf-error" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></span>
+                        </div>
+                    </section>
 
-        <div class="mb-3">
-            <label for="recommendation" class="form-label">Recommendation <span class="text-muted">(optional)</span></label>
-            <textarea th:field="*{recommendation}" class="form-control" id="recommendation" rows="2"></textarea>
-            <div class="text-danger" th:if="${#fields.hasErrors('recommendation')}" th:errors="*{recommendation}"></div>
-        </div>
+                    <div class="rf-actions">
+                        <button type="submit" class="pf-save">Save changes</button>
+                        <a class="pf-cancel" th:href="@{/repair}">Cancel</a>
+                    </div>
+                </form>
 
-        <div class="mb-3">
-            <label for="imageFile" class="form-label">Photo for Technician Reference <span class="text-muted">(optional)</span></label>
-            <input type="file" th:field="*{imageFile}" class="form-control" id="imageFile">
-            <div class="text-danger" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></div>
-            <div th:if="${currentImage}" class="mt-2">
-                <img th:src="@{/images/{imageFileName}(imageFileName=${currentImage})}"
-                     class="img-fluid d-block mb-2" width="180px"/>
-                <button type="button" class="btn btn-outline-danger btn-sm remove-photo-btn"
-                        th:attr="data-remove-url=@{/repair/removePhoto/{id}(id=${repairId})}">
-                    Remove Photo
-                </button>
+                <aside class="rf-aside">
+                    <section class="pf-card rf-record">
+                        <h2>Record</h2>
+                        <dl>
+                            <div class="rf-record-row" th:if="${repair.createdAt != null}">
+                                <dt>Received</dt>
+                                <dd th:text="${#dates.format(repair.createdAt, 'MMM d, yyyy')}"></dd>
+                            </div>
+                            <div class="rf-record-row" th:if="${!#strings.isEmpty(#strings.trim(repair.receivedByEmployeeId))}">
+                                <dt>Received by</dt>
+                                <dd th:text="${#strings.trim(repair.receivedByEmployeeId)}"></dd>
+                            </div>
+                        </dl>
+                        <a class="rf-secondary" th:href="@{/ticket/{id}(id=${repairId})}">View client copy</a>
+                        <form th:action="@{/repair/delete/{id}(id=${repairId})}" method="post" class="rf-delete-form">
+                            <input type="hidden" name="_method" value="delete"/>
+                            <button type="submit" class="rf-delete" onclick="return confirm('Are you sure?')">Delete repair</button>
+                        </form>
+                    </section>
+                </aside>
             </div>
         </div>
-
-        <div class="row">
-            <div class="offset-sm-4 col-sm-4 d-grid">
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-            <div class="col-sm-4 d-grid">
-                <a class="btn btn-outline-primary" href="/repair" role="button">Cancel</a>
-            </div>
-        </div>
-    </form>
+    </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhG8x1Sk6rCthFF7P4l0sylTs9I6I0J3RYh7tPpLTU5niIt1wBcp9czwI6c" crossorigin="anonymous"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.remove-photo-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                if (!confirm('Remove the current photo?')) return;
-                fetch(btn.dataset.removeUrl, { method: 'DELETE' })
-                    .then(function() { window.location.reload(); });
-            });
-        });
-    });
-</script>
+
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+<script th:replace="~{fragments/parts-form :: remove-photo-script}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var status = document.getElementById('status');
