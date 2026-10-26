@@ -74,6 +74,9 @@
                 <input type="number" th:field="*{cost}" class="form-control" id="cost" placeholder="Enter repair cost" step="0.01" min="0">
             </div>
             <div class="text-danger" th:if="${#fields.hasErrors('cost')}" th:errors="*{cost}"></div>
+        <!-- Shown only while Status is Cancelled (server-side on load, then toggled by the script below).
+             Purely a hint: Cost stays optional for Cancelled, nothing is validated differently. -->
+        <div class="form-text" id="cancelledCostHint" th:hidden="${repairRecordDto.status != 'CANCELLED'}">If the client declined after the check-up, enter the diagnostic fee you charged. Leave it at 0 if there was no check-up.</div>
         </div>
 
         <div class="mb-3">
@@ -156,6 +159,16 @@
             });
         });
     });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var status = document.getElementById('status');
+    var hint = document.getElementById('cancelledCostHint');
+    if (!status || !hint) { return; }
+    function sync() { hint.hidden = status.value !== 'CANCELLED'; }
+    status.addEventListener('change', sync);
+    sync();
+});
 </script>
 </body>
 </html>
