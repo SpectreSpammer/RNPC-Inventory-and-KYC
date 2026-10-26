@@ -536,11 +536,11 @@ after the parts rule and before the catch-all `permitAll`:
 Blocked requests behave exactly as for the parts routes below: anonymous -> `/login`, signed-in
 non-admin -> `/`, and scripted requests (`X-Requested-With: XMLHttpRequest`) get `401` / `403`.
 
-⚠️ **`/ticket/view` is deliberately left open.** It is the customer's own Repair History (same
-template as `/repair`), and `TicketController.showTicketView` scopes it per user itself - an admin
-sees everything, a signed-in customer only their linked clients' repairs, anyone else an empty list.
-That is why the slip routes are matched on a numeric id: a bare `/ticket/{id}` would also match
-`/ticket/view` and lock customers out. No customer-facing page uses the slip or its modal (the
+⚠️ **`/ticket/view` is deliberately left open in the filter chain.** It used to be the customer's own
+Repair History, scoped per user by `TicketController.showTicketView`; since repairs batch A1 it is the
+admin ticket list, and the controller itself redirects anyone who is not an admin to `/repair`. That
+is why the slip routes are matched on a numeric id: a bare `/ticket/{id}` would also match
+`/ticket/view` and lock out whoever the controller would have redirected. No customer-facing page uses the slip or its modal (the
 notification dropdown's repair links go to `/repair/{id}/modal`, not `/ticket/...`).
 
 As with the parts controllers, `ClientController` and `TicketController` still have **no** `isAdmin`
@@ -1091,6 +1091,108 @@ Tests (context-free, run by name): `TicketControllerTest`, `RepairRecordServiceT
 `createFromTicket*` tests, plus `ClientServiceTest`'s `fillMissingDetails*` tests and
 `PhoneNumbersTest` from customers batch 2.
 
+### Customer repair pages (`/repair`)
+
+A signed-in non-admin gets their own pair of templates, built from `gpt/User/"Customer - Repair
+history@1x.png"` and `"Customer - Repair details@1x.png"` (repairs batch U1), the way `/order`
+splits `orderIndex.html` from `adminOrderIndex.html`. Admins and signed-out visitors get
+`repairs/repairIndex.html` (see Admin repair pages) and an admin the `repairDetail :: repairCard`
+fragment; `/ticket/view` redirects a customer here.
+
+- **`repairs/customerRepairIndex.html`** is returned by `RepairRecordController.showRepairList` only
+  when the user is signed in and not an admin. Title "Repair History"; six stat cards (Total,
+  Pending, In Progress, Completed, Released, Cancelled) that are `<button>`s filtering by status -
+  `stat-card-styles` is reused but the `stat-card` fragment cannot toggle, so the markup is bespoke;
+  search, Device, Status, From/To, Sort by (Newest, Oldest, Status, Cost high to low) and a "Clear
+  filters" link shown only while a filter is active. Styled by `static/css/customer-repairs.css`.
+  The rows are rendered server-side (so the existing `status-badge` and `money` fragments are used
+  as they are) and the page script filters, sorts and counts from `ALL_REPAIRS`, the serialized
+  `RepairView` list, by toggling/reordering those rows by `data-id` - it never builds a row.
+  `?status=` is honoured for the five enum values only.
+- **`repairs/repairDetail.html :: customerRepairCard`** is returned by `showRepairModal` for a
+  non-admin. Body and a Close button only: the "Repair details" header and X belong to the host
+  modal (the list's own, or `layout-app`'s shared `notifDetailModal`, which titles it "Details"),
+  so the fragment links its own CSS and `badge-styles`. The ownership and `isVisible()` check is
+  unchanged - another customer's repair still redirects to `/repair`.
+- **`dto/RepairView`** decides every string in Java, like `ClientView` / `LaptopPartView`:
+  status label (Pending / In Progress / Completed / Released / Cancelled, never the raw enum), the
+  plain-words sentence, the four progress steps (Received, In progress, Completed, Released;
+  PENDING fills 1 ... RELEASED 4, CANCELLED 0), the date ("Sep 18, 2026"), the device
+  (`RepairRecord.getDeviceLabel()`), cost, and a placeholder for each empty detail field
+  ("Not assigned yet", "No warranty set", "Not recorded yet", "None"). Warranty text reuses
+  `DashboardController.warrantyDaysRemaining` ("n days left" / "Expires today" / "Expired").
+  A cost of 0 reads "To be assessed" in muted italic, never "Php 0.00". **On a CANCELLED repair the
+  cost is the diagnostic fee the shop kept** (waived once the client goes ahead, when Cost holds only
+  the repair price): an amount above zero reads "Php 1,500.00 (diagnostic fee)" and 0 - cancelled with
+  no check-up - reads a muted "—". One rule in `RepairView` (`costSuffix` / `costPlaceholder`,
+  shared by `AdminRepairView`), so the customer and admin list and modal all follow it; no fee amount
+  is ever hard-coded - the code only reads Cost.
+- ⚠️ **Remarks never reach a customer.** `RepairView` has no remarks field (nor the client's name or
+  phone), and the customer templates read only `RepairView` (plus `repair.status` for the badge).
+  Do not add one: `RepairViewTest.remarksAndClientDetailsAreNotCarriedAnywhereOnTheView` guards it.
+  Photos are shown only when the repair has one; with none the whole block is omitted.
+
+Tests (context-free, run by name): `RepairViewTest`, and the customer cases at the end of
+`RepairRecordControllerTest`, and `CustomerRepairTemplatesTest`, which renders the list and the
+fragment with the real Thymeleaf engine (no Spring context) and checks for remarks, client details
+and the word "null" outside scripts and styles.
+
+### Admin repair pages (`/repair` and `/ticket/view`)
+
+The admin side of the same slice (repairs batch A1), built from `gpt/admin/"Admin - Repair list@1x.png"`,
+`"Admin - Ticket list ( ticket view)@1x.png"` and `"Admin - Repair details@1x.png"`. The edit and create
+forms are not part of it yet.
+
+- **`repairs/repairIndex.html`** is now the admin list and nothing else. It is one template in two
+  modes, set by the `ticketMode` model attribute: `RepairRecordController.showRepairList` serves it
+  with `ticketMode=false` and `TicketController.showTicketView` with `ticketMode=true`. Ticket mode
+  is wording and navigation only - title "Tickets", "New Ticket" -> `/ticket/create`, "Total
+  Tickets", the "Ticket #" / "Received" headers, ticket text in the search, empty state and footer -
+  and the same rows, filters and actions. The sidebar item is picked by the `active` param the page
+  passes to `layout-app :: sidebar` (`view-ticket` in ticket mode, `repairs` otherwise); the shell
+  needed no change.
+- Built like the customer list: six stat cards that are `<button>`s filtering by status, a toolbar
+  (search over job order, client, device and issue; Device; Status; From/To; Sort by Newest, Oldest,
+  Status, Client name, Cost high to low; "Clear filters" while a filter is active), rows rendered
+  server-side so the `money` and `status-badge` fragments are used as they are, and a script that
+  filters, sorts and counts from `ALL_REPAIRS` (the serialized `AdminRepairView` list) by hiding and
+  reordering those rows by `data-id`. Styling is `customer-repairs.css` (shared, unchanged) plus
+  `admin-repairs.css` for what only the admin has - the Action cell and the details modal. The
+  markup and script are duplicated from `customerRepairIndex.html` rather than extracted, so that
+  template stayed untouched.
+- **Action** holds Edit (`/repair/edit/{id}`), Delete - the original inline `DELETE` form with its
+  `confirm('Are you sure?')`, unchanged - and View, in that order. Client is a link to
+  `/repair?clientId={id}` in both modes. With `?clientId=` the title is "{client} - Repair History"
+  (or "- Tickets"), "Back to Clients" and "View All Repairs" ("View All Tickets" in ticket mode)
+  appear, and the Client column is dropped as redundant. `?status=` is honoured for the five enum
+  values; the old `DONE` ("Completed & Released") value is gone - no link used it (the admin
+  dashboard links `/repair?status=IN_PROGRESS` and `/ticket/view?status=PENDING`).
+- **`/ticket/view` is admin-only in practice.** A signed-in non-admin, or a signed-out visitor, is
+  redirected to `/repair` (the customer's Repair History). The route is still `permitAll` in the
+  filter chain - the controller does the redirect, as it does the admin check.
+- **`repairs/repairDetail.html :: repairCard`**, the admin fragment returned by `showRepairModal`,
+  reads only `adminView` (model attribute name chosen so it can never be confused with the
+  customer's `view`). Header, plain-words sentence (the shop's wording: "Received and waiting for a
+  technician."), status pill, four-step progress, a Client and Contact line, the details, a **Shop
+  remarks (not shown to the client)** section, the technician photo only when there is one, and
+  Edit repair / Close buttons. The "Repair details" header and X belong to the host modal.
+- **`dto/AdminRepairView`** is the one view model allowed to carry the client name, the contact
+  number (`PhoneNumbers.format`) and the shop remarks. It shares with `RepairView` only what is the
+  same for both audiences and holds nothing private - `statusLabel`, `stepsFilled`, `STEP_LABELS`,
+  the `Step` / `Field` types and the warranty wording - and has its own sentences, its own date
+  format ("Oct 03, 2026", day padded, as the admin design shows) and its own search text. Its
+  detail-only getters, and above all the contact number and remarks, are `@JsonIgnore`d so nothing
+  private is serialized into the page's `ALL_REPAIRS`.
+- ⚠️ **Customer view models never carry remarks, client name or phone** - `RepairView` stays free of
+  them and an `AdminRepairView` must never be handed to a customer template. Fallbacks that never
+  print "null": "Not assigned yet", "No warranty set" / days left / "Expired", "Not recorded yet",
+  "None", "No remarks", "Not provided" (contact), "Unknown client", cost "To be assessed" when it is 0.
+
+Tests (context-free, run by name): `AdminRepairViewTest`, `AdminRepairPagesControllerTest` (which
+template and mode each audience gets, and the `/ticket/view` redirect) and `AdminRepairTemplatesTest`
+(renders the fragment and the list in both modes: remarks, client and contact present, no "null",
+the six counts, the Tickets wording and the active sidebar item).
+
 ### Feature slices
 
 - **PC builder** - `BuildController` (`/build`), `SavedBuildController` (`/build/my-builds`, with
@@ -1113,7 +1215,9 @@ Tests (context-free, run by name): `TicketControllerTest`, `RepairRecordServiceT
   `Cellphone|Laptop|Desktop`; `cost` is the revenue. A repair created from an appointment is hidden
   from Repair History until that appointment is CONFIRMED - see `RepairRecord.isVisible()`, which
   `RepairRecordService.getAllRepairRecords` filters on. Write routes are admin-only in the filter
-  chain (see the third exception under Sign-in and authorization).
+  chain (see the third exception under Sign-in and authorization). A customer sees
+  their own pair of pages, built from `RepairView` - see Customer repair pages - and an admin sees
+  the list and details built from `AdminRepairView` - see Admin repair pages.
   **Brand is optional and the fix is required only for COMPLETED or RELEASED** (repairs batch 1a): a
   fresh walk-in ticket has no fix and maybe no brand, and an appointment-sourced repair has no brand
   or model at all, so neither can be mandatory while the repair is PENDING or IN_PROGRESS.
@@ -1329,7 +1433,8 @@ Current nav layout, which is not symmetric between the two menus:
 
 **The migration to it is well past half done.** Converted: `dashboard.html`, `admin/dashboard.html`,
 all five `appointments/`, both `orders/` index pages, `build/`, `repairs/repairIndex.html`,
-`sales/salesReport.html`, `search/searchResults.html`, `profile/profileEdit.html`, all three
+`repairs/customerRepairIndex.html`, `sales/salesReport.html`, `search/searchResults.html`,
+`profile/profileEdit.html`, all three
 `support/`, all three `clients/`, both `tickets/`, and **63 of the 71** `products/` templates
 (below). Still unconverted: the other 8 `products/` pages, `orders/orderCheckout.html` and
 `orderConfirmation.html`, the three other `repairs/` pages, `login/login.html`, and

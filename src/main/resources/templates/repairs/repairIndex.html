@@ -2,7 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Repair History - RNPC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${ticketMode == true} ? 'Tickets - RN PC' : 'Repair History - RN PC'">Repair History - RN PC</title>
     <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
     <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
     <th:block th:replace="~{fragments/card :: card-styles}"></th:block>
@@ -11,184 +12,236 @@
     <th:block th:replace="~{fragments/page-header :: page-header-styles}"></th:block>
     <th:block th:replace="~{fragments/status-badge :: badge-styles}"></th:block>
     <th:block th:replace="~{fragments/empty-state :: empty-state-styles}"></th:block>
-    <style>
-        /*
-          Converted from gpt/User Interface.png's "Repair History" panel (layout only - see chat):
-          page-header, 4 stat cards, a filter row (search/status/date-range), a table card with
-          muted uppercase headers, pagination-style footer. No approved page-specific mockup
-          exists beyond that low-res panel, so exact spacing below matches this app's own
-          established card/table/stat-card fragment classes instead of the mockup's pixel values.
-
-          card.html/table-card.html/empty-state.html's content/action params are cross-file
-          ~{::#id} fragment expressions (see dashboard.html/savedBuilds.html for the same note) -
-          not called from here for that reason; direct markup below reproduces their classes.
-
-          This same view serves both the signed-in customer's own Repair History AND the admin's
-          all-repairs / per-client drill-down (RepairRecordController.showRepairList) - restyled
-          in place, no behavior removed: isAdmin/linkClientName/client/clientId are the exact same
-          model attributes the old template used, just re-skinned.
-        */
-        .content{ padding:var(--space-5); }
-
-        .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-4); margin-bottom:var(--space-5); }
-        @media (max-width:1150px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
-
-        .filter-row{ display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap; margin-bottom:var(--space-4); }
-        .repair-search{
-            display:flex; align-items:center; gap:var(--space-2); background:var(--bg-card); border:1px solid var(--border);
-            border-radius:999px; padding:9px var(--space-4); flex:1; min-width:220px;
-        }
-        .repair-search svg{ width:15px; height:15px; color:var(--text-muted); flex-shrink:0; }
-        .repair-search input{ border:none; background:none; outline:none; font-size:13px; color:var(--text); width:100%; }
-        .filter-select{
-            border:1px solid var(--border); background:var(--bg-card); border-radius:var(--radius-sm); padding:8px 12px;
-            font-size:12.5px; font-weight:600; color:var(--text);
-        }
-        .filter-date-range{ display:flex; align-items:center; gap:6px; }
-        .filter-date-range input{
-            border:1px solid var(--border); background:var(--bg-card); border-radius:var(--radius-sm); padding:8px 10px;
-            font-size:12.5px; color:var(--text);
-        }
-        .filter-date-sep{ color:var(--text-muted); font-size:12.5px; }
-
-        .repair-footer{ display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); margin-top:var(--space-3); font-size:12.5px; color:var(--text-muted); }
-
-        /* Lets the delete form sit inline next to the Edit link in the Action cell, same as the
-           old template's style="display:inline" did - as a class instead, per the no-inline-
-           styles rule. */
-        .table-action-form{ display:inline; }
-
-        .no-search-results{ display:none; text-align:center; padding:var(--space-6) var(--space-4); color:var(--text-muted); font-size:13.5px; font-weight:600; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/customer-repairs.css}"/>
+    <link rel="stylesheet" th:href="@{/css/admin-repairs.css}"/>
 </head>
-<body>
+<body class="rp-page">
 
-<div th:replace="~{fragments/layout-app :: sidebar(active='repairs', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+<!--
+  The ADMIN repair list (repairs batch A1), matching gpt/admin/"Admin - Repair list@1x.png" and
+  "Admin - Ticket list ( ticket view)@1x.png". It is one template in two modes: /repair serves it
+  with ticketMode=false, /ticket/view with ticketMode=true (the Tickets wording, the New Ticket
+  button, "Ticket #" / "Received" headers and the Tickets > View Tickets sidebar item). Customers
+  never get it: RepairRecordController returns customerRepairIndex.html to them, and
+  TicketController sends a non-admin on /ticket/view to /repair.
+
+  Built like the customer page: the rows are rendered here, once, so the existing money and
+  status-badge fragments are used as they are, and the page script filters, sorts and counts from
+  ALL_REPAIRS (the serialized AdminRepairView list) by hiding / reordering those rows by data-id -
+  it never builds a row. Its styling is the customer page's own customer-repairs.css (stat cards,
+  toolbar, table, footer) plus admin-repairs.css for what only the admin has.
+
+  The six stat cards are buttons because they toggle a filter - stat-card.html renders only a static
+  card or a link - so stat-card-styles is reused and the markup is bespoke. card.html /
+  table-card.html / empty-state.html take content via cross-file ~{::#id} expressions, so their
+  classes are reproduced directly.
+-->
+
+<div th:replace="~{fragments/layout-app :: sidebar(active=${ticketMode == true ? 'view-ticket' : 'repairs'}, currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
 
 <div class="main">
     <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
     <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
 
-    <main class="content">
+    <main class="content" th:with="noun=${ticketMode == true ? 'ticket' : 'repair'}">
         <div class="rn-page-header">
             <div class="rn-page-header-text">
                 <h1 class="rn-page-header-title"
-                    th:text="${client != null} ? ${client.fullName} + ' - Repair History' : 'Repair History'"></h1>
-                <p class="rn-page-header-subtitle">Track your device repairs and their current status.</p>
+                    th:text="${ticketMode == true} ? (${client != null} ? ${client.fullName} + ' - Tickets' : 'Tickets') : (${client != null} ? ${client.fullName} + ' - Repair History' : 'Repair History')"></h1>
+                <p class="rn-page-header-subtitle"
+                   th:text="${ticketMode == true} ? 'Every job order logged at the shop, with its current status.' : 'Track your device repairs and their current status.'"></p>
             </div>
             <div class="rn-page-header-actions">
                 <a th:if="${isAdmin and client != null}" href="/client" class="table-action">Back to Clients</a>
-                <a th:if="${isAdmin and client != null}" href="/repair" class="table-action">View All Repairs</a>
-                <a th:if="${isAdmin}" class="btn-accent-sm"
-                   th:href="${client == null} ? @{/repair/create} : @{/repair/create(clientId=${client.clientId})}">
-                    <i data-feather="plus"></i>Add Repair
-                </a>
+                <a th:if="${isAdmin and client != null and ticketMode != true}" href="/repair" class="table-action">View All Repairs</a>
+                <a th:if="${isAdmin and client != null and ticketMode == true}" href="/ticket/view" class="table-action">View All Tickets</a>
+                <th:block th:if="${isAdmin}">
+                    <a th:if="${ticketMode == true}" class="btn-accent-sm ra-primary" th:href="@{/ticket/create}">
+                        <i data-feather="plus"></i>New Ticket
+                    </a>
+                    <a th:unless="${ticketMode == true}" class="btn-accent-sm ra-primary"
+                       th:href="${client == null} ? @{/repair/create} : @{/repair/create(clientId=${client.clientId})}">
+                        <i data-feather="plus"></i>Add Repair
+                    </a>
+                </th:block>
             </div>
         </div>
 
-        <section class="stat-grid"
-                  th:with="pendingCount=${#lists.size(repairs.?[status.name() == 'PENDING'])},
-                            inProgressCount=${#lists.size(repairs.?[status.name() == 'IN_PROGRESS'])},
-                            releasedCount=${#lists.size(repairs.?[status.name() == 'RELEASED'])}">
-            <div th:replace="~{fragments/stat-card :: stat(icon='clipboard', color='blue', label='Total Repairs', value=${#lists.size(repairs)}, footerIcon=null, footerText=null, href=null)}"></div>
-            <div th:replace="~{fragments/stat-card :: stat(icon='clock', color='orange', label='Pending', value=${pendingCount}, footerIcon=null, footerText=null, href=null)}"></div>
-            <div th:replace="~{fragments/stat-card :: stat(icon='tool', color='purple', label='In Progress', value=${inProgressCount}, footerIcon=null, footerText=null, href=null)}"></div>
-            <div th:replace="~{fragments/stat-card :: stat(icon='check-circle', color='green', label='Released', value=${releasedCount}, footerIcon=null, footerText=null, href=null)}"></div>
+        <section class="rp-stats" aria-label="Filter by status"
+                 th:with="pendingCount=${#lists.size(repairViews.?[status == 'PENDING'])},
+                          inProgressCount=${#lists.size(repairViews.?[status == 'IN_PROGRESS'])},
+                          completedCount=${#lists.size(repairViews.?[status == 'COMPLETED'])},
+                          releasedCount=${#lists.size(repairViews.?[status == 'RELEASED'])},
+                          cancelledCount=${#lists.size(repairViews.?[status == 'CANCELLED'])}">
+            <button type="button" class="stat-card stat-card-link rp-stat is-active" data-status="" aria-pressed="true">
+                <div class="stat-top">
+                    <span class="stat-icon stat-icon-blue"><i data-feather="clipboard"></i></span>
+                    <i data-feather="chevron-right" class="stat-chevron"></i>
+                </div>
+                <p class="stat-label" th:text="${ticketMode == true} ? 'Total Tickets' : 'Total Repairs'">Total Repairs</p>
+                <p class="stat-value" th:text="${#lists.size(repairViews)}"></p>
+            </button>
+            <button type="button" class="stat-card stat-card-link rp-stat" data-status="PENDING" aria-pressed="false">
+                <div class="stat-top">
+                    <span class="stat-icon stat-icon-orange"><i data-feather="clock"></i></span>
+                    <i data-feather="chevron-right" class="stat-chevron"></i>
+                </div>
+                <p class="stat-label">Pending</p>
+                <p class="stat-value" th:text="${pendingCount}"></p>
+            </button>
+            <button type="button" class="stat-card stat-card-link rp-stat" data-status="IN_PROGRESS" aria-pressed="false">
+                <div class="stat-top">
+                    <span class="stat-icon stat-icon-purple"><i data-feather="tool"></i></span>
+                    <i data-feather="chevron-right" class="stat-chevron"></i>
+                </div>
+                <p class="stat-label">In Progress</p>
+                <p class="stat-value" th:text="${inProgressCount}"></p>
+            </button>
+            <button type="button" class="stat-card stat-card-link rp-stat" data-status="COMPLETED" aria-pressed="false">
+                <div class="stat-top">
+                    <span class="stat-icon stat-icon-green"><i data-feather="check-square"></i></span>
+                    <i data-feather="chevron-right" class="stat-chevron"></i>
+                </div>
+                <p class="stat-label">Completed</p>
+                <p class="stat-value" th:text="${completedCount}"></p>
+            </button>
+            <button type="button" class="stat-card stat-card-link rp-stat" data-status="RELEASED" aria-pressed="false">
+                <div class="stat-top">
+                    <span class="stat-icon stat-icon-green"><i data-feather="check-circle"></i></span>
+                    <i data-feather="chevron-right" class="stat-chevron"></i>
+                </div>
+                <p class="stat-label">Released</p>
+                <p class="stat-value" th:text="${releasedCount}"></p>
+            </button>
+            <button type="button" class="stat-card stat-card-link rp-stat" data-status="CANCELLED" aria-pressed="false">
+                <div class="stat-top">
+                    <span class="stat-icon stat-icon-gray"><i data-feather="x-circle"></i></span>
+                    <i data-feather="chevron-right" class="stat-chevron"></i>
+                </div>
+                <p class="stat-label">Cancelled</p>
+                <p class="stat-value" th:text="${cancelledCount}"></p>
+            </button>
         </section>
 
-        <div class="filter-row">
-            <div class="repair-search">
+        <div class="rp-toolbar">
+            <label class="rp-search">
                 <i data-feather="search"></i>
-                <input type="search" id="repairSearchInput" placeholder="Search by device, issue, or reference number..." aria-label="Search repairs"/>
-            </div>
-            <select class="filter-select" id="repairStatusFilter" aria-label="Filter by status">
-                <option value="">All Statuses</option>
-                <option value="PENDING">Pending</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="COMPLETED">Completed</option>
-                <option value="RELEASED">Released</option>
-                <option value="CANCELLED">Cancelled</option>
-                <option value="DONE">Completed &amp; Released</option>
-            </select>
-            <div class="filter-date-range">
-                <input type="date" id="repairDateFrom" aria-label="Repair date from"/>
-                <span class="filter-date-sep">to</span>
-                <input type="date" id="repairDateTo" aria-label="Repair date to"/>
+                <input type="search" id="rpSearch" aria-label="Search"
+                       th:placeholder="${ticketMode == true} ? 'Search by ticket number, client, device or issue' : 'Search by client, device, issue or job order'"/>
+            </label>
+            <label class="rp-field">
+                <span>Device</span>
+                <select id="rpDevice">
+                    <option value="">All devices</option>
+                    <option value="Cellphone">Cellphone</option>
+                    <option value="Laptop">Laptop</option>
+                    <option value="Desktop">Desktop</option>
+                </select>
+            </label>
+            <label class="rp-field">
+                <span>Status</span>
+                <select id="rpStatus">
+                    <option value="">All Statuses</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="RELEASED">Released</option>
+                    <option value="CANCELLED">Cancelled</option>
+                </select>
+            </label>
+            <div class="rp-dates">
+                <input type="date" id="rpFrom" aria-label="Date from"/>
+                <span>to</span>
+                <input type="date" id="rpTo" aria-label="Date to"/>
             </div>
         </div>
 
-        <div th:if="${#lists.isEmpty(repairs)}" class="card">
-            <div th:replace="~{fragments/empty-state :: state(icon='tool', message='No repairs on record yet', actions=null)}"></div>
+        <div class="rp-toolbar rp-toolbar-sort">
+            <label class="rp-field">
+                <span>Sort by</span>
+                <select id="rpSort">
+                    <option value="newest">Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                    <option value="status">Status</option>
+                    <option value="client">Client name</option>
+                    <option value="cost">Cost high to low</option>
+                </select>
+            </label>
+            <button type="button" class="rp-clear" id="rpClear" hidden>Clear filters</button>
         </div>
 
-        <div th:unless="${#lists.isEmpty(repairs)}" class="card">
+        <div th:if="${#lists.isEmpty(repairViews)}" class="card">
+            <div th:replace="~{fragments/empty-state :: state(icon='tool', message=${ticketMode == true ? 'No tickets yet' : 'No repairs on record yet'}, actions=null)}"></div>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(repairViews)}" class="card">
             <div class="card-head">
                 <div class="card-head-left">
                     <span class="card-icon card-icon-blue"><i data-feather="tool"></i></span>
-                    <h2 class="card-title">Repairs</h2>
+                    <h2 class="card-title" th:text="${ticketMode == true} ? 'Tickets' : 'Repairs'">Repairs</h2>
                 </div>
             </div>
-            <table class="rn-table" id="repairsTable">
+            <table class="rn-table" id="rpTable">
                 <thead>
                 <tr>
-                    <th>Ref #</th>
-                    <th th:if="${isAdmin and client == null}">Client</th>
+                    <th th:text="${ticketMode == true} ? 'Ticket #' : 'Ref #'">Ref #</th>
+                    <th th:if="${client == null}">Client</th>
                     <th>Device</th>
                     <th>Issue</th>
                     <th>Status</th>
-                    <th>Date of Repair</th>
+                    <th th:text="${ticketMode == true} ? 'Received' : 'Date of repair'">Date of repair</th>
                     <th>Cost</th>
-                    <th th:if="${isAdmin}">Action</th>
-                    <th>View</th>
+                    <th>Action</th>
                 </tr>
                 </thead>
-                <tbody>
-                <tr th:each="repair : ${repairs}" class="repair-row"
-                    th:attr="data-status=${repair.status.name()}, data-repair-date=${#dates.format(repair.repairDate, 'yyyy-MM-dd')}">
-                    <td th:text="${repair.jobOrderNumber}"></td>
-                    <td th:if="${isAdmin and client == null}">
-                        <a th:href="@{/repair(clientId=${repair.client.clientId})}" class="card-link" th:text="${repair.client.fullName}"></a>
+                <tbody id="rpBody">
+                <tr th:each="v : ${repairViews}" class="rp-row" th:attr="data-id=${v.id}">
+                    <td th:text="${v.jobOrderNumber}"></td>
+                    <td th:if="${client == null}">
+                        <a th:href="@{/repair(clientId=${v.clientId})}" class="card-link" th:text="${v.clientName}"></a>
                     </td>
-                    <td th:text="${repair.deviceLabel}"></td>
-                    <td th:text="${repair.issueDescription}"></td>
-                    <td><span th:replace="~{fragments/status-badge :: badge(status=${repair.status})}"></span></td>
-                    <td th:text="${#dates.format(repair.repairDate, 'MMM dd, yyyy')}"></td>
-                    <td th:insert="~{fragments/money :: amount(amount=${repair.cost})}"></td>
-                    <td th:if="${isAdmin}">
-                        <a class="table-action" th:href="@{/repair/edit/{id}(id=${repair.repairId})}"><i data-feather="edit-2"></i>Edit</a>
-                        <form th:action="@{/repair/delete/{id}(id=${repair.repairId})}" method="post" class="table-action-form">
-                            <input type="hidden" name="_method" value="delete"/>
-                            <button type="submit" class="table-action" onclick="return confirm('Are you sure?')"><i data-feather="trash-2"></i>Delete</button>
-                        </form>
+                    <td th:text="${v.deviceLabel}"></td>
+                    <td th:text="${v.issue}"></td>
+                    <td><span th:replace="~{fragments/status-badge :: badge(status=${v.statusEnum})}"></span></td>
+                    <td th:text="${v.date}"></td>
+                    <td>
+                        <th:block th:if="${v.costAssessed}">
+                            <span th:replace="~{fragments/money :: amount(amount=${v.cost})}"></span>
+                            <small th:if="${!#strings.isEmpty(v.costSuffix)}" class="rp-muted" th:text="${v.costSuffix}"></small>
+                        </th:block>
+                        <span th:unless="${v.costAssessed}" class="rp-muted" th:text="${v.costPlaceholder}"></span>
                     </td>
                     <td>
-                        <button type="button" class="table-action view-repair-btn" th:attr="data-repair-id=${repair.repairId}">
-                            <i data-feather="eye"></i>View
-                        </button>
+                        <div class="ra-actions">
+                            <a class="table-action" th:href="@{/repair/edit/{id}(id=${v.id})}"><i data-feather="edit-2"></i>Edit</a>
+                            <form th:action="@{/repair/delete/{id}(id=${v.id})}" method="post" class="table-action-form">
+                                <input type="hidden" name="_method" value="delete"/>
+                                <button type="submit" class="table-action" onclick="return confirm('Are you sure?')"><i data-feather="trash-2"></i>Delete</button>
+                            </form>
+                            <button type="button" class="table-action rp-view" th:attr="data-repair-id=${v.id}, aria-label=${'View ' + noun}">
+                                <i data-feather="eye"></i>View
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 </tbody>
             </table>
-            <div class="repair-footer">
-                <!-- No server-side pagination exists (RepairRecordController.showRepairList
-                     returns the full list every time) - this states the real total rather than
-                     the mockup's "Showing 1-4 of 8" paging text, which would be invented. -->
-                <span th:text="${#lists.size(repairs)} + ' repair(s) total'"></span>
-            </div>
-            <div class="no-search-results" id="noSearchResults">No repairs match your filters.</div>
+            <div class="rp-empty" id="rpEmpty" hidden th:text="'No ' + ${noun} + 's match these filters.'">No repairs match these filters.</div>
+            <div class="rp-footer" id="rpFooter" th:attr="data-noun=${noun}"
+                 th:text="${#lists.size(repairViews)} + ' ' + ${noun} + '(s) total'"></div>
         </div>
     </main>
 </div>
 
-<!-- View modal - same fragment/endpoint the old template's admin-only detail flow already had
-     available (RepairRecordController.showRepairModal already allows the repair's own linked
-     customer, not just admin - see chat), now exposed as a real button for everyone instead of
-     unused by this page. Mirrors orders/orderIndex.html's identical View-modal pattern. -->
-<div class="modal fade" id="repairDetailModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+<!-- The details modal. Its header and X live here; the body is the admin repairCard fragment
+     (repairs/repairDetail.html), fetched from /repair/{id}/modal, which ends with its own Edit
+     repair and Close buttons so the same fragment also works inside layout-app's shared
+     notification modal. -->
+<div class="modal fade" id="repairDetailModal" tabindex="-1" aria-labelledby="repairDetailTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Repair Details</h5>
+                <h5 class="modal-title" id="repairDetailTitle">Repair details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="repairDetailModalBody"></div>
@@ -199,66 +252,118 @@
 <th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
 <th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
 
-<script th:inline="javascript">
+<script th:inline="javascript">/*<![CDATA[*/
+var ALL_REPAIRS = /*[[${repairViews}]]*/ [];
+/*]]>*/</script>
+<script th:inline="none">
 document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.view-repair-btn').forEach(function (btn) {
+    var el = function (id) { return document.getElementById(id); };
+    var VALID_STATUSES = ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'RELEASED', 'CANCELLED'];
+
+    var search = el('rpSearch'), device = el('rpDevice'), status = el('rpStatus');
+    var from = el('rpFrom'), to = el('rpTo'), sort = el('rpSort');
+    var clear = el('rpClear'), footer = el('rpFooter'), empty = el('rpEmpty'), body = el('rpBody');
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.rp-stat'));
+    var noun = footer ? footer.getAttribute('data-noun') : 'repair';
+
+    var rows = {};
+    Array.prototype.forEach.call(document.querySelectorAll('.rp-row'), function (row) {
+        rows[row.getAttribute('data-id')] = row;
+    });
+
+    function matches(r) {
+        var term = search.value.trim().toLowerCase();
+        if (term && r.searchText.indexOf(term) === -1) { return false; }
+        if (device.value && r.deviceType !== device.value) { return false; }
+        if (status.value && r.status !== status.value) { return false; }
+        if (from.value && !(r.dateIso && r.dateIso >= from.value)) { return false; }
+        if (to.value && !(r.dateIso && r.dateIso <= to.value)) { return false; }
+        return true;
+    }
+
+    function newestFirst(a, b) { return (b.dateEpoch - a.dateEpoch) || (b.id - a.id); }
+
+    function comparator() {
+        switch (sort.value) {
+            case 'oldest': return function (a, b) { return (a.dateEpoch - b.dateEpoch) || (a.id - b.id); };
+            case 'status': return function (a, b) { return (a.statusRank - b.statusRank) || newestFirst(a, b); };
+            case 'client': return function (a, b) {
+                return a.clientSortKey.localeCompare(b.clientSortKey) || newestFirst(a, b);
+            };
+            case 'cost':   return function (a, b) { return (b.cost - a.cost) || newestFirst(a, b); };
+            default:       return newestFirst;
+        }
+    }
+
+    function filtersActive() {
+        return !!(search.value.trim() || device.value || status.value || from.value || to.value);
+    }
+
+    function apply() {
+        var shown = ALL_REPAIRS.filter(matches).sort(comparator());
+        var showing = {};
+        shown.forEach(function (r) { showing[r.id] = true; });
+
+        // Reorder by re-appending in sorted order, then hide whatever is filtered out.
+        shown.forEach(function (r) { if (rows[r.id]) { body.appendChild(rows[r.id]); } });
+        ALL_REPAIRS.forEach(function (r) { if (rows[r.id]) { rows[r.id].hidden = !showing[r.id]; } });
+
+        var active = filtersActive();
+        footer.textContent = active
+            ? 'Showing ' + shown.length + ' of ' + ALL_REPAIRS.length + ' ' + noun + '(s)'
+            : ALL_REPAIRS.length + ' ' + noun + '(s) total';
+        empty.hidden = shown.length !== 0;
+        clear.hidden = !active;
+
+        cards.forEach(function (card) {
+            var on = card.getAttribute('data-status') === status.value;
+            card.classList.toggle('is-active', on);
+            card.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+    }
+
+    // A card filters the table to its status; the active card (other than Total) clears it again.
+    cards.forEach(function (card) {
+        card.addEventListener('click', function () {
+            if (!hasRows) { return; }
+            var wanted = card.getAttribute('data-status');
+            status.value = (wanted && wanted === status.value) ? '' : wanted;
+            apply();
+        });
+    });
+
+    // With no rows at all the table, footer and empty message are not on the page, so there is
+    // nothing for the toolbar to drive.
+    var hasRows = Object.keys(rows).length > 0;
+    if (hasRows) {
+        search.addEventListener('input', apply);
+        [device, status, from, to, sort].forEach(function (c) { c.addEventListener('change', apply); });
+
+        clear.addEventListener('click', function () {
+            search.value = ''; device.value = ''; status.value = ''; from.value = ''; to.value = '';
+            apply();
+        });
+    }
+
+    // The details modal: fetch the admin fragment for this repair.
+    Array.prototype.forEach.call(document.querySelectorAll('.rp-view'), function (btn) {
         btn.addEventListener('click', function () {
             fetch('/repair/' + btn.getAttribute('data-repair-id') + '/modal')
                 .then(function (res) { return res.text(); })
                 .then(function (html) {
-                    document.getElementById('repairDetailModalBody').innerHTML = html;
+                    el('repairDetailModalBody').innerHTML = html;
                     if (window.feather) { feather.replace(); }
-                    bootstrap.Modal.getOrCreateInstance(document.getElementById('repairDetailModal')).show();
+                    bootstrap.Modal.getOrCreateInstance(el('repairDetailModal')).show();
                 });
         });
     });
 
-    const searchInput = document.getElementById('repairSearchInput');
-    const statusFilter = document.getElementById('repairStatusFilter');
-    const dateFrom = document.getElementById('repairDateFrom');
-    const dateTo = document.getElementById('repairDateTo');
-    const rows = Array.from(document.querySelectorAll('.repair-row'));
-    const noResults = document.getElementById('noSearchResults');
+    // /repair?status=IN_PROGRESS, /ticket/view?status=PENDING etc. - an unknown value is ignored,
+    // same as no parameter.
+    var initial = new URLSearchParams(window.location.search).get('status');
+    if (initial && VALID_STATUSES.indexOf(initial) > -1) { status.value = initial; }
 
-    function applyFilters() {
-        const term = searchInput.value.trim().toLowerCase();
-        const status = statusFilter.value;
-        const from = dateFrom.value;
-        const to = dateTo.value;
-        let visibleCount = 0;
-
-        rows.forEach(function (row) {
-            const matchesText = !term || row.textContent.toLowerCase().indexOf(term) > -1;
-            const rowStatus = row.getAttribute('data-status');
-            const matchesStatus = !status || (status === 'DONE'
-                ? (rowStatus === 'COMPLETED' || rowStatus === 'RELEASED')
-                : rowStatus === status);
-            const rowDate = row.getAttribute('data-repair-date');
-            const matchesFrom = !from || (rowDate && rowDate >= from);
-            const matchesTo = !to || (rowDate && rowDate <= to);
-            const visible = matchesText && matchesStatus && matchesFrom && matchesTo;
-            row.hidden = !visible;
-            if (visible) visibleCount++;
-        });
-
-        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
-    }
-
-    // Deep link from the dashboard's stat cards (e.g. /repair?status=IN_PROGRESS or ?status=DONE) -
-    // an unknown value is ignored and the dropdown stays on All, same as no param at all.
-    const validStatuses = Array.from(statusFilter.options).map(function (o) { return o.value; });
-    const initialStatus = new URLSearchParams(window.location.search).get('status');
-    if (initialStatus && validStatuses.indexOf(initialStatus) > -1) {
-        statusFilter.value = initialStatus;
-        applyFilters();
-    }
-
-    if (rows.length > 0) {
-        searchInput.addEventListener('input', applyFilters);
-        statusFilter.addEventListener('change', applyFilters);
-        dateFrom.addEventListener('change', applyFilters);
-        dateTo.addEventListener('change', applyFilters);
-    }
+    if (hasRows) { apply(); }
 });
 </script>
 

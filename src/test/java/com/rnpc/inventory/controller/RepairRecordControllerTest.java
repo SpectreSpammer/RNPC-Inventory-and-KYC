@@ -335,4 +335,103 @@ class RepairRecordControllerTest {
                 .andExpect(redirectedUrl("/repair"));
         verify(service, never()).updateRepairRecord(any(), any());
     }
+
+    // ---- Customer pages (repairs batch U1) --------------------------------------------------------
+
+    private Authentication customerNamed(String email) {
+        return new UsernamePasswordAuthenticationToken(email, "n/a", List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER")));
+    }
+
+    private RepairRecord ownedBy(String email, long id) throws Exception {
+        RepairRecord repair = freshTicket();
+        repair.setRepairId(id);
+        com.rnpc.inventory.entity.User user = new com.rnpc.inventory.entity.User();
+        user.setUsername(email);
+        repair.getClient().setUser(user);
+        repair.setRemarks("INTERNAL remark");
+        return repair;
+    }
+
+    @Test
+    void aSignedInCustomerGetsTheirOwnTemplateBuiltFromRepairViews() throws Exception {
+        when(service.getRepairRecordsForUser("customer@example.com")).thenReturn(List.of(ownedBy("customer@example.com", 5L)));
+
+        MvcResult result = mvc.perform(get("/repair").principal(customerNamed("customer@example.com")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("repairs/customerRepairIndex"))
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<com.rnpc.inventory.dto.RepairView> views =
+                (List<com.rnpc.inventory.dto.RepairView>) result.getModelAndView().getModel().get("repairViews");
+        assertEquals(1, views.size());
+        assertEquals("JO-00005", views.get(0).getJobOrderNumber());
+    }
+
+    @Test
+    void theCustomerListIsBuiltOnlyFromTheirOwnVisibleRepairs() throws Exception {
+        when(service.getRepairRecordsForUser("customer@example.com")).thenReturn(List.of());
+
+        mvc.perform(get("/repair").param("clientId", "99").principal(customerNamed("customer@example.com")))
+                .andExpect(view().name("repairs/customerRepairIndex"))
+                .andExpect(model().attribute("repairViews", List.of()));
+
+        verify(service).getRepairRecordsForUser("customer@example.com");
+        verify(service, never()).getAllRepairRecords();
+        verify(service, never()).getRepairRecordsByClient(any());
+    }
+
+    @Test
+    void anAdminAndASignedOutVisitorKeepTheExistingTemplate() throws Exception {
+        mvc.perform(get("/repair").principal(admin))
+                .andExpect(view().name("repairs/repairIndex"));
+        mvc.perform(get("/repair"))
+                .andExpect(view().name("repairs/repairIndex"));
+    }
+
+    @Test
+    void theOwnerOfARepairGetsTheCustomerFragment() throws Exception {
+        RepairRecord repair = ownedBy("customer@example.com", 5L);
+        when(service.getRepairRecordById(5L)).thenReturn(repair);
+
+        MvcResult result = mvc.perform(get("/repair/5/modal").principal(customerNamed("customer@example.com")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("repairs/repairDetail :: customerRepairCard"))
+                .andReturn();
+
+        com.rnpc.inventory.dto.RepairView view =
+                (com.rnpc.inventory.dto.RepairView) result.getModelAndView().getModel().get("view");
+        assertEquals("JO-00005", view.getJobOrderNumber());
+    }
+
+    @Test
+    void anotherCustomersRepairStillRedirectsAwayFromTheModal() throws Exception {
+        when(service.getRepairRecordById(5L)).thenReturn(ownedBy("someone.else@example.com", 5L));
+
+        mvc.perform(get("/repair/5/modal").principal(customerNamed("customer@example.com")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/repair"));
+    }
+
+    @Test
+    void aRepairHiddenBehindAnUnconfirmedAppointmentStillRedirectsEvenForItsOwner() throws Exception {
+        RepairRecord repair = ownedBy("customer@example.com", 5L);
+        com.rnpc.inventory.entity.Appointment pending = new com.rnpc.inventory.entity.Appointment();
+        pending.setStatus(com.rnpc.inventory.entity.Appointment.Status.PENDING);
+        repair.setAppointment(pending);
+        when(service.getRepairRecordById(5L)).thenReturn(repair);
+
+        mvc.perform(get("/repair/5/modal").principal(customerNamed("customer@example.com")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/repair"));
+    }
+
+    @Test
+    void anAdminStillGetsTheAdminFragmentForTheModal() throws Exception {
+        when(service.getRepairRecordById(5L)).thenReturn(ownedBy("customer@example.com", 5L));
+
+        mvc.perform(get("/repair/5/modal").principal(admin))
+                .andExpect(view().name("repairs/repairDetail :: repairCard"))
+                .andExpect(model().attributeDoesNotExist("view"));
+    }
 }

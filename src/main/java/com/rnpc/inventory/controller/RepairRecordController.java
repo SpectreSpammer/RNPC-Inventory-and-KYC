@@ -1,6 +1,8 @@
 package com.rnpc.inventory.controller;
 
+import com.rnpc.inventory.dto.AdminRepairView;
 import com.rnpc.inventory.dto.RepairRecordDto;
+import com.rnpc.inventory.dto.RepairView;
 import com.rnpc.inventory.entity.Notification;
 import com.rnpc.inventory.entity.RepairRecord;
 import com.rnpc.inventory.service.ClientService;
@@ -116,6 +118,17 @@ public class RepairRecordController {
             model.addAttribute("recentNotifications", recent.stream().limit(15).collect(Collectors.toList()));
         }
 
+        // A signed-in customer gets their own template, built from RepairView rows (the same split
+        // /order makes between orderIndex.html and adminOrderIndex.html). Admins - and signed-out
+        // visitors, who see an empty list - keep repairIndex.html, as does /ticket/view.
+        if (isSignedIn(authentication) && !admin) {
+            model.addAttribute("repairViews", repairs.stream().map(RepairView::from).collect(Collectors.toList()));
+            return "repairs/customerRepairIndex";
+        }
+        // repairIndex.html is the admin list (repairs batch A1): its rows are AdminRepairViews, which
+        // carry the client. A signed-out visitor has an empty list, so nothing private reaches them.
+        model.addAttribute("repairViews", repairs.stream().map(AdminRepairView::from).collect(Collectors.toList()));
+        model.addAttribute("ticketMode", false);
         return "repairs/repairIndex";
     }
 
@@ -143,7 +156,15 @@ public class RepairRecordController {
             return "redirect:/repair";
         }
         model.addAttribute("repair", repair);
-        return "repairs/repairDetail :: repairCard";
+        if (isAdmin(authentication)) {
+            // Under its own name so it can never be mistaken for the customer's "view".
+            model.addAttribute("adminView", AdminRepairView.from(repair));
+            return "repairs/repairDetail :: repairCard";
+        }
+        // A customer gets the plain-words fragment, which reads only the RepairView - remarks, the
+        // client's name and phone are not on it, so they cannot reach the page.
+        model.addAttribute("view", RepairView.from(repair));
+        return "repairs/repairDetail :: customerRepairCard";
     }
 
     @GetMapping("/create")

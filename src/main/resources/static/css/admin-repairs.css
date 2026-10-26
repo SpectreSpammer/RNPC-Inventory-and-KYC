@@ -1,0 +1,97 @@
+/*
+ * Admin repair pages (repairs batch A1): the admin list in repairs/repairIndex.html (/repair and
+ * /ticket/view) and the admin details fragment in repairs/repairDetail.html :: repairCard.
+ *
+ * Only what the admin has and customer-repairs.css does not already provide - that file supplies the
+ * stat cards, toolbar, table, footer and the details header and progress steps (.rp-*, .rd-*), and
+ * is linked first. Tokens come from theme.css. The .ra-* detail rules are scoped under .ra because
+ * the fragment is also injected into layout-app's shared notification modal.
+ */
+
+/* ---------- List page ---------- */
+
+/* btn-accent-sm carries a top margin meant for use under text; in the header's action row it
+   would push the button off the title's centre line. */
+.rn-page-header-actions .ra-primary { margin-top: 0; }
+
+/* Edit, Delete and View side by side in one cell, never wrapping under each other. */
+.ra-actions { display: flex; align-items: center; gap: var(--space-2); flex-wrap: nowrap; white-space: nowrap; }
+.table-action-form { display: inline; margin: 0; }
+button.table-action { cursor: pointer; font-family: inherit; }
+.rp-row .table-action { background: var(--bg-card); }
+
+/* ---------- Details modal body ---------- */
+
+.ra .ra-muted { color: var(--text-muted); font-style: italic; font-weight: 400; }
+
+.ra .ra-client {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    background: var(--bg-page);
+    border-radius: var(--radius-sm);
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-4);
+    font-size: 14px;
+    color: var(--text-muted);
+}
+.ra .ra-client strong { color: var(--text); font-weight: 700; margin-left: 4px; }
+.ra .ra-client strong.ra-muted { color: var(--text-muted); font-weight: 400; }
+
+.ra .ra-body { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: var(--space-5); align-items: start; }
+.ra .ra-body-no-photo { grid-template-columns: minmax(0, 1fr); }
+
+.ra .ra-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3) var(--space-5); margin: 0; }
+.ra .ra-grid-one { grid-template-columns: minmax(0, 1fr); }
+.ra .ra-grid dt {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+.ra .ra-grid dd { margin: 0; font-size: 14px; color: var(--text); overflow-wrap: anywhere; }
+.ra .ra-dt-note { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.ra .ra-remarks { white-space: pre-line; }
+
+.ra .ra-rule { border: none; border-top: 1px solid var(--border); margin: var(--space-4) 0; opacity: 1; }
+
+.ra .ra-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 var(--space-2);
+}
+.ra .ra-photo img { width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border); display: block; }
+
+.ra .ra-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border);
+}
+.ra .ra-edit,
+.ra .ra-close {
+    border-radius: var(--radius-sm);
+    padding: 9px 22px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+.ra .ra-edit { border: 1px solid var(--border); background: var(--bg-card); color: var(--text); }
+.ra .ra-edit:hover { border-color: var(--accent); color: var(--accent); }
+.ra .ra-close { border: 1px solid var(--accent); background: var(--accent); color: #fff; }
+.ra .ra-close:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+@media (max-width: 640px) {
+    .ra .ra-body { grid-template-columns: minmax(0, 1fr); }
+    .ra .ra-grid { grid-template-columns: minmax(0, 1fr); }
+}

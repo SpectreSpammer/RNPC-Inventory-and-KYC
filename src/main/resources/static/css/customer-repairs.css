@@ -1,0 +1,149 @@
+/*
+ * Customer repair pages (repairs batch U1): the Repair History list (repairs/customerRepairIndex.html)
+ * and the Repair details modal body (repairs/repairDetail.html :: customerRepairCard).
+ *
+ * Only what theme.css and the shared fragments (card, stat-card, table-card, page-header,
+ * status-badge) do not already provide. Tokens come from theme.css. The .rd rules are scoped under
+ * .rd because the details fragment is also injected into layout-app's shared notification modal.
+ */
+
+/* ---------- List page ---------- */
+
+.rp-stats {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+/* A stat card that toggles a filter: a <button> wearing stat-card's look. */
+button.rp-stat {
+    font: inherit;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+}
+button.rp-stat:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.rp-stat.is-active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.rp-stat .stat-icon-gray { background: var(--text-muted); }
+
+.rp-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+.rp-toolbar-sort { margin-bottom: var(--space-4); }
+
+.rp-search {
+    flex: 1 1 260px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0 var(--space-3);
+    height: 38px;
+    color: var(--text-muted);
+}
+.rp-search svg { width: 15px; height: 15px; flex-shrink: 0; }
+.rp-search input {
+    border: none;
+    outline: none;
+    background: transparent;
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: var(--text);
+}
+
+.rp-field { display: flex; flex-direction: column; gap: 3px; margin: 0; }
+.rp-field span { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+.rp-field select,
+.rp-dates input {
+    height: 38px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text);
+    font-size: 13px;
+    padding: 0 var(--space-3);
+}
+.rp-dates { display: flex; align-items: center; gap: var(--space-2); color: var(--text-muted); font-size: 13px; }
+
+.rp-clear {
+    border: none;
+    background: none;
+    color: var(--accent);
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 0 var(--space-2);
+    height: 38px;
+    cursor: pointer;
+}
+.rp-clear:hover { color: var(--accent-hover); text-decoration: underline; }
+.rp-clear[hidden], .rp-empty[hidden], .rp-row[hidden] { display: none; }
+
+.rp-muted { color: var(--text-muted); font-style: italic; }
+.rp-view { background: var(--bg-card); cursor: pointer; }
+
+.rp-empty { text-align: center; padding: var(--space-6) var(--space-4); color: var(--text-muted); font-size: 13.5px; }
+.rp-footer { padding-top: var(--space-3); font-size: 12.5px; color: var(--text-muted); }
+
+@media (max-width: 1200px) {
+    .rp-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+    .rp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rp-dates { flex: 1 1 100%; }
+    .rp-dates input { flex: 1; min-width: 0; }
+    #rpTable { display: block; overflow-x: auto; }
+}
+
+/* ---------- Repair details (modal body) ---------- */
+
+.rd { color: var(--text); font-family: var(--font-sans); }
+
+.rd-top { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-4); margin-bottom: var(--space-4); }
+.rd .rd-job { font-size: 26px; font-weight: 800; margin: 0 0 4px; color: var(--text); }
+.rd .rd-sentence { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+.rd .rd-steps { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); margin: 0 0 var(--space-5); padding: 0; }
+.rd .rd-steps li { display: flex; flex-direction: column; gap: 6px; }
+.rd .rd-step-bar { height: 6px; border-radius: 999px; background: var(--border); }
+.rd .rd-steps li.is-done .rd-step-bar { background: var(--accent); }
+.rd .rd-step-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+.rd .rd-steps li.is-done .rd-step-label { color: var(--text); }
+
+.rd .rd-body { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: var(--space-5); align-items: start; }
+.rd .rd-body-no-photo { grid-template-columns: minmax(0, 1fr); }
+
+.rd .rd-details { margin: 0; }
+.rd .rd-details > div { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: var(--space-3); padding: 7px 0; }
+.rd .rd-details dt { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+.rd .rd-details dd { margin: 0; font-size: 14px; color: var(--text); overflow-wrap: anywhere; }
+.rd .rd-rule { border: none; border-top: 1px solid var(--border); margin: var(--space-2) 0; opacity: 1; }
+.rd .rd-muted { color: var(--text-muted); font-style: italic; }
+
+.rd .rd-label { font-size: 12px; font-weight: 600; color: var(--text-muted); margin: 0 0 var(--space-2); }
+.rd .rd-photo img { width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border); display: block; }
+
+.rd .rd-footer { display: flex; justify-content: flex-end; margin-top: var(--space-5); }
+.rd .rd-close {
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 8px 22px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.rd .rd-close:hover { border-color: var(--accent); color: var(--accent); }
+
+@media (max-width: 640px) {
+    .rd .rd-body { grid-template-columns: minmax(0, 1fr); }
+    .rd .rd-details > div { grid-template-columns: 1fr; gap: 2px; }
+}

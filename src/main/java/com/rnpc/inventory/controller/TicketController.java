@@ -1,5 +1,6 @@
 package com.rnpc.inventory.controller;
 
+import com.rnpc.inventory.dto.AdminRepairView;
 import com.rnpc.inventory.dto.ClientDto;
 import com.rnpc.inventory.dto.TicketDto;
 import com.rnpc.inventory.entity.Client;
@@ -132,33 +133,29 @@ public class TicketController {
         return "tickets/ticketPrint :: ticketSlip";
     }
 
-    // "View Ticket" in the nav's Ticket dropdown links here - same Repair History listing/template
-    // as RepairRecordController's /repair, just reached from a /ticket/... path instead.
+    // "View Tickets" in the admin nav's Tickets dropdown links here. It is the same admin list as
+    // /repair (repairs/repairIndex.html), in ticket mode: the "Tickets" wording, the New Ticket
+    // button and the Tickets > View Tickets sidebar item. Only an admin sees that page - a customer's
+    // own Repair History is /repair (the customer template), so anyone else is sent there.
     @GetMapping("/view")
     public String showTicketView(@RequestParam(value = "clientId", required = false) Long clientId,
                                   Authentication authentication, Model model) {
-        boolean admin = isAdmin(authentication);
-        List<RepairRecord> repairs;
-        if (admin) {
-            repairs = clientId != null
-                    ? repairRecordService.getRepairRecordsByClient(clientId)
-                    : repairRecordService.getAllRepairRecords();
-        } else if (isSignedIn(authentication)) {
-            clientId = null;
-            repairs = repairRecordService.getRepairRecordsForUser(authentication.getName());
-        } else {
-            clientId = null;
-            repairs = List.of();
+        if (!isAdmin(authentication)) {
+            return "redirect:/repair";
         }
+        List<RepairRecord> repairs = clientId != null
+                ? repairRecordService.getRepairRecordsByClient(clientId)
+                : repairRecordService.getAllRepairRecords();
 
         model.addAttribute("repairs", repairs);
+        model.addAttribute("repairViews", repairs.stream().map(AdminRepairView::from).collect(Collectors.toList()));
         model.addAttribute("clientId", clientId);
-        model.addAttribute("isAdmin", admin);
-        // Unlike /repair, this view never links the client name off to the KYC drill-down.
-        model.addAttribute("linkClientName", false);
-        if (admin && clientId != null) {
+        model.addAttribute("isAdmin", true);
+        model.addAttribute("ticketMode", true);
+        if (clientId != null) {
             model.addAttribute("client", clientService.getClientById(clientId));
         }
+        addShellAttributes(authentication, model);
         return "repairs/repairIndex";
     }
 
