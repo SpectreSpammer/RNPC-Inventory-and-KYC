@@ -21,9 +21,9 @@
   Back to tickets (@{/ticket/view}) rather than /repair, though both render the same admin listing -
   /ticket/view is the one under this feature's own path, matching the sidebar's "View Tickets".
 
-  The header fragment always renders a code badge and the literal text "Back to parts" - same
-  trade-off batch 4 accepted for the client forms rather than special-casing the shared fragment -
-  so this gets a "TKT" badge and that text rather than "Back to tickets".
+  The header is written out here with the same pf-* classes as fragments/parts-form :: header,
+  rather than calling it, because that fragment hardcodes the text "Back to parts" and this page
+  needs "Back to tickets". The shared fragment is unchanged (the client and parts forms still use it).
 -->
 
 <div th:replace="~{fragments/layout-app :: sidebar(active='new-ticket', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
@@ -34,7 +34,16 @@
 
     <main class="content">
         <div class="pf-wrap">
-            <div th:replace="~{fragments/parts-form :: header(code='TKT', title='Create ticket', subtitle='Log a walk-in repair and hand the customer a job order slip.', backUrl=@{/ticket/view})}"></div>
+            <div class="pf-header">
+                <a class="pf-back" th:href="@{/ticket/view}"><i data-feather="chevron-left"></i>Back to tickets</a>
+                <div class="pf-title-row">
+                    <span class="pf-code">TKT</span>
+                    <div>
+                        <h1 class="pf-title">Create ticket</h1>
+                        <p class="pf-subtitle">Log a walk-in repair and hand the customer a job order slip.</p>
+                    </div>
+                </div>
+            </div>
 
             <form th:action="@{/ticket/create}" th:object="${ticketDto}" method="post">
                 <th:block th:if="${#fields.hasAnyErrors()}">

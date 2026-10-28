@@ -1026,9 +1026,9 @@ plain field stack, not the two-up `.pf-grid` the parts forms use inside one sect
 `.pf-split-col h2`. Parts/laptop/cellphone/client forms don't use it and are unaffected.
 `static/css/tickets.css` holds the one page-specific rule this page needs beyond that (the footer
 note's padding) - the same `.tickets-page .pf-form-note` pattern `clients.css` already established
-for `.clients-page`. The header fragment's hardcoded "Back to parts" text and parts-code badge are
-reused as-is, the same trade-off batch 4 accepted for the client forms - this page gets a "TKT"
-badge instead. Both the header's back link and the footer's Cancel go to `/ticket/view`, not
+for `.clients-page`. The header is written out in the template with the same `pf-*` classes as
+`fragments/parts-form :: header` (a "TKT" badge, and the text "Back to tickets" - the shared fragment
+hardcodes "Back to parts", so it is not called here and stays unchanged for the other forms). Both the header's back link and the footer's Cancel go to `/ticket/view`, not
 `/repair` as the pre-conversion template did - functionally the same admin listing, but the one
 under this feature's own path, matching the sidebar's "View Tickets" and the mockup's "Back to
 tickets".
@@ -1057,10 +1057,12 @@ matching `gpt/admin/"Ticket created - screen@1x.png"` (the page) and
 `gpt/admin/"Client copy - what the paper shows@1x.png"` (the print output) - a prior version of
 this file argued for leaving it unconverted, on the reasoning that its primary output is a printed
 slip rather than a screen; that stood until these two mockups were approved and handed over with
-an explicit instruction to convert it, which supersedes it. `/ticket/{id}` is reached only as the
-redirect target right after `POST /ticket/create` - nothing else in the app links to it - so the
-whole page is unconditionally the "ticket created" confirmation; there's no second mode to branch
-on.
+an explicit instruction to convert it, which supersedes it. `/ticket/{id}` is reached right after
+`POST /ticket/create` (the repair is always PENDING) and also from the repair edit form's "View client
+copy" link (any status), so it has two wordings: a PENDING repair keeps "Ticket created" and the
+"Saved and logged as Pending" banner exactly, and any other status reads "Client copy" in the title and
+heading and "Client copy for JO-00005. Status: Completed." in the banner
+(`TicketController.showTicket` sets `freshTicket` and `statusWords`).
 
 The `.slip` fragment (`ticketSlip`, also served bare by `GET /ticket/{id}/modal` for a future
 print-from-elsewhere caller - see Legacy tickets) is what prints: `Serial` now always shows a row,
@@ -1074,7 +1076,9 @@ title/subtitle/Print-button row. `tickets.css`'s `@media print` block hides thos
 `th:replace="~{fragments/layout-app :: sidebar(...)}"` never reaches the fragment's actual root
 tag, since `th:replace` discards the calling element entirely) - plus resets `.main`'s
 `height:100vh`/`overflow-y:auto` for print, which would otherwise risk clipping content to one
-viewport height.
+viewport height. **Remarks are never on the slip** - they are shop-only (the edit form and the admin
+modal say so), and the slip is the screen preview, the paper copy and `/ticket/{id}/modal` all at
+once; Fix Applied, Recommendation and Technician still print. `TicketPagesRenderTest` guards it.
 
 `RepairRecord.receivedByEmployeeId` is a new nullable column (see Database changes not in
 migrations), set only by `TicketController.createTicket` to the acting admin's employee label
@@ -1213,7 +1217,7 @@ the left-aligned Save / Cancel row). Both used to be bare Bootstrap pages.
   number (not a posted field), and a **Record** card: Received (`createdAt`), Received by
   (`RepairRecord.receivedByEmployeeId`, the same stored label the ticket page prints - the row is
   left out entirely when it is null or blank, and so is Received when `createdAt` is null), **View
-  client copy** (`/ticket/{id}`) and **Delete repair**, a separate form beside the main one (forms
+  client copy** (`/ticket/{id}`, opened in a new tab so the form keeps its unsaved entries) and **Delete repair**, a separate form beside the main one (forms
   cannot nest) that keeps the list's `confirm('Are you sure?')` and `DELETE` flow exactly. The
   controller adds the saved record as `repair` (on the error re-render too, so the header and Record
   card always describe the saved repair, not the posted values) and the shell attributes.

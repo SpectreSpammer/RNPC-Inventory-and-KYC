@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Ticket created - RN PC</title>
+    <title th:text="${freshTicket != false} ? 'Ticket created - RN PC' : 'Client copy - RN PC'">Ticket created - RN PC</title>
     <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
     <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
     <th:block th:replace="~{fragments/status-badge :: badge-styles}"></th:block>
@@ -51,7 +51,7 @@
                  classes directly instead. -->
             <div class="rn-page-header no-print">
                 <div class="rn-page-header-text">
-                    <h1 class="rn-page-header-title">Ticket created</h1>
+                    <h1 class="rn-page-header-title" th:text="${freshTicket != false} ? 'Ticket created' : 'Client copy'">Ticket created</h1>
                     <p class="rn-page-header-subtitle" th:text="${ticketSubtitle}"></p>
                 </div>
                 <div class="rn-page-header-actions">
@@ -62,13 +62,21 @@
                 </div>
             </div>
 
-            <!-- A ticket-created repair is always PENDING (RepairRecordService.createFromTicket
-                 hardcodes it) - a literal label here, not a status lookup for a value that can't
-                 vary at this point in the flow. -->
-            <div class="ticket-banner no-print">
+            <!-- This page is reached two ways: straight after POST /ticket/create, when the repair is
+                 always PENDING (RepairRecordService.createFromTicket hardcodes it), and later from the
+                 repair edit form's "View client copy" link, when it can be in any status.
+                 TicketController.showTicket sets freshTicket (status is PENDING) and statusWords. A
+                 PENDING repair keeps the "just created" wording exactly; any other status gets a
+                 neutral title, heading and banner, because "Ticket created" and "Saved and logged as
+                 Pending" would be untrue for a Completed or Cancelled repair. -->
+            <div class="ticket-banner no-print" th:if="${freshTicket != false}">
                 <i data-feather="check-circle"></i>
                 <p>Saved and logged as <strong>Pending</strong>.
                     Hand the client their copy of the slip, then keep the device with the job order number attached.</p>
+            </div>
+            <div class="ticket-banner no-print" th:unless="${freshTicket != false}">
+                <i data-feather="check-circle"></i>
+                <p th:text="'Client copy for ' + ${repair.jobOrderNumber} + '. Status: ' + ${statusWords} + '.'"></p>
             </div>
 
             <div class="ticket-grid">
@@ -125,10 +133,9 @@
                             <div class="slip-issue-box" th:text="${repair.recommendation}"></div>
                         </div>
 
-                        <div class="slip-section" th:if="${repair.remarks != null and !#strings.isEmpty(repair.remarks)}">
-                            <div class="label">Remarks</div>
-                            <div class="slip-issue-box" th:text="${repair.remarks}"></div>
-                        </div>
+                        <!--/* Remarks are shop-only (the edit form and the admin modal both say so), so they are
+                               deliberately NOT printed here - this block is the screen preview, the paper copy
+                               and the /ticket/{id}/modal fragment all at once. */-->
 
                         <div class="slip-divider"></div>
 
@@ -164,13 +171,13 @@
                             <span class="k">Status</span>
                             <span th:replace="~{fragments/status-badge :: badge(status=${repair.status})}"></span>
                         </div>
-                        <div class="ticket-detail-row">
+                        <div class="ticket-detail-row" th:if="${repair.createdAt != null}">
                             <span class="k">Received</span>
                             <span class="v" th:text="${#dates.format(repair.createdAt, 'MMM d, yyyy, h:mm a')}"></span>
                         </div>
-                        <div class="ticket-detail-row" th:if="${repair.receivedByEmployeeId != null}">
+                        <div class="ticket-detail-row" th:if="${!#strings.isEmpty(#strings.trim(repair.receivedByEmployeeId))}">
                             <span class="k">Received by</span>
-                            <span class="v" th:text="${repair.receivedByEmployeeId}"></span>
+                            <span class="v" th:text="${#strings.trim(repair.receivedByEmployeeId)}"></span>
                         </div>
                         <div class="ticket-detail-row">
                             <span class="k">Client record</span>

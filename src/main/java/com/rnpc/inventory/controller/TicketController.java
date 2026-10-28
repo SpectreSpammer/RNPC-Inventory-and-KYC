@@ -113,6 +113,12 @@ public class TicketController {
         // ${...} blocks (a past SpEL parse-error source here) and keeps the middle dot a real
         // UTF-8 character rather than an HTML entity, which th:text would render literally.
         model.addAttribute("ticketSubtitle", ticketSubtitle(repairRecord));
+        // This page is the "ticket created" screen right after POST /ticket/create (always PENDING)
+        // but also what the repair edit form's "View client copy" link opens for a repair in any
+        // status. A PENDING repair keeps the "Ticket created" wording; any other status gets a
+        // neutral title, heading and banner, with the status in words from the shared label.
+        model.addAttribute("freshTicket", repairRecord.getStatus() == RepairRecord.RepairStatus.PENDING);
+        model.addAttribute("statusWords", AdminRepairView.from(repairRecord).getStatusLabel());
         addShellAttributes(authentication, model);
         return "tickets/ticketPrint";
     }

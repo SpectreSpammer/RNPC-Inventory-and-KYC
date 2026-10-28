@@ -235,6 +235,19 @@ class RepairFormsRenderTest {
     }
 
     @Test
+    void viewClientCopyOpensInANewTabSoTheFormKeepsItsUnsavedEntries() throws Exception {
+        String html = editForm(repair(RepairStatus.PENDING));
+        Matcher link = Pattern.compile("<a[^>]*href=\"/ticket/5\"[^>]*>").matcher(html);
+
+        assertTrue(link.find(), "client copy link missing: " + html);
+        assertTrue(link.group().contains("target=\"_blank\""), link.group());
+        assertTrue(link.group().contains("rel=\"noopener noreferrer\""), link.group());
+        assertTrue(readable(html).contains("View client copy"), readable(html));
+        // only that one link opens a new tab; Cancel and Back stay in this one
+        assertTrue(Pattern.compile("target=\"_blank\"").matcher(html).results().count() == 1, html);
+    }
+
+    @Test
     void aRepairWithNoReceiverHasNoReceivedByRowAtAll() throws Exception {
         for (String receiver : new String[]{null, "", "   "}) {
             RepairRecord r = repair(RepairStatus.PENDING);
