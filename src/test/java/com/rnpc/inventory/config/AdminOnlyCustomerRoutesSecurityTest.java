@@ -83,6 +83,9 @@ class AdminOnlyCustomerRoutesSecurityTest {
         @GetMapping("/ticket/{id}/modal")
         @ResponseBody String slipModal(@PathVariable Long id) { return "ok"; }
 
+        @GetMapping("/ticket/{id}/pdf")
+        @ResponseBody String slipPdf(@PathVariable Long id) { return "ok"; }
+
         @GetMapping("/ticket/view")
         @ResponseBody String view() { return "ok"; }
     }
@@ -179,6 +182,11 @@ class AdminOnlyCustomerRoutesSecurityTest {
     void ticketSlipAndItsModalAreAdminOnly() throws Exception {
         assertAdminOnly(() -> get("/ticket/7"));
         assertAdminOnly(() -> get("/ticket/7/modal"));
+    }
+
+    @Test
+    void ticketSlipPdfIsAdminOnly() throws Exception {
+        assertAdminOnly(() -> get("/ticket/7/pdf"));
     }
 
     @Test

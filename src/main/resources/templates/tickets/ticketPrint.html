@@ -143,12 +143,15 @@
                             <div class="slip-row" th:if="${repair.technician != null and !#strings.isEmpty(repair.technician)}"><span class="k">Technician</span><span class="v" th:text="${repair.technician}"></span></div>
                             <div class="slip-row">
                                 <span class="k">Estimated cost</span>
-                                <span th:if="${repair.cost <= 0}" class="v">To be assessed</span>
-                                <th:block th:unless="${repair.cost <= 0}">
-                                    <span class="v" th:replace="~{fragments/money :: amount(amount=${repair.cost})}"></span>
-                                </th:block>
+                                <!--/* The cost text comes from slipView (AdminRepairView), the same rule the PDF uses: an
+                                       amount, plus "(diagnostic fee)" once cancelled, else "To be assessed" or a dash. */-->
+                                <span th:unless="${slipView.costAssessed}" class="v" th:text="${slipView.costPlaceholder}">To be assessed</span>
+                                <span th:if="${slipView.costAssessed}" class="v">
+                                    <span th:replace="~{fragments/money :: amount(amount=${slipView.cost})}"></span>
+                                    <span class="text-muted" th:if="${!#strings.isEmpty(slipView.costSuffix)}" th:text="${slipView.costSuffix}"></span>
+                                </span>
                             </div>
-                            <div class="slip-row"><span class="k">Status</span><span class="v" th:text="${#strings.replace(repair.status.name(), '_', ' ')}"></span></div>
+                            <div class="slip-row"><span class="k">Status</span><span class="v" th:text="${slipView.statusLabel}"></span></div>
                             <div class="slip-row" th:if="${repair.warrantyEndDate != null}"><span class="k">Warranty ends</span><span class="v" th:text="${#dates.format(repair.warrantyEndDate, 'MMM d, yyyy')}"></span></div>
                         </div>
 

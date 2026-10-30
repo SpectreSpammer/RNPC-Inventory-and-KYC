@@ -178,6 +178,87 @@ class TicketPagesRenderTest {
         }
     }
 
+    // ---- P1: the slip follows the same cost and status rules as the PDF ---------------------------------
+
+    /** The slip alone (the modal fragment), as readable text. */
+    private String slipText(RepairRecord r) throws Exception {
+        when(repairService.getRepairRecordById(5L)).thenReturn(r);
+        return readable(render(get("/ticket/5/modal")));
+    }
+
+    @Test
+    void theSlipShowsToBeAssessedWhileNoCostIsSetOnAnyOpenStatus() throws Exception {
+        for (RepairStatus status : new RepairStatus[]{RepairStatus.PENDING, RepairStatus.IN_PROGRESS,
+                RepairStatus.COMPLETED, RepairStatus.RELEASED}) {
+            RepairRecord r = repairWithStatus(status);
+            r.setCost(0);
+
+            String text = slipText(r);
+
+            assertTrue(text.contains("Estimated cost To be assessed"), status + ": " + text);
+            assertFalse(text.contains("Php 0.00"), status + ": " + text);
+        }
+    }
+
+    @Test
+    void theSlipShowsAnAssessedCostAsMoneyWithNoDiagnosticFeeNote() throws Exception {
+        RepairRecord r = repairWithStatus(RepairStatus.COMPLETED);
+        r.setCost(2500);
+
+        String text = slipText(r);
+
+        assertTrue(text.contains("Estimated cost Php 2,500.00"), text);
+        assertFalse(text.contains("diagnostic fee"), text);
+    }
+
+    @Test
+    void theSlipShowsACancelledRepairsCostAsTheDiagnosticFee() throws Exception {
+        RepairRecord r = repairWithStatus(RepairStatus.CANCELLED);
+        r.setCost(1500);
+
+        String text = slipText(r);
+
+        assertTrue(text.contains("Estimated cost Php 1,500.00 (diagnostic fee)"), text);
+        assertFalse(text.contains("To be assessed"), text);
+    }
+
+    @Test
+    void theSlipShowsADashForACancelledRepairWithNoCost() throws Exception {
+        RepairRecord r = repairWithStatus(RepairStatus.CANCELLED);
+        r.setCost(0);
+
+        String text = slipText(r);
+
+        assertTrue(text.contains("Estimated cost —"), text);
+        assertFalse(text.contains("To be assessed"), text);
+        assertFalse(text.contains("Php 0.00"), text);
+    }
+
+    @Test
+    void theSlipSpellsTheStatusInWordsNotAsTheEnum() throws Exception {
+        String[][] expected = {{"PENDING", "Pending"}, {"IN_PROGRESS", "In Progress"}, {"COMPLETED", "Completed"},
+                {"RELEASED", "Released"}, {"CANCELLED", "Cancelled"}};
+        for (String[] pair : expected) {
+            String text = slipText(repairWithStatus(RepairStatus.valueOf(pair[0])));
+
+            assertTrue(text.contains("Status " + pair[1]), pair[0] + ": " + text);
+            assertFalse(text.contains("IN PROGRESS") || text.contains("COMPLETED") || text.contains("CANCELLED")
+                    || text.contains("RELEASED") || text.contains("PENDING"), pair[0] + ": " + text);
+        }
+    }
+
+    @Test
+    void thePageSlipAndTheModalSlipAgreeOnCostAndStatus() throws Exception {
+        RepairRecord r = repairWithStatus(RepairStatus.CANCELLED);
+        r.setCost(1500);
+        when(repairService.getRepairRecordById(5L)).thenReturn(r);
+
+        String page = readable(render(get("/ticket/5")));
+
+        assertTrue(page.contains("Estimated cost Php 1,500.00 (diagnostic fee)"), page);
+        assertTrue(page.contains("Status Cancelled"), page);
+    }
+
     @Test
     void aPendingRepairKeepsTheTicketCreatedWordingExactly() throws Exception {
         when(repairService.getRepairRecordById(5L)).thenReturn(repairWithStatus(RepairStatus.PENDING));

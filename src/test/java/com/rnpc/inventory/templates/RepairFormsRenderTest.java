@@ -222,7 +222,7 @@ class RepairFormsRenderTest {
         assertTrue(text.contains("Record"), text);
         assertTrue(text.contains("Received Oct 3, 2026"), text);
         assertTrue(text.contains("Received by Test Admin-12345"), text);
-        assertTrue(html.contains("href=\"/ticket/5\""), html);
+        assertTrue(html.contains("href=\"/ticket/5/pdf\""), html);
         assertTrue(text.contains("View client copy"), text);
 
         // Delete keeps the list's confirm and DELETE flow exactly: its own form, _method=delete, confirm().
@@ -237,7 +237,7 @@ class RepairFormsRenderTest {
     @Test
     void viewClientCopyOpensInANewTabSoTheFormKeepsItsUnsavedEntries() throws Exception {
         String html = editForm(repair(RepairStatus.PENDING));
-        Matcher link = Pattern.compile("<a[^>]*href=\"/ticket/5\"[^>]*>").matcher(html);
+        Matcher link = Pattern.compile("<a[^>]*href=\"/ticket/5/pdf\"[^>]*>").matcher(html);
 
         assertTrue(link.find(), "client copy link missing: " + html);
         assertTrue(link.group().contains("target=\"_blank\""), link.group());

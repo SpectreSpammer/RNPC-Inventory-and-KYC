@@ -57,12 +57,13 @@ public class SecurityConfig {
     /**
      * Client records (ClientController) and the admin-only walk-in ticket routes (TicketController).
      * The slip routes are matched on a numeric id so that /ticket/view, which customers use, is not
-     * caught by a bare /ticket/{id}.
+     * caught by a bare /ticket/{id}. A numeric {id} is one path segment, so the slip rule does not
+     * reach /ticket/{id}/modal or /ticket/{id}/pdf (the client copy as a PDF) - each has its own entry.
      */
     private static final String[] ADMIN_ONLY_CUSTOMER_PATHS = {
             "/client", "/client/**",
             "/ticket/create",
-            "/ticket/{id:[0-9]+}", "/ticket/{id:[0-9]+}/modal"
+            "/ticket/{id:[0-9]+}", "/ticket/{id:[0-9]+}/modal", "/ticket/{id:[0-9]+}/pdf"
     };
 
     /**

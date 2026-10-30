@@ -212,7 +212,7 @@
                                 <dd th:text="${#strings.trim(repair.receivedByEmployeeId)}"></dd>
                             </div>
                         </dl>
-                        <a class="rf-secondary" th:href="@{/ticket/{id}(id=${repairId})}" target="_blank" rel="noopener noreferrer">View client copy</a>
+                        <a class="rf-secondary" th:href="@{/ticket/{id}/pdf(id=${repairId})}" target="_blank" rel="noopener noreferrer">View client copy</a>
                         <form th:action="@{/repair/delete/{id}(id=${repairId})}" method="post" class="rf-delete-form">
                             <input type="hidden" name="_method" value="delete"/>
                             <button type="submit" class="rf-delete" onclick="return confirm('Are you sure?')">Delete repair</button>

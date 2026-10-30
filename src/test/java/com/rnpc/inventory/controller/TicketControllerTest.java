@@ -17,11 +17,15 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -145,5 +149,31 @@ class TicketControllerTest {
                 .andExpect(redirectedUrl("/ticket/3"));
         verify(clientService, never()).saveClient(any());
         verify(clientService).fillMissingDetails(existing, "Walk-in Customer", "typed@example.com", "Typed Address");
+    }
+
+    // ---- The client copy as a PDF (batch P1) -------------------------------------------------------
+
+    @Test
+    void theClientCopyPdfIsServedInlineAsAPdfThatIsNeverCached() throws Exception {
+        RepairRecord r = repair(15L, "JO-00015");
+        r.setClient(client(1L, "Nand Test"));
+        when(repairRecordService.getRepairRecordById(15L)).thenReturn(r);
+
+        byte[] body = mvc.perform(get("/ticket/15/pdf"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/pdf"))
+                .andExpect(header().string("Content-Disposition", "inline; filename=\"JO-00015.pdf\""))
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andReturn().getResponse().getContentAsByteArray();
+
+        assertEquals("%PDF", new String(body, 0, 4, java.nio.charset.StandardCharsets.US_ASCII));
+    }
+
+    @Test
+    void anUnknownRepairIdIsA404OnThePdfRoute() throws Exception {
+        when(repairRecordService.getRepairRecordById(999L))
+                .thenThrow(new IllegalArgumentException("Invalid repair record Id: 999"));
+
+        mvc.perform(get("/ticket/999/pdf")).andExpect(status().isNotFound());
     }
 }

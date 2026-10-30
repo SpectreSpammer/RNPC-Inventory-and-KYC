@@ -7,12 +7,19 @@ import com.rnpc.inventory.entity.Client;
 import com.rnpc.inventory.entity.Notification;
 import com.rnpc.inventory.entity.RepairRecord;
 import com.rnpc.inventory.entity.User;
+import com.rnpc.inventory.service.ClientCopyPdfService;
 import com.rnpc.inventory.service.ClientService;
 import com.rnpc.inventory.service.NotificationService;
 import com.rnpc.inventory.service.RepairRecordService;
 import com.rnpc.inventory.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -24,6 +31,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +45,8 @@ public class TicketController {
     private final RepairRecordService repairRecordService;
     private final NotificationService notificationService;
     private final UserService userService;
+    // Stateless (it holds nothing between renders), so it is built here rather than injected.
+    private final ClientCopyPdfService clientCopyPdfService = new ClientCopyPdfService();
 
     @Autowired
     public TicketController(ClientService clientService, RepairRecordService repairRecordService,
@@ -118,7 +128,9 @@ public class TicketController {
         // status. A PENDING repair keeps the "Ticket created" wording; any other status gets a
         // neutral title, heading and banner, with the status in words from the shared label.
         model.addAttribute("freshTicket", repairRecord.getStatus() == RepairRecord.RepairStatus.PENDING);
-        model.addAttribute("statusWords", AdminRepairView.from(repairRecord).getStatusLabel());
+        AdminRepairView slipView = AdminRepairView.from(repairRecord);
+        model.addAttribute("slipView", slipView);
+        model.addAttribute("statusWords", slipView.getStatusLabel());
         addShellAttributes(authentication, model);
         return "tickets/ticketPrint";
     }
@@ -136,7 +148,28 @@ public class TicketController {
         RepairRecord repairRecord = repairRecordService.getRepairRecordById(id);
         model.addAttribute("repair", repairRecord);
         model.addAttribute("client", repairRecord.getClient());
+        model.addAttribute("slipView", AdminRepairView.from(repairRecord));
         return "tickets/ticketPrint :: ticketSlip";
+    }
+
+    // The same slip as a PDF (A5 portrait), opened inline in a new tab from the repair edit form's
+    // "View client copy" link. Admin-only through the filter chain (ADMIN_ONLY_CUSTOMER_PATHS), like
+    // the slip itself. Unlike /{id}, an unknown id is a 404 rather than an unhandled exception.
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> showClientCopyPdf(@PathVariable("id") Long id) {
+        RepairRecord repairRecord;
+        try {
+            repairRecord = repairRecordService.getRepairRecordById(id);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No repair record " + id);
+        }
+        byte[] pdf = clientCopyPdfService.render(repairRecord);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.inline().filename(ClientCopyPdfService.fileName(repairRecord)).build().toString())
+                .cacheControl(CacheControl.noStore())
+                .body(pdf);
     }
 
     // "View Tickets" in the admin nav's Tickets dropdown links here. It is the same admin list as

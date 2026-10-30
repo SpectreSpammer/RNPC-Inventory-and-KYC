@@ -530,7 +530,7 @@ after the parts rule and before the catch-all `permitAll`:
 
 ```
 /client, /client/**, /ticket/create,
-/ticket/{id:[0-9]+}, /ticket/{id:[0-9]+}/modal                  -> hasRole("ADMIN")
+/ticket/{id:[0-9]+}, /ticket/{id:[0-9]+}/modal, /ticket/{id:[0-9]+}/pdf -> hasRole("ADMIN")
 ```
 
 Blocked requests behave exactly as for the parts routes below: anonymous -> `/login`, signed-in
@@ -1079,6 +1079,8 @@ tag, since `th:replace` discards the calling element entirely) - plus resets `.m
 viewport height. **Remarks are never on the slip** - they are shop-only (the edit form and the admin
 modal say so), and the slip is the screen preview, the paper copy and `/ticket/{id}/modal` all at
 once; Fix Applied, Recommendation and Technician still print. `TicketPagesRenderTest` guards it.
+
+`GET /ticket/{id}/pdf` (`TicketController.showClientCopyPdf`, admin-only via its own `ADMIN_ONLY_CUSTOMER_PATHS` entry - a numeric `{id}` is one path segment, so the slip rule does not cover it; an unknown id is a 404) serves the slip as an inline A5 portrait PDF built by `ClientCopyPdfService` with PDFBox 3.0.8 and the standard fonts (characters outside WinAnsi print as `?`), taking cost and status wording from `AdminRepairView` exactly as the slip does; the repair edit form's "View client copy" link opens it, and `ClientCopyPdfServiceTest` reads the PDF back with `PDFTextStripper`.
 
 `RepairRecord.receivedByEmployeeId` is a new nullable column (see Database changes not in
 migrations), set only by `TicketController.createTicket` to the acting admin's employee label
