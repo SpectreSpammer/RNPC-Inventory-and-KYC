@@ -957,12 +957,16 @@ label or a line with nothing next to it when a client had no address or email
 (`orders/orderConfirmation.html`, `appointments/appointmentView.html`); both now hide the row
 instead, the same way `appointmentView.html` already hides its other optional fields.
 
-**Photo validation matches `ProfilePhotoService`'s own rules** - `ClientService.validatePhoto`,
-checked before `handleFileUpload` writes the file: at most 5 MB, and the declared content type is
-never trusted - the bytes must decode via `ImageIO` as PNG or JPEG and be no more than 16 million
-pixels. Unlike `ProfilePhotoService`, the file is stored as uploaded rather than re-encoded; this
-only screens it first. The controller catches the resulting `IllegalArgumentException` and rejects
+**Photo validation matches `ProfilePhotoService`'s own rules** and lives in one place,
+`util/ImageUploadValidator` (shared with the repair photos; `ClientService.validatePhoto` just calls
+it), checked before `handleFileUpload` writes the file: at most 5 MB, and the declared content type
+and file name are never trusted - the bytes must decode via `ImageIO` as PNG or JPEG and be no more
+than 16 million pixels. It throws `ImageUploadValidator.InvalidPhotoException`, an
+`IllegalArgumentException` subclass. Unlike `ProfilePhotoService`, the file is stored as uploaded
+rather than re-encoded; this only screens it first. The controller catches the exception and rejects
 it onto `imageFile`, the same pattern `ProfileController` already uses for the same exception.
+`ProfilePhotoService` keeps its own copy of these rules (it also re-encodes to PNG) and is not routed
+through the validator.
 
 The duplicate-number rejection from customers batch 2 (`ClientController.rejectDuplicateNumber`) is
 unchanged on both forms, `data-phone-format` from batch 2b stays on the contact number field, and a
@@ -1230,9 +1234,9 @@ the left-aligned Save / Cancel row). Both used to be bare Bootstrap pages.
   or Released apply exactly as before. Cost is still a primitive `double` prefilled with 0, so its
   help text reads "Leave at 0 until assessed" - **when cost becomes nullable (batch 1b) that and the
   Cancelled hint's "Leave it at 0" become "Leave it blank"**. The client select is a plain select
-  (the project has no searchable-select pattern). The photo note "PNG or JPEG, up to 5 MB" is not
-  printed because repair photos still have no validator (`ClientService.validatePhoto` is private to
-  clients).
+  (the project has no searchable-select pattern). The photo note "PNG or JPEG, up to 5 MB." is printed under the
+  Photo heading, because repair photos are validated by the shared `util/ImageUploadValidator` (see
+  Repairs).
 - ⚠️ **The Cancelled cost hint** under Cost (id `cancelledCostHint`, driven by the Status select id
   `status`, model attribute `repairRecordDto`) shows only while the saved or posted status is
   CANCELLED and is toggled by a small script as the select changes. `RepairFormCancelledHintTest`
@@ -1310,7 +1314,14 @@ have no test and are checked by hand.
   customer dashboard's warranty row, `searchResults.html`, `SearchService`) rather than joining the
   fields in a template. Tests: `RepairRecordTest`, `RepairRecordControllerTest` (a fresh ticket opens
   and saves from `/repair/edit/{id}` as PENDING or IN_PROGRESS; COMPLETED or RELEASED without a fix
-  is refused), `RepairRecordServiceTest`. Repair photos are **not** yet validated like client photos.
+  is refused), `RepairRecordServiceTest`. **Repair photos are validated like client photos** by the shared
+  `util/ImageUploadValidator` (5 MB, PNG or JPEG by the bytes, 16 million pixels):
+  `RepairRecordService.saveRepairRecord` / `updateRepairRecord` screen a new upload first thing, before
+  the record is touched or any file written, and `RepairRecordController` turns the
+  `InvalidPhotoException` into a field error on `imageFile` with every other entry kept (tested by
+  `RepairPhotoUploadTest`). No new upload is unaffected and photos already stored are not re-checked.
+  A file over the 10 MB multipart cap never reaches the controller: the container answers 413 (an
+  error page, not a form message) before any of this runs.
 - **Support tickets** - `SupportController`, `SupportTicketService`, and three entities. This slice
   does *not* follow the per-category quintet pattern; it's one controller over three tables. See
   its own section below.

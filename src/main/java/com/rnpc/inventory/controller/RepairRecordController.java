@@ -8,6 +8,7 @@ import com.rnpc.inventory.entity.RepairRecord;
 import com.rnpc.inventory.service.ClientService;
 import com.rnpc.inventory.service.NotificationService;
 import com.rnpc.inventory.service.RepairRecordService;
+import com.rnpc.inventory.util.ImageUploadValidator;
 import com.rnpc.inventory.util.Redirects;
 import jakarta.validation.groups.Default;
 import org.springframework.web.bind.WebDataBinder;
@@ -198,14 +199,19 @@ public class RepairRecordController {
             return "redirect:/repair";
         }
         validate(repairRecordDto, result);
-        if (result.hasErrors()) {
-            model.addAttribute("clients", clientService.getAllClients());
-            addShellAttributes(authentication, model);
-            return "repairs/repairCreate";
+        if (!result.hasErrors()) {
+            try {
+                service.saveRepairRecord(repairRecordDto);
+                return "redirect:/repair?clientId=" + repairRecordDto.getClientId();
+            } catch (ImageUploadValidator.InvalidPhotoException ex) {
+                // The service screens the photo before anything is written; the form comes back
+                // with every other entry and the reason under the photo field.
+                result.rejectValue("imageFile", "invalid", ex.getMessage());
+            }
         }
-
-        service.saveRepairRecord(repairRecordDto);
-        return "redirect:/repair?clientId=" + repairRecordDto.getClientId();
+        model.addAttribute("clients", clientService.getAllClients());
+        addShellAttributes(authentication, model);
+        return "repairs/repairCreate";
     }
 
     @GetMapping("/edit/{id}")
@@ -252,19 +258,22 @@ public class RepairRecordController {
             return "redirect:/repair";
         }
         validate(repairRecordDto, result);
-        if (result.hasErrors()) {
-            RepairRecord existing = service.getRepairRecordById(id);
-            model.addAttribute("repairId", id);
-            model.addAttribute("jobOrderNumber", existing.getJobOrderNumber());
-            model.addAttribute("currentImage", existing.getImageFileName());
-            model.addAttribute("clients", clientService.getAllClients());
-            model.addAttribute("repair", existing);
-            addShellAttributes(authentication, model);
-            return "repairs/repairEdit";
+        if (!result.hasErrors()) {
+            try {
+                service.updateRepairRecord(id, repairRecordDto);
+                return "redirect:/repair?clientId=" + repairRecordDto.getClientId();
+            } catch (ImageUploadValidator.InvalidPhotoException ex) {
+                result.rejectValue("imageFile", "invalid", ex.getMessage());
+            }
         }
-
-        service.updateRepairRecord(id, repairRecordDto);
-        return "redirect:/repair?clientId=" + repairRecordDto.getClientId();
+        RepairRecord existing = service.getRepairRecordById(id);
+        model.addAttribute("repairId", id);
+        model.addAttribute("jobOrderNumber", existing.getJobOrderNumber());
+        model.addAttribute("currentImage", existing.getImageFileName());
+        model.addAttribute("clients", clientService.getAllClients());
+        model.addAttribute("repair", existing);
+        addShellAttributes(authentication, model);
+        return "repairs/repairEdit";
     }
 
     // Called by fetch (see fragments/parts-form :: remove-photo-script), not a form, so both

@@ -181,6 +181,7 @@
                     <section class="pf-card rf-card">
                         <div class="pf-section">
                             <h2>Photo for technician reference <span class="pf-optional">(optional, the client can see it)</span></h2>
+                            <small class="pf-hint">PNG or JPEG, up to 5 MB.</small>
                             <th:block th:if="${currentImage}">
                                 <div th:replace="~{fragments/parts-form :: current-photo(currentImage=${currentImage}, removeUrl=@{/repair/removePhoto/{id}(id=${repairId})})}"></div>
                             </th:block>

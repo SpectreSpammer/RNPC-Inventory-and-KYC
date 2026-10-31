@@ -8,6 +8,7 @@ import com.rnpc.inventory.entity.Client;
 import com.rnpc.inventory.entity.RepairRecord;
 import com.rnpc.inventory.repository.ClientRepository;
 import com.rnpc.inventory.repository.RepairRecordRepository;
+import com.rnpc.inventory.util.ImageUploadValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -71,6 +72,7 @@ public class RepairRecordService {
     }
 
     public RepairRecord saveRepairRecord(RepairRecordDto repairRecordDto) {
+        validatePhoto(repairRecordDto.getImageFile());
         RepairRecord repairRecord = new RepairRecord();
         applyDto(repairRecord, repairRecordDto);
         repairRecord.setCreatedAt(new Date());
@@ -140,6 +142,8 @@ public class RepairRecordService {
     }
 
     public RepairRecord updateRepairRecord(Long id, RepairRecordDto repairRecordDto) {
+        // Before the record is loaded and changed: a refused photo must leave the saved repair untouched.
+        validatePhoto(repairRecordDto.getImageFile());
         RepairRecord repairRecord = getRepairRecordById(id);
         applyDto(repairRecord, repairRecordDto);
 
@@ -196,11 +200,21 @@ public class RepairRecordService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    // A new upload is screened (ImageUploadValidator: 5 MB, PNG or JPEG by its bytes, 16 million
+    // pixels) before anything is written; no upload at all (null or empty) is not an error. Photos
+    // already stored are not re-checked.
+    private void validatePhoto(MultipartFile file) {
+        if (file != null && !file.isEmpty()) {
+            ImageUploadValidator.validate(file);
+        }
+    }
+
     private String handleFileUpload(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             return null;
         }
 
+        Path target = null;
         try {
             String uploadDir = "public/images/";
             Path uploadPath = Paths.get(uploadDir);
@@ -210,12 +224,21 @@ public class RepairRecordService {
             }
 
             String fileName = new Date().getTime() + "_" + file.getOriginalFilename();
+            target = uploadPath.resolve(fileName);
             try (InputStream inputStream = file.getInputStream()) {
-                Files.copy(inputStream, uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(inputStream, target, StandardCopyOption.REPLACE_EXISTING);
             }
 
             return fileName;
         } catch (Exception ex) {
+            // A copy that failed part-way must not leave a truncated file behind.
+            if (target != null) {
+                try {
+                    Files.deleteIfExists(target);
+                } catch (Exception ignored) {
+                    // nothing more to do; the original failure is the one worth reporting
+                }
+            }
             throw new RuntimeException("Failed to upload file: " + ex.getMessage());
         }
     }

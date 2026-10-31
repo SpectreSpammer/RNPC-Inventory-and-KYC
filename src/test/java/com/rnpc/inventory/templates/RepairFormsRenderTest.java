@@ -175,6 +175,7 @@ class RepairFormsRenderTest {
         assertTrue(text.contains("Issue and findings"), text);
         assertTrue(text.contains("Status and cost"), text);
         assertTrue(text.contains("Photo for technician reference (optional, the client can see it)"), text);
+        assertTrue(text.contains("PNG or JPEG, up to 5 MB."), text);
 
         assertTrue(text.contains("Brand (optional)"), text);
         assertTrue(text.contains("Serial number (optional)"), text);
@@ -304,8 +305,8 @@ class RepairFormsRenderTest {
         assertTrue(readable(html).contains("No photo yet"), readable(html));
         assertFalse(html.contains("remove-photo-btn\""), html);
         assertTrue(html.contains("type=\"file\""), html);
-        // the 5 MB note is not printed until a repair photo validator exists
-        assertFalse(readable(html).contains("up to 5 MB"), readable(html));
+        // the 5 MB note is printed now that repair photos are validated (batch V1)
+        assertTrue(readable(html).contains("up to 5 MB"), readable(html));
     }
 
     // ---- Edit form: nothing prints null -------------------------------------------------------------
@@ -368,6 +369,7 @@ class RepairFormsRenderTest {
         assertTrue(text.contains("Fix (required once Completed or Released)"), text);
         assertTrue(text.contains("Model name (required once Completed or Released)"), text);
         assertTrue(text.contains("Brand (optional)"), text);
+        assertTrue(text.contains("PNG or JPEG, up to 5 MB."), text);
 
         assertFalse(html.contains("id=\"jobOrderNumber\""), html);
         assertFalse(text.contains("Job order number"), text);
