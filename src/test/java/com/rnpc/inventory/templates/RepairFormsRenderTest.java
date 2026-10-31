@@ -179,6 +179,7 @@ class RepairFormsRenderTest {
         assertTrue(text.contains("Brand (optional)"), text);
         assertTrue(text.contains("Serial number (optional)"), text);
         assertTrue(text.contains("Technician (optional)"), text);
+        assertTrue(text.contains("Model name (required once Completed or Released)"), text);
         assertTrue(text.contains("Fix (required once Completed or Released)"), text);
         assertTrue(text.contains("Recommendation (optional)"), text);
         assertTrue(text.contains("Remarks (optional, shop only)"), text);
@@ -365,6 +366,7 @@ class RepairFormsRenderTest {
         assertTrue(html.contains("href=\"/repair\""), html);
         assertTrue(text.contains("Client and device"), text);
         assertTrue(text.contains("Fix (required once Completed or Released)"), text);
+        assertTrue(text.contains("Model name (required once Completed or Released)"), text);
         assertTrue(text.contains("Brand (optional)"), text);
 
         assertFalse(html.contains("id=\"jobOrderNumber\""), html);

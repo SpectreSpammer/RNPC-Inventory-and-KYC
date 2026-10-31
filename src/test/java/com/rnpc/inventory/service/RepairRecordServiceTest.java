@@ -113,6 +113,45 @@ class RepairRecordServiceTest {
     }
 
     @Test
+    void updateStoresABlankModelAsNullAndAKeptModelTrimmed() {
+        stored();
+        Client client = new Client();
+        client.setClientId(1L);
+        RepairRecord existing = new RepairRecord();
+        existing.setRepairId(11L);
+        existing.setModelName("Aspire 5");
+        when(repo.findById(11L)).thenReturn(java.util.Optional.of(existing));
+        when(clientRepo.findById(1L)).thenReturn(java.util.Optional.of(client));
+        com.rnpc.inventory.dto.RepairRecordDto dto = new com.rnpc.inventory.dto.RepairRecordDto();
+        dto.setClientId(1L);
+        dto.setDeviceType("Laptop");
+        dto.setStatus("IN_PROGRESS");
+
+        for (String blank : new String[] {null, "", "   "}) {
+            dto.setModelName(blank);
+            assertNull(service.updateRepairRecord(11L, dto).getModelName(), "[" + blank + "]");
+        }
+
+        dto.setModelName(" Aspire 5 ");
+        assertEquals("Aspire 5", service.updateRepairRecord(11L, dto).getModelName());
+    }
+
+    @Test
+    void createStoresABlankModelAsNull() {
+        stored();
+        Client client = new Client();
+        client.setClientId(1L);
+        when(clientRepo.findById(1L)).thenReturn(java.util.Optional.of(client));
+        com.rnpc.inventory.dto.RepairRecordDto dto = new com.rnpc.inventory.dto.RepairRecordDto();
+        dto.setClientId(1L);
+        dto.setDeviceType("Laptop");
+        dto.setModelName("");
+        dto.setStatus("PENDING");
+
+        assertNull(service.saveRepairRecord(dto).getModelName());
+    }
+
+    @Test
     void createFromTicketAllowsANullReceivedBy() {
         // authentication is never actually null on this route in production (the filter chain
         // requires an admin), but TicketController still guards it - see its own comment.

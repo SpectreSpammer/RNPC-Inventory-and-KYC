@@ -9,7 +9,6 @@ import com.rnpc.inventory.service.ClientService;
 import com.rnpc.inventory.service.NotificationService;
 import com.rnpc.inventory.service.RepairRecordService;
 import com.rnpc.inventory.util.Redirects;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.groups.Default;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,24 +43,22 @@ public class RepairRecordController {
         this.validator = validator;
     }
 
-    // A cleared cost field posts "", which cannot be bound to the primitive double: Spring records a
-    // generic typeMismatch ("Failed to convert property value ... empty String") and Bean Validation
-    // never looks at the field. When the posted status is COMPLETED or RELEASED the person should see
-    // the required-cost message instead, so a blank cost is bound as 0.0 for those two statuses and
-    // the cost rule in RepairRecordDto rejects it like any other zero. Every other status keeps
-    // Spring's default handling - the status is read from the request here because the binder has
-    // not bound the DTO yet. Repairs batch 1b makes cost a nullable Double: this editor can then go,
-    // since a blank binds to null and the @NotNull on the finished-repair rule rejects it.
+    // A cleared cost field posts "" (or only spaces), which cannot be bound to the primitive double:
+    // Spring records a generic typeMismatch ("Failed to convert property value ... empty String") and
+    // Bean Validation never looks at the field. A blank cost is therefore bound as 0.0 for every
+    // status. For COMPLETED and RELEASED the cost rule in RepairRecordDto then rejects that 0 with
+    // the required-cost message; for the other statuses 0 is a valid cost. A non-numeric value such
+    // as "abc" is still a typeMismatch in every status. Repairs batch 1b makes cost a nullable
+    // Double: this editor can then go, since a blank binds to null and the @NotNull on the
+    // finished-repair rule rejects it.
     @InitBinder("repairRecordDto")
-    public void initBinder(WebDataBinder binder, HttpServletRequest request) {
-        if (RepairRecordDto.requiresFix(request.getParameter("status"))) {
-            binder.registerCustomEditor(double.class, "cost", new PropertyEditorSupport() {
-                @Override
-                public void setAsText(String text) {
-                    setValue(text == null || text.isBlank() ? 0.0d : Double.valueOf(text.trim()));
-                }
-            });
-        }
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(double.class, "cost", new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) {
+                setValue(text == null || text.isBlank() ? 0.0d : Double.valueOf(text.trim()));
+            }
+        });
     }
 
     // Default plus, only when the status makes the fix mandatory, the FixRequired group - see

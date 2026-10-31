@@ -1278,6 +1278,7 @@ have no test and are checked by hand.
   `RepairRecordDto.requiresFix(status)` - through the injected `SmartValidator` instead of `@Valid`,
   the same approach the laptop and cellphone controllers use for their per-type groups. Brand and
   serial number are stored as null when blank (`RepairRecordService.blankToNull`), never `""`.
+  **The model name is required only once the repair is COMPLETED or RELEASED** (`@NotBlank` in the `FixRequired` group, so "The model name is required once the repair is Completed or Released." lands on `modelName`); a blank model is stored as null.
   **Cost must be greater than zero once the repair is COMPLETED or RELEASED** (missing, zero and
   negative all give "A cost greater than zero is required once the repair is Completed or
   Released." on the `cost` field, so the form keeps every other entry). In every other status -
@@ -1289,9 +1290,10 @@ have no test and are checked by hand.
   ⚠️ **A cleared cost field is a binding error, not a validation one.** `cost` is a primitive
   `double`, so a posted `""` fails to convert (`typeMismatch`, "Failed to convert property value of
   type 'java.lang.String' to required type 'double' ... empty String") and Bean Validation never
-  looks at the field. `RepairRecordController.initBinder` therefore binds a blank cost as 0.0 **only
-  when the posted status is COMPLETED or RELEASED**, so the person sees the required-cost message;
-  for every other status a cleared cost still produces Spring's generic message, unchanged.
+  looks at the field. `RepairRecordController.initBinder` therefore binds a blank or whitespace-only
+  cost as 0.0 **for every status**: COMPLETED and RELEASED then reject that 0 with the required-cost
+  message, and the other statuses accept it as a cost of 0. A non-numeric value such as "abc" is still
+  Spring's generic `typeMismatch` in every status. Nullable cost (batch 1b) removes this workaround.
   ⚠️ **Repairs batch 1b (cost becomes a nullable `Double`) must preserve this rule:** null, zero and
   negative all rejected when finished. The finished-repair rule already carries `@NotNull` with the
   same message (a no-op on a primitive) because `@Positive` treats null as valid; the `initBinder`

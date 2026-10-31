@@ -7,6 +7,7 @@ import com.rnpc.inventory.service.ClientService;
 import com.rnpc.inventory.service.NotificationService;
 import com.rnpc.inventory.service.RepairRecordService;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -237,14 +239,99 @@ class RepairRecordControllerTest {
     }
 
     @Test
-    void aClearedCostOnAnUnfinishedRepairIsLeftAsSpringsOwnBindingError() throws Exception {
-        // Deliberately unchanged: only COMPLETED and RELEASED get the required-cost message (see
-        // RepairRecordController.initBinder). Documented here so a change is a conscious one.
+    void aNonNumericCostIsLeftAsSpringsOwnBindingError() throws Exception {
+        // Deliberately unchanged: only a blank cost binds as 0.0 (see RepairRecordController.initBinder);
+        // "abc" stays a generic typeMismatch in every status. Documented here so a change is a conscious one.
         when(service.getRepairRecordById(5L)).thenReturn(freshTicket());
 
-        mvc.perform(editFormWithCost("PENDING", ""))
+        mvc.perform(editFormWithCost("PENDING", "abc"))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeHasFieldErrorCode("repairRecordDto", "cost", "typeMismatch"));
+        mvc.perform(editFormWithCost("COMPLETED", "abc").param("fix", "Replaced the display cable"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeHasFieldErrorCode("repairRecordDto", "cost", "typeMismatch"));
+        verify(service, never()).updateRepairRecord(any(), any());
+    }
+
+    @Test
+    void aBlankCostBindsAsZeroAndSavesWhilePendingInProgressOrCancelledOnEdit() throws Exception {
+        when(service.getRepairRecordById(5L)).thenReturn(freshTicket());
+
+        for (String open : new String[] {"PENDING", "IN_PROGRESS", "CANCELLED"}) {
+            for (String blank : new String[] {"", "   "}) {
+                mvc.perform(editFormWithCost(open, blank))
+                        .andExpect(status().is3xxRedirection())
+                        .andExpect(redirectedUrl("/repair?clientId=1"));
+            }
+        }
+        ArgumentCaptor<RepairRecordDto> saved = ArgumentCaptor.forClass(RepairRecordDto.class);
+        verify(service, times(6)).updateRepairRecord(eq(5L), saved.capture());
+        for (RepairRecordDto dto : saved.getAllValues()) {
+            assertEquals(0.0, dto.getCost(), dto.getStatus());
+        }
+    }
+
+    @Test
+    void aBlankCostBindsAsZeroAndSavesWhilePendingInProgressOrCancelledOnCreate() throws Exception {
+        for (String open : new String[] {"PENDING", "IN_PROGRESS", "CANCELLED"}) {
+            for (String blank : new String[] {"", "   "}) {
+                mvc.perform(createFormWithCost(open, blank))
+                        .andExpect(status().is3xxRedirection())
+                        .andExpect(redirectedUrl("/repair?clientId=1"));
+            }
+        }
+        ArgumentCaptor<RepairRecordDto> saved = ArgumentCaptor.forClass(RepairRecordDto.class);
+        verify(service, times(6)).saveRepairRecord(saved.capture());
+        for (RepairRecordDto dto : saved.getAllValues()) {
+            assertEquals(0.0, dto.getCost(), dto.getStatus());
+        }
+    }
+
+    @Test
+    void aBlankCostOnACreatedCompletedOrReleasedRepairIsRejectedWithOneCostErrorAndEverythingElseKept() throws Exception {
+        for (String finished : new String[] {"COMPLETED", "RELEASED"}) {
+            for (String blank : new String[] {"", "   "}) {
+                MvcResult result = mvc.perform(createFormWithCost(finished, blank)
+                                .param("fix", "Replaced the display cable").param("remarks", "Keep this remark"))
+                        .andExpect(status().isOk())
+                        .andExpect(view().name("repairs/repairCreate"))
+                        .andReturn();
+
+                BindingResult errors = bindingResultOf(result);
+                assertEquals(1, errors.getFieldErrorCount("cost"), finished + " [" + blank + "]");
+                assertEquals(COST_MESSAGE, errors.getFieldError("cost").getDefaultMessage());
+                assertEquals(1, errors.getErrorCount(), "only the cost should be flagged: " + errors.getAllErrors());
+
+                RepairRecordDto kept = (RepairRecordDto) result.getModelAndView().getModel().get("repairRecordDto");
+                assertEquals("Aspire 5", kept.getModelName());
+                assertEquals("no display", kept.getIssueDescription());
+                assertEquals("Replaced the display cable", kept.getFix());
+                assertEquals("Keep this remark", kept.getRemarks());
+                assertEquals(finished, kept.getStatus());
+            }
+        }
+        verify(service, never()).saveRepairRecord(any());
+    }
+
+    @Test
+    void aBlankCostOnAnEditedCompletedOrReleasedRepairKeepsEveryOtherEntry() throws Exception {
+        when(service.getRepairRecordById(5L)).thenReturn(freshTicket());
+
+        for (String finished : new String[] {"COMPLETED", "RELEASED"}) {
+            for (String blank : new String[] {"", "   "}) {
+                MvcResult result = mvc.perform(editFormWithCost(finished, blank)
+                                .param("fix", "Replaced the display cable").param("remarks", "Keep this remark"))
+                        .andExpect(status().isOk())
+                        .andReturn();
+
+                RepairRecordDto kept = (RepairRecordDto) result.getModelAndView().getModel().get("repairRecordDto");
+                assertEquals("Aspire 5", kept.getModelName());
+                assertEquals("no display", kept.getIssueDescription());
+                assertEquals("Replaced the display cable", kept.getFix());
+                assertEquals("Keep this remark", kept.getRemarks());
+                assertEquals(finished, kept.getStatus());
+            }
+        }
         verify(service, never()).updateRepairRecord(any(), any());
     }
 
@@ -293,22 +380,148 @@ class RepairRecordControllerTest {
         verify(service).saveRepairRecord(any());
     }
 
+    // ---- The model name is required only once the repair is Completed or Released --------------------
+
+    private static final String MODEL_MESSAGE = "The model name is required once the repair is Completed or Released.";
+
+    // Built from scratch: .param() appends, so overriding modelName on editForm() would post two values.
+    private MockHttpServletRequestBuilder editFormWithModel(String status, String modelName, String cost) {
+        return put("/repair/update/5").principal(admin)
+                .param("clientId", "1")
+                .param("deviceType", "Laptop")
+                .param("modelName", modelName)
+                .param("issueDescription", "no display")
+                .param("cost", cost)
+                .param("repairDate", "2026-10-02")
+                .param("status", status);
+    }
+
+    private MockHttpServletRequestBuilder createFormWithModel(String status, String modelName, String cost) {
+        return post("/repair/create").principal(admin)
+                .param("clientId", "1")
+                .param("deviceType", "Laptop")
+                .param("modelName", modelName)
+                .param("issueDescription", "no display")
+                .param("cost", cost)
+                .param("repairDate", "2026-10-02")
+                .param("status", status);
+    }
+
+    /** Re-renders the given form with exactly one error, on modelName, carrying the model-name message. */
+    private void assertModelRejected(String view, MockHttpServletRequestBuilder request) throws Exception {
+        MvcResult result = mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(view().name(view))
+                .andExpect(model().attributeHasFieldErrorCode("repairRecordDto", "modelName", "NotBlank"))
+                .andReturn();
+
+        BindingResult errors = bindingResultOf(result);
+        assertEquals(MODEL_MESSAGE, errors.getFieldError("modelName").getDefaultMessage());
+        assertEquals(1, errors.getErrorCount(), "only the model name should be flagged: " + errors.getAllErrors());
+    }
+
     @Test
-    void theModelNameIsStillRequired() throws Exception {
+    void aBlankModelSavesWhilePendingInProgressOrCancelledOnEdit() throws Exception {
         when(service.getRepairRecordById(5L)).thenReturn(freshTicket());
 
-        // Built from scratch: .param() appends, so overriding modelName on editForm() would post two values.
-        mvc.perform(put("/repair/update/5").principal(admin)
-                        .param("clientId", "1")
-                        .param("deviceType", "Laptop")
-                        .param("modelName", "")
-                        .param("issueDescription", "no display")
-                        .param("cost", "0")
-                        .param("repairDate", "2026-10-02")
-                        .param("status", "PENDING"))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeHasFieldErrorCode("repairRecordDto", "modelName", "NotEmpty"));
+        for (String open : new String[] {"PENDING", "IN_PROGRESS", "CANCELLED"}) {
+            mvc.perform(editFormWithModel(open, "", "0"))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/repair?clientId=1"));
+        }
+        verify(service, times(3)).updateRepairRecord(eq(5L), any());
+    }
+
+    @Test
+    void aBlankModelSavesWhilePendingInProgressOrCancelledOnCreate() throws Exception {
+        for (String open : new String[] {"PENDING", "IN_PROGRESS", "CANCELLED"}) {
+            mvc.perform(createFormWithModel(open, "", "0"))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/repair?clientId=1"));
+        }
+        verify(service, times(3)).saveRepairRecord(any());
+    }
+
+    @Test
+    void aBlankModelIsRejectedOnceCompletedOrReleasedOnEdit() throws Exception {
+        when(service.getRepairRecordById(5L)).thenReturn(freshTicket());
+
+        for (String finished : new String[] {"COMPLETED", "RELEASED"}) {
+            assertModelRejected("repairs/repairEdit",
+                    editFormWithModel(finished, "", "1500").param("fix", "Replaced the display cable"));
+            assertModelRejected("repairs/repairEdit",
+                    editFormWithModel(finished, "   ", "1500").param("fix", "Replaced the display cable"));
+        }
         verify(service, never()).updateRepairRecord(any(), any());
+    }
+
+    @Test
+    void aBlankModelIsRejectedOnceCompletedOrReleasedOnCreate() throws Exception {
+        for (String finished : new String[] {"COMPLETED", "RELEASED"}) {
+            assertModelRejected("repairs/repairCreate",
+                    createFormWithModel(finished, "", "1500").param("fix", "Replaced the display cable"));
+            assertModelRejected("repairs/repairCreate",
+                    createFormWithModel(finished, "   ", "1500").param("fix", "Replaced the display cable"));
+        }
+        verify(service, never()).saveRepairRecord(any());
+    }
+
+    @Test
+    void aRejectedModelNameKeepsEveryOtherEntryAndSitsBesideTheFixAndCostErrors() throws Exception {
+        when(service.getRepairRecordById(5L)).thenReturn(freshTicket());
+
+        for (String view : new String[] {"repairs/repairEdit", "repairs/repairCreate"}) {
+            MockHttpServletRequestBuilder request = view.endsWith("Edit")
+                    ? editFormWithModel("COMPLETED", "", "0") : createFormWithModel("COMPLETED", "", "0");
+
+            MvcResult result = mvc.perform(request.param("remarks", "Keep this remark"))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name(view))
+                    .andExpect(model().attributeHasFieldErrorCode("repairRecordDto", "modelName", "NotBlank"))
+                    .andExpect(model().attributeHasFieldErrorCode("repairRecordDto", "fix", "NotEmpty"))
+                    .andExpect(model().attributeHasFieldErrorCode("repairRecordDto", "cost", "Positive"))
+                    .andReturn();
+
+            RepairRecordDto kept = (RepairRecordDto) result.getModelAndView().getModel().get("repairRecordDto");
+            assertEquals("Laptop", kept.getDeviceType(), view);
+            assertEquals("no display", kept.getIssueDescription(), view);
+            assertEquals("Keep this remark", kept.getRemarks(), view);
+            assertEquals("COMPLETED", kept.getStatus(), view);
+        }
+    }
+
+    @Test
+    void completedWithAModelAFixAndAPositiveCostIsSaved() throws Exception {
+        when(service.getRepairRecordById(5L)).thenReturn(freshTicket());
+
+        mvc.perform(editFormWithModel("COMPLETED", "Aspire 5", "1500").param("fix", "Replaced the display cable"))
+                .andExpect(status().is3xxRedirection());
+        mvc.perform(createFormWithModel("COMPLETED", "Aspire 5", "1500").param("fix", "Replaced the display cable"))
+                .andExpect(status().is3xxRedirection());
+        verify(service).updateRepairRecord(eq(5L), any());
+        verify(service).saveRepairRecord(any());
+    }
+
+    @Test
+    void anAppointmentSourcedRepairWithNoModelOpensAndSavesAsInProgressFromTheEditForm() throws Exception {
+        // What createFromAppointment leaves behind: no brand and no model until the device is received.
+        RepairRecord fromAppointment = freshTicket();
+        fromAppointment.setModelName(null);
+        fromAppointment.setAppointment(new com.rnpc.inventory.entity.Appointment());
+        when(service.getRepairRecordById(5L)).thenReturn(fromAppointment);
+
+        MvcResult opened = mvc.perform(get("/repair/edit/5").principal(admin))
+                .andExpect(status().isOk())
+                .andExpect(view().name("repairs/repairEdit"))
+                .andReturn();
+        RepairRecordDto form = (RepairRecordDto) opened.getModelAndView().getModel().get("repairRecordDto");
+        assertNull(form.getModelName());
+
+        // The browser posts the empty model field as "".
+        mvc.perform(editFormWithModel("IN_PROGRESS", "", "0"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/repair?clientId=1"));
+        verify(service).updateRepairRecord(eq(5L), any());
     }
 
     @Test

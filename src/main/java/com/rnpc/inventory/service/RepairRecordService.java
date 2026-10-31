@@ -173,7 +173,7 @@ public class RepairRecordService {
         repairRecord.setClient(getClient(repairRecordDto.getClientId()));
         repairRecord.setDeviceType(repairRecordDto.getDeviceType());
         repairRecord.setBrand(blankToNull(repairRecordDto.getBrand()));
-        repairRecord.setModelName(repairRecordDto.getModelName());
+        repairRecord.setModelName(blankToNull(repairRecordDto.getModelName()));
         repairRecord.setSerialNumber(blankToNull(repairRecordDto.getSerialNumber()));
         repairRecord.setIssueDescription(repairRecordDto.getIssueDescription());
         repairRecord.setTechnician(repairRecordDto.getTechnician());

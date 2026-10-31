@@ -1,6 +1,7 @@
 package com.rnpc.inventory.dto;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -13,8 +14,9 @@ import java.util.Date;
 
 /*
  * Brand is optional (a walk-in ticket can leave it blank, and an appointment-sourced repair has
- * none until an admin fills it in), and so is fix until the repair is finished: fix is required only
- * when the status is COMPLETED or RELEASED. That makes it conditional on another field, so it sits
+ * none until an admin fills it in), and so are the model name and the fix until the repair is
+ * finished: both are required only when the status is COMPLETED or RELEASED (an appointment-sourced
+ * repair has no model either, and must still open and save as IN_PROGRESS). That makes it conditional on another field, so it sits
  * in the FixRequired group and RepairRecordController validates Default plus that group only for
  * those two statuses (SmartValidator, the same way the laptop and cellphone controllers pick a
  * per-type group). A fresh ticket has neither, and must still open and save as PENDING or IN_PROGRESS.
@@ -30,7 +32,7 @@ import java.util.Date;
  */
 public class RepairRecordDto {
 
-    /** Validation group: the work is done, so the fix has to say what was done and cost > 0. */
+    /** Validation group: the work is done, so the model and fix have to be filled in and cost > 0. */
     public interface FixRequired {
     }
 
@@ -52,7 +54,8 @@ public class RepairRecordDto {
 
     private String brand;
 
-    @NotEmpty(message = "The model name is required!")
+    @NotBlank(groups = FixRequired.class,
+            message = "The model name is required once the repair is Completed or Released.")
     private String modelName;
 
     private String serialNumber;
