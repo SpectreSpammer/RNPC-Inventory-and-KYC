@@ -246,21 +246,21 @@ var ALL_CLIENTS = /*[[${clients}]]*/ [];
         var acts = node('div', 'parts-actions');
 
         var view = node('a', 'parts-icon-btn');
-        view.href = '/repair?clientId=' + c.id;
-        view.title = 'View job orders';
-        view.setAttribute('aria-label', 'View job orders for ' + c.fullName);
+        view.href = '/client/view/' + c.id;
+        view.title = 'View customer';
+        view.setAttribute('aria-label', 'View customer ' + c.fullName);
         view.append(icon('eye'));
 
         var edit = node('a', 'parts-icon-btn');
         edit.href = '/client/edit/' + c.id;
-        edit.title = 'Edit';
-        edit.setAttribute('aria-label', 'Edit ' + c.fullName);
+        edit.title = 'Edit customer';
+        edit.setAttribute('aria-label', 'Edit customer ' + c.fullName);
         edit.append(icon('edit-2'));
 
         var del = node('button', 'parts-icon-btn danger');
         del.type = 'button';
-        del.title = 'Delete';
-        del.setAttribute('aria-label', 'Delete ' + c.fullName);
+        del.title = 'Delete customer';
+        del.setAttribute('aria-label', 'Delete customer ' + c.fullName);
         del.append(icon('trash-2'));
         del.addEventListener('click', function () { openDelete(c); });
 

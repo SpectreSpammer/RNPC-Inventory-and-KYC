@@ -23,3 +23,43 @@
 /* Add/Edit client (customers batch 4): a page-level note below the Photo section, inside the same
    .pf-card. Scoped to .clients-page so it never leaks into the shared parts-form pages. */
 .clients-page .pf-form-note{padding:0 var(--space-5) var(--space-3)}
+
+/* Customer details (/client/view/{id}, customers batch C1). Built on parts-form.css's header and
+   card (pf-header, pf-card, pf-section); these are the pieces it does not have. */
+.cd-wrap{max-width:1000px}
+.cd-title-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);flex-wrap:wrap;margin-bottom:var(--space-5)}
+.cd-identity{display:flex;align-items:center;gap:var(--space-4);min-width:0}
+.cd-avatar{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;flex-shrink:0;background:var(--bg-card);border:1px solid var(--border);color:var(--text);font-size:15px;font-weight:800;letter-spacing:.02em;text-transform:uppercase}
+.cd-identity .pf-title{overflow-wrap:anywhere}
+.cd-actions{display:flex;gap:var(--space-2);flex-wrap:wrap}
+.cd-btn{display:inline-flex;align-items:center;gap:var(--space-2);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:700;padding:var(--space-3) var(--space-4);text-decoration:none;white-space:nowrap}
+.cd-btn svg{width:15px;height:15px}
+.cd-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cd-btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.cd-btn-primary:hover{color:#fff;filter:brightness(.94)}
+
+.cd-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:var(--space-5);align-items:start;margin-bottom:var(--space-5)}
+.cd-card .pf-section:last-of-type{border-bottom:0}
+
+.cd-rows{margin:0}
+.cd-row{display:flex;justify-content:space-between;gap:var(--space-4);padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.cd-row:last-child{border-bottom:0}
+.cd-row dt{color:var(--text-muted);font-weight:400;flex-shrink:0}
+.cd-row dd{margin:0;color:var(--text);font-weight:600;text-align:right;overflow-wrap:anywhere}
+.cd-row dd.cd-address{white-space:pre-line}
+.cd-unset{color:var(--text-muted);font-weight:400}
+
+.cd-photo{display:block;width:100%;max-height:260px;object-fit:contain;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-page)}
+.cd-no-photo{margin:0;font-size:13px}
+
+.cd-table-scroll{overflow-x:auto}
+.cd-table{width:100%;border-collapse:collapse;font-size:13px}
+.cd-table th,.cd-table td{padding:var(--space-3);border-bottom:1px solid var(--border);text-align:left;vertical-align:middle}
+.cd-table th{font-size:11px;text-transform:uppercase;letter-spacing:.02em;font-weight:600;color:var(--text-muted);white-space:nowrap}
+.cd-table tbody tr:last-child td{border-bottom:0}
+.cd-table .cd-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cd-nowrap{white-space:nowrap}
+
+@media (max-width:800px){
+    .cd-layout{grid-template-columns:minmax(0,1fr)}
+}

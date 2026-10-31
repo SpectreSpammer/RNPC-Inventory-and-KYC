@@ -28,7 +28,18 @@
 
     <main class="content">
         <div class="pf-wrap">
-            <div th:replace="~{fragments/parts-form :: header(code='CLI', title=${#strings.isEmpty(clientDto.fullName) ? 'Edit client' : 'Edit ' + clientDto.fullName}, subtitle='Changes apply to the Customers list as soon as you save.', backUrl=@{/client})}"></div>
+            <div class="pf-header">
+                <a class="pf-back" th:href="@{/client}">
+                    <i data-feather="chevron-left"></i>Back to customers
+                </a>
+                <div class="pf-title-row">
+                    <span class="pf-code">CLI</span>
+                    <div>
+                        <h1 class="pf-title" th:text="${#strings.isEmpty(clientDto.fullName) ? 'Edit client' : 'Edit ' + clientDto.fullName}"></h1>
+                        <p class="pf-subtitle">Changes apply to the Customers list as soon as you save.</p>
+                    </div>
+                </div>
+            </div>
 
             <form th:action="@{/client/update/{id}(id=${clientId})}" th:object="${clientDto}" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="_method" value="put"/>

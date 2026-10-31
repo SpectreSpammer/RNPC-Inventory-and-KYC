@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Customer details - RN PC</title>
+    <th:block th:replace="~{fragments/layout-app :: assets}"></th:block>
+    <th:block th:replace="~{fragments/layout-app :: app-styles}"></th:block>
+    <th:block th:replace="~{fragments/parts-form :: assets}"></th:block>
+    <th:block th:replace="~{fragments/status-badge :: badge-styles}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/clients.css}"/>
+</head>
+<body class="pf-page clients-page">
+
+<!--/*
+  Read-only customer details (customers batch C1), GET /client/view/{id}, admin-only through the
+  filter chain (/client/**). A page rather than a modal because it holds a photo ID and a job order
+  list. Everything shown comes from ClientController.showClientDetails: `view` (ClientView - initials,
+  formatted number, added date), `account`, `walkIn`, `photoFile` and `repairs` (AdminRepairView rows).
+
+  Blank values read "Not set", never the word null. The photo is the same /images/ URL the edit form
+  uses - no route of its own.
+
+  Job orders reuse AdminRepairView for the status label and the cost text (money fragment, suffix and
+  placeholder, exactly as repairs/repairIndex.html does). AdminRepairView also carries the shop
+  remarks, and this page must never print them: nothing below reads `remarks`. The repairs are the
+  ones Repair History shows (RepairRecord.isVisible), the same rule as the chips on the Customers list.
+*/-->
+
+<div th:replace="~{fragments/layout-app :: sidebar(active='customers', currentUsername=${currentUsername}, currentRole=${currentRole})}"></div>
+
+<div class="main">
+    <div th:replace="~{fragments/layout-app :: topbar(currentUsername=${currentUsername}, currentRole=${currentRole}, unreadNotifications=${unreadNotifications}, recentNotifications=${recentNotifications})}"></div>
+    <div th:replace="~{fragments/layout-app :: notifDetailModal}"></div>
+
+    <main class="content">
+        <div class="cd-wrap">
+            <div class="pf-header">
+                <a class="pf-back" th:href="@{/client}"><i data-feather="chevron-left"></i>Back to customers</a>
+                <div class="cd-title-row">
+                    <div class="cd-identity">
+                        <span class="cd-avatar" th:text="${view.initials}"></span>
+                        <div>
+                            <h1 class="pf-title" th:text="${#strings.isEmpty(view.fullName) ? 'Unnamed client' : view.fullName}"></h1>
+                            <p class="pf-subtitle" th:text="${#strings.isEmpty(view.added) ? 'Date added not recorded' : 'Added ' + view.added}"></p>
+                        </div>
+                    </div>
+                    <div class="cd-actions">
+                        <a class="cd-btn" th:href="@{/client/edit/{id}(id=${view.id})}">
+                            <i data-feather="edit-2"></i>Edit
+                        </a>
+                        <a class="cd-btn cd-btn-primary" th:href="@{/repair/create(clientId=${view.id})}">
+                            <i data-feather="plus"></i>Add repair
+                        </a>
+                        <a class="cd-btn" th:href="@{/repair(clientId=${view.id})}">
+                            <i data-feather="tool"></i>View repairs
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cd-layout">
+                <section class="pf-card cd-card">
+                    <div class="pf-section">
+                        <h2>Contact details</h2>
+                        <dl class="cd-rows">
+                            <div class="cd-row">
+                                <dt>Contact number</dt>
+                                <dd th:class="${#strings.isEmpty(view.contactNumber)} ? 'cd-unset'" th:text="${#strings.isEmpty(view.contactNumber) ? 'Not set' : view.contactNumber}"></dd>
+                            </div>
+                            <div class="cd-row">
+                                <dt>Email</dt>
+                                <dd th:class="${#strings.isEmpty(view.email)} ? 'cd-unset'" th:text="${#strings.isEmpty(view.email) ? 'Not set' : view.email}"></dd>
+                            </div>
+                            <div class="cd-row">
+                                <dt>Address</dt>
+                                <dd class="cd-address" th:classappend="${#strings.isEmpty(view.address)} ? 'cd-unset'" th:text="${#strings.isEmpty(view.address) ? 'Not set' : view.address}"></dd>
+                            </div>
+                        </dl>
+                    </div>
+                    <div class="pf-section">
+                        <h2>Account</h2>
+                        <dl class="cd-rows">
+                            <div class="cd-row">
+                                <dt>Sign-in account</dt>
+                                <dd th:class="${walkIn} ? 'cd-unset'" th:text="${account}"></dd>
+                            </div>
+                        </dl>
+                    </div>
+                </section>
+
+                <section class="pf-card cd-card">
+                    <div class="pf-section">
+                        <h2>Photo or ID</h2>
+                        <th:block th:if="${photoFile != null}">
+                            <img class="cd-photo" th:src="@{/images/{imageFileName}(imageFileName=${photoFile})}"
+                                 th:alt="'Photo or ID for ' + ${#strings.isEmpty(view.fullName) ? 'this client' : view.fullName}"/>
+                        </th:block>
+                        <p th:if="${photoFile == null}" class="cd-unset cd-no-photo">No photo yet</p>
+                    </div>
+                </section>
+            </div>
+
+            <section class="pf-card cd-card cd-jobs">
+                <div class="pf-section">
+                    <h2>Job orders <span class="pf-optional" th:text="'(' + ${#lists.size(repairs)} + ')'"></span></h2>
+
+                    <p th:if="${#lists.isEmpty(repairs)}" class="cd-unset">No job orders yet.</p>
+
+                    <div th:unless="${#lists.isEmpty(repairs)}" class="cd-table-scroll">
+                        <table class="cd-table">
+                            <thead>
+                            <tr>
+                                <th scope="col">Job order</th>
+                                <th scope="col">Device</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Date</th>
+                                <th scope="col" class="cd-num">Cost</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="r : ${repairs}">
+                                <td class="cd-nowrap" th:text="${r.jobOrderNumber}"></td>
+                                <td th:text="${#strings.isEmpty(r.deviceLabel) ? 'Not set' : r.deviceLabel}"></td>
+                                <td>
+                                    <th:block th:switch="${r.status}">
+                                        <span th:case="'PENDING'" class="badge-pill badge-pending" th:text="${r.statusLabel}"></span>
+                                        <span th:case="'IN_PROGRESS'" class="badge-pill badge-in-progress" th:text="${r.statusLabel}"></span>
+                                        <span th:case="'COMPLETED'" class="badge-pill badge-completed" th:text="${r.statusLabel}"></span>
+                                        <span th:case="'RELEASED'" class="badge-pill badge-released" th:text="${r.statusLabel}"></span>
+                                        <span th:case="'CANCELLED'" class="badge-pill badge-cancelled" th:text="${r.statusLabel}"></span>
+                                        <span th:case="*" class="badge-pill badge-unknown" th:text="${#strings.isEmpty(r.statusLabel) ? 'Unknown' : r.statusLabel}"></span>
+                                    </th:block>
+                                </td>
+                                <td class="cd-nowrap" th:text="${r.date}"></td>
+                                <td class="cd-num">
+                                    <th:block th:if="${r.costAssessed}">
+                                        <span th:replace="~{fragments/money :: amount(amount=${r.cost})}"></span>
+                                        <small th:if="${!#strings.isEmpty(r.costSuffix)}" class="cd-unset" th:text="${r.costSuffix}"></small>
+                                    </th:block>
+                                    <span th:unless="${r.costAssessed}" class="cd-unset" th:text="${r.costPlaceholder}"></span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout-app :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout-app :: app-script}"></th:block>
+</body>
+</html>

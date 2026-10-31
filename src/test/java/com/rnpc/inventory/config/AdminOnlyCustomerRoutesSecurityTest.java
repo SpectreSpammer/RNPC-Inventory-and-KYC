@@ -62,6 +62,9 @@ class AdminOnlyCustomerRoutesSecurityTest {
         @GetMapping({"/client", "/client/"})
         @ResponseBody String clientList() { return "ok"; }
 
+        @GetMapping("/client/view/{id}")
+        @ResponseBody String clientView(@PathVariable Long id) { return "ok"; }
+
         @GetMapping("/client/create")
         @ResponseBody String clientCreateForm() { return "ok"; }
 
@@ -163,6 +166,11 @@ class AdminOnlyCustomerRoutesSecurityTest {
     void clientListIsAdminOnly() throws Exception {
         assertAdminOnly(() -> get("/client"));
         assertAdminOnly(() -> get("/client/"));
+    }
+
+    @Test
+    void clientDetailsPageIsAdminOnly() throws Exception {
+        assertAdminOnly(() -> get("/client/view/5"));
     }
 
     @Test

@@ -941,12 +941,11 @@ far as it fits.
 
 **`clientCreate.html` and `clientEdit.html`** (customers batch 4) are on `fragments/parts-form.html`
 too, the same shape as the laptop and cellphone forms - one "Client details" section, a Photo
-section, the shared `actions` fragment - matching `gpt/admin/Add client@1x.png` with two exceptions,
-both a deliberate trade-off of reusing the shared fragment as-is over special-casing it: the header
-fragment always renders a code badge and the literal text "Back to parts" (so does every other
-parts/laptop/cellphone form), so these get a "CLI" badge and that text rather than "Back to
-customers"; and the upload hint says PNG/JPG rather than the mockup's "PNG, JPG or WebP", since
-WebP was never actually accepted (below). `clientEdit.html` had no shell at all before this -
+section, the shared `actions` fragment - matching `gpt/admin/Add client@1x.png` with two exceptions:
+the header is written out in each template with the same `pf-*` classes rather than calling
+`parts-form :: header` (which hardcodes the text "Back to parts", and stays as it is for the other
+forms), so the link reads "Back to customers" and the "CLI" badge stays; and the upload hint says
+PNG/JPG rather than the mockup's "PNG, JPG or WebP", since WebP was never actually accepted (below). `clientEdit.html` had no shell at all before this -
 no sidebar, no topbar, a bare centered Bootstrap form.
 
 Full name and contact number are required; **email and address are optional** (`ClientDto` carries
@@ -1005,9 +1004,10 @@ browser - no query beyond the one above.
 - **Sort**: Newest added (default, by `addedEpoch` descending), Oldest, Name (A-Z, locale-aware,
   case-insensitive), Most job orders (by `jobOrderCount` descending, ties broken by newest).
 - **Pager**: 25 rows a page, the same condensed first/last/window pattern as the parts pages.
-- **The eye action** goes to `/repair?clientId={id}` - the same admin drill-down
-  `RepairRecordController.showRepairList` already serves - rather than a parts-style view modal,
-  since a client has no specs to show in one.
+- **The eye action** ("View customer") opens the customer details page, `/client/view/{id}`. The
+  old `/repair?clientId={id}` drill-down, which `RepairRecordController.showRepairList` serves, is
+  that page's "View repairs" button. The edit and delete actions are titled "Edit customer" and
+  "Delete customer".
 - **Job order cell**: at most two chips plus `"+N more"` (its `title` carries the full list) so it
   can never overflow its row; a long address is truncated to one line the same way, with the full
   text in its own `title`.
@@ -1018,6 +1018,13 @@ chips and "+N more" note, the address truncation, and letting the email wrap und
 
 Tests (context-free, run by name): `ClientViewTest`, plus `ClientServiceTest`, `ClientControllerTest`
 and `PhoneNumbersTest` from customers batch 2.
+
+**Customer details** (customers batch C1): `GET /client/view/{id}` renders `clients/clientView.html`, a
+read-only page (contact details, the photo or ID from the same `/images/` URL as the edit form, the
+linked sign-in account or "Walk-in client", and the client's job orders as `AdminRepairView` rows
+without their remarks). It is **admin-only** through the existing `/client/**` rule in
+`ADMIN_ONLY_CUSTOMER_PATHS`, so `SecurityConfig` did not change, and an unknown id is a 404 (the edit
+route still throws). Tests: `ClientControllerTest` and `ClientPagesRenderTest`.
 
 ### Walk-in tickets (`/ticket/create`)
 

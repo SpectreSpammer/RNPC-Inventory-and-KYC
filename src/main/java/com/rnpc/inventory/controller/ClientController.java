@@ -1,21 +1,25 @@
 package com.rnpc.inventory.controller;
 
 import com.rnpc.inventory.dto.ClientDto;
+import com.rnpc.inventory.dto.AdminRepairView;
 import com.rnpc.inventory.dto.ClientView;
 import com.rnpc.inventory.entity.Client;
 import com.rnpc.inventory.entity.RepairRecord;
+import com.rnpc.inventory.entity.User;
 import com.rnpc.inventory.service.ClientService;
 import com.rnpc.inventory.service.NotificationService;
 import com.rnpc.inventory.service.RepairRecordService;
 import com.rnpc.inventory.util.Redirects;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -60,6 +64,47 @@ public class ClientController {
                 .collect(Collectors.toList()));
         addShellAttributes(authentication, model);
         return "clients/clientIndex";
+    }
+
+    /**
+     * Read-only details for one client (customers batch C1). An unknown id is a 404 here only -
+     * the edit route still throws on one. The job orders are the repairs Repair History shows
+     * (RepairRecordService.getRepairRecordsByClient), as AdminRepairView rows for the status label
+     * and cost text; the template never prints their remarks.
+     */
+    @GetMapping("/view/{id}")
+    public String showClientDetails(@PathVariable("id") Long id, Authentication authentication, Model model) {
+        Client client;
+        try {
+            client = service.getClientById(id);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
+        }
+        List<RepairRecord> repairs = repairRecordService.getRepairRecordsByClient(id);
+
+        model.addAttribute("view", ClientView.from(client, repairs));
+        model.addAttribute("walkIn", client.getUser() == null);
+        model.addAttribute("account", accountLabel(client.getUser()));
+        // The same bare filename the edit form renders under /images/ - no route of its own.
+        String photo = client.getImageFileName();
+        model.addAttribute("photoFile", photo == null || photo.isBlank() ? null : photo);
+        model.addAttribute("repairs", repairs.stream().map(AdminRepairView::from).collect(Collectors.toList()));
+        addShellAttributes(authentication, model);
+        return "clients/clientView";
+    }
+
+    /** "Walk-in client" without a linked sign-in account; otherwise their email, else their username. */
+    private static String accountLabel(User user) {
+        if (user == null) {
+            return "Walk-in client";
+        }
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            return user.getEmail().trim();
+        }
+        if (user.getUsername() != null && !user.getUsername().isBlank()) {
+            return user.getUsername().trim();
+        }
+        return "Linked account";
     }
 
     @GetMapping("/create")

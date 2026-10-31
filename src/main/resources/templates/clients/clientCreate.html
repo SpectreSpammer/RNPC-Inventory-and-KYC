@@ -17,9 +17,9 @@
   noting:
 
   - The shared header fragment always renders a code badge and the literal text "Back to parts"
-    (every other parts/laptop/cellphone form does too); the mockup shows neither. Reusing the
-    fragment as-is - rather than special-casing it for one form - was chosen over editing shared
-    parts infrastructure, so this form gets a "CLI" badge and says "Back to parts" like the rest.
+    (every other parts/laptop/cellphone form does too); the mockup shows neither. Editing shared
+    parts infrastructure for one form was ruled out, so the header is written out here with the
+    same pf-* classes (as the edit form does): it reads "Back to customers" and keeps the "CLI" badge.
   - The mockup's upload hint reads "PNG, JPG or WebP"; the actual check (ClientService
     .validatePhoto, mirroring ProfilePhotoService) only accepts PNG and JPEG - WebP was never
     supported - so the hint here says what is really accepted instead of repeating the mockup.
@@ -38,7 +38,18 @@
 
     <main class="content">
         <div class="pf-wrap">
-            <div th:replace="~{fragments/parts-form :: header(code='CLI', title='Add client', subtitle='Walk-in customers logged here can be attached to tickets and orders.', backUrl=@{/client})}"></div>
+            <div class="pf-header">
+                <a class="pf-back" th:href="@{/client}">
+                    <i data-feather="chevron-left"></i>Back to customers
+                </a>
+                <div class="pf-title-row">
+                    <span class="pf-code">CLI</span>
+                    <div>
+                        <h1 class="pf-title">Add client</h1>
+                        <p class="pf-subtitle">Walk-in customers logged here can be attached to tickets and orders.</p>
+                    </div>
+                </div>
+            </div>
 
             <form action="#" th:action="@{/client/create}" th:object="${clientDto}" method="post" enctype="multipart/form-data">
                 <th:block th:if="${#fields.hasAnyErrors()}">
